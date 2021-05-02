@@ -1,0 +1,198 @@
+﻿@page "/"
+
+@if (TrieService.Exeption is not null)
+{
+    <div class="alert alert-danger">
+        @if (IsDevelopment)
+        {
+            <pre>@TrieService.Exeption.ToString()</pre>
+        }
+        else
+        { 
+            <text>An error during loading occured.</text>
+        }
+    </div>
+}
+else @if (TrieService.Index is null)
+{
+    <div class="alert alert-secondary">
+        <div class="spinner-border text-secondary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div class="mt-2">
+            @TrieService.ProgressText
+        </div>
+    </div>
+}
+else
+{
+    <form>
+        <div class="form-group">
+            <input type="text" class="form-control" placeholder="Search" @bind="SearchText" @bind:event="oninput" />
+        </div>
+    </form>
+
+    <div class="bg-light p-2 rounded-top text-secondary">
+        @($"{SearchResults.TotalCount:N0} issues")
+    </div>
+
+    <table class="table table-hover">
+        <tbody>
+            @foreach (var issue in SearchResults.GetPage(PageNumber))
+            {
+                <tr>
+                    <td>
+                        @{
+                            var isClosed = issue.State == IssuesOfDotNet.CrawledIssueState.Closed;
+                            var isPr = issue.IsPullRequest;
+                            var isDraft = issue.IsDraft;
+                            var isMerged = issue.IsMerged;
+                            var textColor = isMerged
+                                                ? "text-merged"
+                                                : isClosed
+                                                    ? "text-danger"
+                                                    : isDraft
+                                                        ? "text-secondary"
+                                                        : "text-success";
+
+                            var icon = isMerged
+                                        ? "octicon:git-merge-16"
+                                        : isPr
+                                            ? "octicon:git-pull-request-16"
+                                            : isClosed
+                                                ? "octicon:issue-closed-16"
+                                                : "octicon:issue-opened-16";
+
+                            var title = (isPr, isDraft, isMerged, isClosed) switch
+                            {
+                                (true, false, false, false) => "Open PR",
+                                (true, true, false, false) => "Open Draft PR",
+                                (true, _, true, _) => "Merged PR",
+                                (true, _, false, true) => "Closed PR",
+                                (false, _, _, false) => "Open Issue",
+                                _ => "Closed Issue"
+                            };
+                        }
+                        <span class="iconify @textColor" data-icon="@icon" data-inline="false" title="@title"></span>
+                    </td>
+                    <td class="w-100 p-2">
+                        <div>
+                            <a class="gh-issue-title" href="@issue.Url">@issue.Title</a>
+                            <span>
+                                @foreach (var label in issue.Labels)
+                                {
+                                    <span class="gh-label"
+                                          title="@label.Description"
+                                          style="background: @("#" + label.BackgroundColor); color: @label.ForegroundColor">@label.Name</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="small text-muted">
+                            @if (isMerged)
+                            {
+                                <text>@issue.Org/@issue.Repo#@issue.Number by @issue.CreatedBy was merged @issue.ClosedAt.Humanize()</text>
+                            }
+                            else if (isClosed)
+                            {
+                                <text>@issue.Org/@issue.Repo#@issue.Number by @issue.CreatedBy was closed @issue.ClosedAt.Humanize()</text>
+                            }
+                            else
+                            {
+                                <text>@issue.Org/@issue.Repo#@issue.Number opened by @issue.CreatedBy @issue.CreatedAt.Humanize()</text>
+                            }
+
+                            @if (issue.Milestone != null)
+                            {
+                                <span class="ml-2 mr-1 oi oi-signpost text-muted" aria-hidden="true"></span><span title="@issue.Milestone.Description">@issue.Milestone.Title</span>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (SearchResults.PageCount > 1)
+    {
+        <ul class="pagination justify-content-center">
+            @{
+                var previousDisabled = PageNumber > 1 ? "" : "disabled";
+                var nextDisabled = PageNumber < SearchResults.PageCount ? "" : "disabled";
+                var pageIndex = PageNumber - 1;
+                var lastPageIndex = SearchResults.PageCount - 1;
+
+                var middle = new Range(Math.Max(0, pageIndex - 2),
+                                       Math.Min(lastPageIndex, pageIndex + 3));
+
+                if (middle.Start.Value < 4)
+                    middle = new Range(0, middle.End);
+
+                if (middle.End.Value - 1 > lastPageIndex - 4)
+                    middle = new Range(middle.Start, lastPageIndex + 1);
+
+                if (middle.GetOffsetAndLength(lastPageIndex + 1).Length < 5)
+                {
+                    if (middle.Start.Value == 0)
+                        middle = new Range(0, Math.Min(4, lastPageIndex) + 1);
+                    else
+                        middle = new Range(Math.Max(lastPageIndex - 4, 0), lastPageIndex + 1);
+                }
+
+                var left = middle.Start.Value == 0
+                    ? new Range(0, 0)
+                    : new Range(0, 2);
+
+                var right = middle.End.Value - 1 == lastPageIndex
+                    ? new Range(lastPageIndex, 0)
+                    : new Range(lastPageIndex - 1, lastPageIndex + 1);
+
+                <li class="page-item @previousDisabled">
+                    <a class="page-link" href="#" tabindex="-1" @onclick:preventDefault @onclick="() => PageNumber--">Previous</a>
+                </li>
+
+                for (var i = left.Start.Value; i < left.End.Value; i++)
+                {
+                    var pageNumber = i + 1;
+                    <li class="page-item">
+                        <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
+                    </li>
+                }
+
+                if (left.End.Value < middle.Start.Value)
+                {
+                    <li class="page-item">
+                        <a class="page-link disabled">...</a>
+                    </li>
+                }
+
+                for (var i = middle.Start.Value; i < middle.End.Value; i++)
+                {
+                    var pageNumber = i + 1;
+                    var active = pageNumber == PageNumber ? "active" : "";
+                    <li class="page-item @active">
+                        <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
+                    </li>
+                }
+
+                if (middle.End.Value < right.Start.Value)
+                {
+                    <li class="page-item">
+                        <a class="page-link disabled">...</a>
+                    </li>
+                }
+
+                for (var i = right.Start.Value; i < right.End.Value; i++)
+                {
+                    var pageNumber = i + 1;
+                    <li class="page-item">
+                        <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
+                    </li>
+                }
+
+                <li class="page-item @nextDisabled">
+                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber++">Next</a>
+                </li>
+            }
+        </ul>
+    }
+}

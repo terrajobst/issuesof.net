@@ -1,0 +1,31 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get code
+      uses: actions/checkout@v2
+
+    # Publishing
+
+    - name: dotnet publish
+      run: |
+        cd src/issuesof.net
+        dotnet publish -c Release -o '../../artifacts/issuesof.net'
+        cd ../..
+
+    # Deploy to Azure
+
+    - name: webapps-deploy
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: issuesofdotnet
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }}
+        package: ./artifacts/issuesof.net
+

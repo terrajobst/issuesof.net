@@ -1,0 +1,51 @@
+﻿@page "/stats"
+@using Humanizer.Bytes 
+
+@if (IsDevelopment)
+{
+    <div class="alert alert-info">
+        <dl>
+            <dt>#Trie nodes</dt>
+            <dd>@NumberOfTrieNodes.ToString("N0")</dd>
+
+            <dt>#String bytes in trie</dt>
+            <dd>@(new ByteSize(NumberOfTrieStringBytes).ToString("G"))</dd>
+
+            <dt>#Bytes in trie</dt>
+            <dd>@(new ByteSize(NumberOfTrieBytes).ToString("G"))</dd>
+        </dl>    
+    </div>
+}
+
+<div class="bg-light p-2 rounded-top text-secondary">
+    @{
+        var stats = TrieService.IndexStats;
+        var orgCount = stats.Select(r => r.Org).Distinct().Count();
+        var repoCount = stats.Count;
+        var issueCount = stats.Select(s => s.NumberOfIssues).DefaultIfEmpty().Sum();
+        var lastUpdated = stats.Select(s => s.LastUpdatedAt).Where(d => d != null).DefaultIfEmpty().Max();
+    }
+    @($"{issueCount:N0} issues across {orgCount} orgs and {repoCount} repos, updated {lastUpdated.Humanize()}")
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Org</th>
+            <th>Repo</th>
+            <th>Last Updated</th>
+            <th class="text-right">#Issues</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in TrieService.IndexStats)
+        {
+            <tr>
+                <td><a href="https://github.com/@item.Org">@item.Org</a></td>
+                <td><a href="https://github.com/@item.Org/@item.Repo">@item.Repo</a></td>
+                <td>@item.LastUpdatedAt.Humanize()</td>
+                <td class="text-right">@item.NumberOfIssues.ToString("N0")</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get code
+      uses: actions/checkout@v2
+
+    - name: dotnet build
+      run: |
+        cd src/issuesof.net
+        dotnet build -c Release -o '../../artifacts/issuesof.net'
+        cd ../..
