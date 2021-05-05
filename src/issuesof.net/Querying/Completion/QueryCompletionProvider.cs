@@ -5,6 +5,8 @@ namespace IssuesOfDotNet.Querying
 {
     public abstract class QueryCompletionProvider
     {
+        public static QueryCompletionProvider Empty { get; } = new EmptyQueryCompletionProvider();
+
         public QueryCompletionResult Complete(ExpressionSyntax node, int position)
         {
             if (node is TextExpressionSyntax text)
@@ -49,5 +51,9 @@ namespace IssuesOfDotNet.Querying
         public virtual IEnumerable<string> GetCompletionForKeyValue(string key, string value) => Array.Empty<string>();
         
         public virtual IEnumerable<string> GetCompletionsForText(string text) => Array.Empty<string>();
+
+        private sealed class EmptyQueryCompletionProvider : QueryCompletionProvider
+        {
+        }
     }
 }
