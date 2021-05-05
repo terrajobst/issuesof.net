@@ -26,7 +26,7 @@ namespace IssuesOfDotNet.Pages
         public NavigationManager NavigationManager { get; set; }
 
         [Inject]
-        public CrawledIndexService TrieService { get; set; }
+        public IndexService TrieService { get; set; }
 
         [Inject]
         public IWebHostEnvironment Environment { get; set; }

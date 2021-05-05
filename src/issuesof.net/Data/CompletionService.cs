@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace IssuesOfDotNet.Data
 {
-    public sealed class QueryCompletionProviderService : IDisposable
+    public sealed class CompletionService : IDisposable
     {
-        private readonly ILogger<QueryCompletionProviderService> _logger;
-        private readonly CrawledIndexService _indexService;
+        private readonly ILogger<CompletionService> _logger;
+        private readonly IndexService _indexService;
         private CrawledIndexCompletionProvider _provider;
 
-        public QueryCompletionProviderService(ILogger<QueryCompletionProviderService> logger,
-                                              CrawledIndexService indexService)
+        public CompletionService(ILogger<CompletionService> logger,
+                                 IndexService indexService)
         {
             _logger = logger;
             _indexService = indexService;

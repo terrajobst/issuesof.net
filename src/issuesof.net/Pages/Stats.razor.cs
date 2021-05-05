@@ -9,7 +9,7 @@ namespace IssuesOfDotNet.Pages
     public sealed partial class Stats
     {
         [Inject]
-        public CrawledIndexService TrieService { get; set; }
+        public IndexService TrieService { get; set; }
 
         [Inject]
         public IWebHostEnvironment Environment { get; set; }

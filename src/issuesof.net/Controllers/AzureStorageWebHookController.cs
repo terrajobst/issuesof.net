@@ -19,10 +19,10 @@ namespace IssuesOfDotNet.Controllers
     public class AzureStorageWebHookController : Controller
     {
         private readonly ILogger<AzureStorageWebHookController> _logger;
-        private readonly CrawledIndexService _indexService;
+        private readonly IndexService _indexService;
 
         public AzureStorageWebHookController(ILogger<AzureStorageWebHookController> logger,
-                                             CrawledIndexService indexService)
+                                             IndexService indexService)
         {
             _logger = logger;
             _indexService = indexService;

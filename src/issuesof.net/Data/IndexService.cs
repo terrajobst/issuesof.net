@@ -14,13 +14,13 @@ using Microsoft.Extensions.Logging;
 
 namespace IssuesOfDotNet.Data
 {
-    public sealed class CrawledIndexService
+    public sealed class IndexService
     {
-        private readonly ILogger<CrawledIndexService> _logger;
+        private readonly ILogger<IndexService> _logger;
         private readonly IConfiguration _configuration;
         private string _progress;
 
-        public CrawledIndexService(ILogger<CrawledIndexService> logger, IConfiguration configuration)
+        public IndexService(ILogger<IndexService> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;

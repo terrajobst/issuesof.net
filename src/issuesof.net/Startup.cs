@@ -24,8 +24,8 @@ namespace IssuesOfDotNet
             services.AddApplicationInsightsTelemetry(Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<CrawledIndexService>();
-            services.AddSingleton<QueryCompletionProviderService>();
+            services.AddSingleton<IndexService>();
+            services.AddSingleton<CompletionService>();
 
             // TODO: Remove
             services.AddCors();
@@ -35,8 +35,8 @@ namespace IssuesOfDotNet
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // Warm up key services
-            app.ApplicationServices.GetService<CrawledIndexService>();
-            app.ApplicationServices.GetService<QueryCompletionProviderService>();
+            app.ApplicationServices.GetService<IndexService>();
+            app.ApplicationServices.GetService<CompletionService>();
 
             if (env.IsDevelopment())
             {
