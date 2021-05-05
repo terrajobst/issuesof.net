@@ -24,8 +24,8 @@ namespace IssuesOfDotNet
             services.AddApplicationInsightsTelemetry(Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddHostedService<CrawledIndexServiceWarmUp>();
             services.AddSingleton<CrawledIndexService>();
+            services.AddSingleton<QueryCompletionProviderService>();
 
             // TODO: Remove
             services.AddCors();
@@ -34,6 +34,10 @@ namespace IssuesOfDotNet
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Warm up key services
+            app.ApplicationServices.GetService<CrawledIndexService>();
+            app.ApplicationServices.GetService<QueryCompletionProviderService>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

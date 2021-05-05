@@ -11,18 +11,18 @@ namespace IssuesOfDotNet.Controllers
     [Route("/api/[controller]")]
     public class CompletionController : Controller
     {
-        private readonly CrawledIndexCompletionService _completionService;
+        private readonly QueryCompletionProviderService _providerService;
 
-        public CompletionController(CrawledIndexCompletionService completionService)
+        public CompletionController(QueryCompletionProviderService providerService)
         {
-            _completionService = completionService;
+            _providerService = providerService;
         }
 
         [HttpGet]
         public CompletionResponse GetCompletions(string q, int pos)
         {
             var syntax = QuerySyntax.Parse(q);
-            var result = _completionService.Provider.Complete(syntax, pos);
+            var result = _providerService.Provider.Complete(syntax, pos);
 
             if (result is null)
                 return null;
