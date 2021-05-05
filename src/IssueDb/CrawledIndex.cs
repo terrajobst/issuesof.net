@@ -346,7 +346,7 @@ namespace IssuesOfDotNet
                                             Dictionary<int, CrawledIssue> issueIndex)
             {
                 var text = stringIndex[reader.ReadInt32()];
-               
+
                 var issueCount = reader.ReadInt32();
                 var issues = new List<CrawledIssue>(issueCount);
                 while (issueCount-- > 0)

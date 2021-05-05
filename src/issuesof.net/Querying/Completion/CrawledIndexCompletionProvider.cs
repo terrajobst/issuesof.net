@@ -43,7 +43,7 @@ namespace IssuesOfDotNet.Querying
 
             _milestones = new SortedSet<string>(
                 index.Repos.SelectMany(r => r.Milestones)
-                           .Select(m=> m.Title),
+                           .Select(m => m.Title),
                 StringComparer.OrdinalIgnoreCase
             ).ToArray();
         }

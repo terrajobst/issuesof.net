@@ -49,7 +49,7 @@ namespace IssuesOfDotNet.Querying
         }
 
         public virtual IEnumerable<string> GetCompletionForKeyValue(string key, string value) => Array.Empty<string>();
-        
+
         public virtual IEnumerable<string> GetCompletionsForText(string text) => Array.Empty<string>();
 
         private sealed class EmptyQueryCompletionProvider : QueryCompletionProvider

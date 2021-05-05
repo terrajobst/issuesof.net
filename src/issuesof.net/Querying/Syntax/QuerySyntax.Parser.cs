@@ -54,7 +54,7 @@ namespace IssuesOfDotNet.Querying
 
             public QuerySyntax Parse()
             {
-            Again:
+Again:
                 var result = ParseExpression();
                 if (Current.Kind != QuerySyntaxKind.EndOfFile)
                 {

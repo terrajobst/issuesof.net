@@ -278,7 +278,7 @@ namespace IssuesOfDotNet.Crawler
             {
                 SortProperty = PullRequestSort.Updated,
                 SortDirection = SortDirection.Descending,
-                State = ItemStateFilter.All,                
+                State = ItemStateFilter.All,
             };
 
             var result = new List<PullRequest>();

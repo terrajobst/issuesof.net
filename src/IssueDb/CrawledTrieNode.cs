@@ -59,7 +59,7 @@ namespace IssuesOfDotNet
             _issues?.Remove(issue);
         }
 
-        public IReadOnlyList<CrawledTrieNode> Children => (IReadOnlyList<CrawledTrieNode>) _children ?? Array.Empty<CrawledTrieNode>();
+        public IReadOnlyList<CrawledTrieNode> Children => (IReadOnlyList<CrawledTrieNode>)_children ?? Array.Empty<CrawledTrieNode>();
 
         public IReadOnlyList<CrawledIssue> Issues => (IReadOnlyList<CrawledIssue>)_issues ?? Array.Empty<CrawledIssue>();
     }

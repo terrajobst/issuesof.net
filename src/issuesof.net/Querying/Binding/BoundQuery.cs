@@ -156,7 +156,7 @@ namespace IssuesOfDotNet.Querying
             using var stringWriter = new StringWriter();
             {
                 using var indentedTextWriter = new IndentedTextWriter(stringWriter);
-                    Walk(indentedTextWriter, this);
+                Walk(indentedTextWriter, this);
 
                 return stringWriter.ToString();
             }
