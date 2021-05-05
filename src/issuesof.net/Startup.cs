@@ -26,6 +26,9 @@ namespace IssuesOfDotNet
             services.AddServerSideBlazor();
             services.AddHostedService<CrawledIndexServiceWarmUp>();
             services.AddSingleton<CrawledIndexService>();
+
+            // TODO: Remove
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,6 +46,16 @@ namespace IssuesOfDotNet
             }
 
             app.UseHttpsRedirection();
+
+            // TODO: Remove
+            app.UseCors(builder =>
+            {
+                builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+            });
+
             app.UseStaticFiles();
 
             app.UseRouting();

@@ -13,7 +13,26 @@
     <title>Issues of .NET</title>
     <base href="~/" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/codemirror/codemirror.min.css">
+    <link rel="stylesheet" href="~/lib/codemirror/addon/hint/show-hint.min.css">
+    <link rel="stylesheet" href="css/site.css" />
+
+    <style>
+        .query-editor .CodeMirror {
+            max-height: 2em;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+
+            .query-editor .CodeMirror:focus-within {
+                color: #495057;
+                background-color: #fff;
+                border-color: #80bdff;
+                outline: 0;
+                box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+            }
+    </style>
 </head>
 <body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
@@ -37,6 +56,93 @@
             @* Don't use pushState, because we don't need to record a history entry. *@
             history.replaceState(null, "", url);
         };
+        window.registerPage = function (dotNetObjRef) {
+            window.invokeSearch = function (text) {
+                dotNetObjRef.invokeMethodAsync('Search', text);
+            }
+        }
+    </script>
+    <script src="~/lib/codemirror/codemirror.min.js"></script>
+    <script src="~/lib/codemirror/addon/hint/show-hint.min.js"></script>
+    <script>
+        var observer = new MutationObserver(function (mutations, observer) {
+            var codeMirror = document.querySelector('.CodeMirror');
+            var myTextarea = document.querySelector('#myTextarea');
+            if (!codeMirror && myTextarea) {
+                function getCompletions(cm, option) {
+                    var url = "api/completion"
+                    var cursor = cm.getCursor();
+                    var line = cm.getLine(cursor.line);
+
+                    return fetch(url + '?q=' + escape(line) + '&pos=' + cursor.ch, {
+                        method: 'get',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }).then(response => response.json()
+                    ).then(json => {
+                        json.from = CodeMirror.Pos(cursor.line, json.from);
+                        json.to = CodeMirror.Pos(cursor.line, json.to);
+                        return json;
+                    });
+                }
+                var editor = CodeMirror.fromTextArea(myTextarea, {
+                    lineNumbers: false,
+                    tabSize: 2,
+                    mode: 'javascript',
+                    autofocus: true,
+                    theme: 'default',
+                    extraKeys: {
+                        "Ctrl-Space": "autocomplete",
+                        "':'": function (cm) {
+                            var curretCursorPosition = cm.getCursor();
+                            cm.replaceRange(':', curretCursorPosition);
+                            CodeMirror.commands.autocomplete(cm);
+                        }
+                    },
+                    hintOptions: {
+                        hint: getCompletions,
+                        extraKeys: {
+                            "Tab": function (cm, n) { n.pick() },
+                            "Space": function (cm, n) {
+                                n.pick()
+                                var curretCursorPosition = cm.getCursor();
+                                cm.replaceRange(' ', curretCursorPosition);
+                            }
+                        }
+                    },
+                    scrollbarStyle: 'null'
+                });
+                editor.on("change", function (cm, changeObj) {
+                    invokeSearch(cm.getValue());
+                });
+                editor.on("beforeChange", function (cm, changeObj) {
+                    var typedNewLine = changeObj.origin == '+input' &&
+                        typeof changeObj.text == "object" &&
+                        changeObj.text.join("") == "";
+
+                    if (typedNewLine) {
+                        return changeObj.cancel();
+                    }
+
+                    var pastedNewLine = changeObj.origin == 'paste' &&
+                        typeof changeObj.text == "object" &&
+                        changeObj.text.length > 1;
+
+                    if (pastedNewLine) {
+                        var newText = changeObj.text.join(" ");
+                        return changeObj.update(null, null, [newText]);
+                    }
+
+                    return null;
+                });
+            }
+        });
+        observer.observe(document, {
+            subtree: true,
+            childList: true,
+            attributes: true
+        });
     </script>
 </body>
 </html>

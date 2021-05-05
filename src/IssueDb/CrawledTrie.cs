@@ -145,6 +145,18 @@ namespace IssuesOfDotNet
             return new CrawledTrieLookupResult(issues);
         }
 
+        public IEnumerable<CrawledIssue> LookupIssuesForTerm(string term)
+        {
+            if (Skip(term))
+                return Enumerable.Empty<CrawledIssue>();
+
+            var node = LookupNode(term);
+            if (node is null)
+                return Enumerable.Empty<CrawledIssue>();
+
+            return node.Issues;
+        }
+
         private IReadOnlyCollection<CrawledIssue> LookupIssues(IEnumerable<string> terms)
         {
             var result = (HashSet<CrawledIssue>)null;

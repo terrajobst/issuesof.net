@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "codemirror@5.61.0",
+      "destination": "wwwroot/lib/codemirror/",
+      "files": [
+        "codemirror.min.css",
+        "codemirror.min.js",
+        "addon/hint/show-hint.min.css",
+        "addon/hint/show-hint.min.js"
+      ]
+    }
+  ]
+}
