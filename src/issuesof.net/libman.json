@@ -9,7 +9,8 @@
         "codemirror.min.css",
         "codemirror.min.js",
         "addon/hint/show-hint.min.css",
-        "addon/hint/show-hint.min.js"
+        "addon/hint/show-hint.min.js",
+        "addon/mode/simple.min.js"
       ]
     }
   ]

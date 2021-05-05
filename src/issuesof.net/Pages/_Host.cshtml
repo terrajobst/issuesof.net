@@ -64,7 +64,33 @@
     </script>
     <script src="~/lib/codemirror/codemirror.min.js"></script>
     <script src="~/lib/codemirror/addon/hint/show-hint.min.js"></script>
+    <script src="~/lib/codemirror/addon/mode/simple.min.js"></script>
     <script>
+        CodeMirror.defineSimpleMode("github-query", {
+            start: [
+                {
+                    regex: /"(?:[^\\]|\\.)*?(?:"|$)/,
+                    token: "string"
+                },
+                {
+                    regex: /(?:assignee|author|is|label|milestone|no|org|repo)\b/,
+                    token: "keyword"
+                },
+                {
+                    regex: /closed|issue|open|merged|pr/,
+                    token: "atom"
+                },
+                {
+                    regex: /\:|or|not|-/,
+                    token: "operator"
+                },
+                {
+                    regex: /[a-z0-9$][\w$]*/,
+                    token: "string"
+                },
+            ]
+        });
+
         var observer = new MutationObserver(function (mutations, observer) {
             var codeMirror = document.querySelector('.CodeMirror');
             var myTextarea = document.querySelector('#myTextarea');
@@ -89,7 +115,7 @@
                 var editor = CodeMirror.fromTextArea(myTextarea, {
                     lineNumbers: false,
                     tabSize: 2,
-                    mode: 'javascript',
+                    mode: 'github-query',
                     autofocus: true,
                     theme: 'default',
                     value: myTextarea.value,
@@ -115,7 +141,8 @@
                     scrollbarStyle: 'null'
                 });
                 editor.on("change", function (cm, changeObj) {
-                    invokeSearch(cm.getValue());
+                    if (typeof invokeSearch == 'function')
+                        invokeSearch(cm.getValue());
                 });
                 editor.on("beforeChange", function (cm, changeObj) {
                     var typedNewLine = changeObj.origin == '+input' &&

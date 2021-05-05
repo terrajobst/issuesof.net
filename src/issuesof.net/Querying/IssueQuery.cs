@@ -80,10 +80,10 @@ namespace IssuesOfDotNet.Querying
                     result.IsMerged = !expression.IsNegated;
                     break;
 
-                case ("no", "assignees"):
+                case ("no", "assignee"):
                     result.NoAssignees = !expression.IsNegated;
                     break;
-                case ("no", "labels"):
+                case ("no", "label"):
                     result.NoLabels = !expression.IsNegated;
                     break;
                 case ("no", "milestone"):
