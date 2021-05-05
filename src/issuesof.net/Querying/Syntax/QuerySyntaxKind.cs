@@ -12,11 +12,11 @@
         NotKeyword,
         QuotedTextToken,
         WhitespaceToken,
-        TextExpression,
-        KeyValueExpression,
-        OrExpression,
-        AndExpression,
-        NegatedExpression,
-        ParenthesizedExpression,
+        TextQuery,
+        KeyValueQuery,
+        OrQuery,
+        AndQuery,
+        NegatedQuery,
+        ParenthesizedQuery,
     }
 }

@@ -7,15 +7,15 @@ namespace IssuesOfDotNet.Querying
     {
         public static QueryCompletionProvider Empty { get; } = new EmptyQueryCompletionProvider();
 
-        public QueryCompletionResult Complete(ExpressionSyntax node, int position)
+        public QueryCompletionResult Complete(QuerySyntax node, int position)
         {
-            if (node is TextExpressionSyntax text)
+            if (node is TextQuerySyntax text)
             {
                 var completions = GetCompletionsForText(text.TextToken.Value);
                 return new QueryCompletionResult(completions, text.TextToken.Span);
             }
 
-            if (node is KeyValueExpressionSyntax keyValue)
+            if (node is KeyValueQuerySyntax keyValue)
             {
                 if (position < keyValue.ColonToken.Span.End)
                     return null;
@@ -38,7 +38,7 @@ namespace IssuesOfDotNet.Querying
 
                 if (start <= position && position < end)
                 {
-                    if (child is ExpressionSyntax expression)
+                    if (child is QuerySyntax expression)
                         return Complete(expression, position);
                     else
                         return null;

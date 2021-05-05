@@ -1,8 +1,8 @@
 ﻿namespace IssuesOfDotNet.Querying
 {
-    public sealed class BoundTextExpression : BoundExpression
+    public sealed class BoundTextQuery : BoundQuery
     {
-        public BoundTextExpression(bool isNegated, string text)
+        public BoundTextQuery(bool isNegated, string text)
         {
             IsNegated = isNegated;
             Text = text;

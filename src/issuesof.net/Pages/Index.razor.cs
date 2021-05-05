@@ -14,7 +14,7 @@ namespace IssuesOfDotNet.Pages
 {
     public sealed partial class Index : IDisposable
     {
-        private static string _defaultSearch = "is:issue is:open";
+        private static readonly string _defaultSearch = "is:issue is:open";
 
         private string _searchText;
         private int _pageNumber;
@@ -130,7 +130,7 @@ namespace IssuesOfDotNet.Pages
 
         private CrawledTrieLookupResult Find(string searchText)
         {
-            var query = CrawledIssueQuery.Create(searchText);
+            var query = IssueQuery.Create(searchText);
             var issues = query.Execute(TrieService.Index);
             return new CrawledTrieLookupResult(issues);
         }

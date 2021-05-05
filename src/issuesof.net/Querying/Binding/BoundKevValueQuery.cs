@@ -1,8 +1,8 @@
 ﻿namespace IssuesOfDotNet.Querying
 {
-    public sealed class BoundKevValueExpression : BoundExpression
+    public sealed class BoundKevValueQuery : BoundQuery
     {
-        public BoundKevValueExpression(bool isNegated, string key, string value)
+        public BoundKevValueQuery(bool isNegated, string key, string value)
         {
             IsNegated = isNegated;
             Key = key;

@@ -1,13 +1,13 @@
 ﻿namespace IssuesOfDotNet.Querying
 {
-    public sealed class TextExpressionSyntax : ExpressionSyntax
+    public sealed class TextQuerySyntax : QuerySyntax
     {
-        public TextExpressionSyntax(QueryToken textToken)
+        public TextQuerySyntax(QueryToken textToken)
         {
             TextToken = textToken;
         }
 
-        public override QuerySyntaxKind Kind => QuerySyntaxKind.TextExpression;
+        public override QuerySyntaxKind Kind => QuerySyntaxKind.TextQuery;
         public override TextSpan Span => TextToken.Span;
         public QueryToken TextToken { get; }
 

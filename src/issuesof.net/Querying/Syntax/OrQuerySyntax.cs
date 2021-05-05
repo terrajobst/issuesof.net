@@ -1,19 +1,19 @@
 ﻿namespace IssuesOfDotNet.Querying
 {
-    public sealed class OrExpressionSyntax : ExpressionSyntax
+    public sealed class OrQuerySyntax : QuerySyntax
     {
-        public OrExpressionSyntax(ExpressionSyntax left, QueryToken operatorToken, ExpressionSyntax right)
+        public OrQuerySyntax(QuerySyntax left, QueryToken operatorToken, QuerySyntax right)
         {
             Left = left;
             OperatorToken = operatorToken;
             Right = right;
         }
 
-        public override QuerySyntaxKind Kind => QuerySyntaxKind.OrExpression;
+        public override QuerySyntaxKind Kind => QuerySyntaxKind.OrQuery;
         public override TextSpan Span => TextSpan.FromBounds(Left.Span.Start, Right.Span.End);
-        public ExpressionSyntax Left { get; }
+        public QuerySyntax Left { get; }
         public QueryToken OperatorToken { get; }
-        public ExpressionSyntax Right { get; }
+        public QuerySyntax Right { get; }
 
         public override QueryNodeOrToken[] GetChildren()
         {

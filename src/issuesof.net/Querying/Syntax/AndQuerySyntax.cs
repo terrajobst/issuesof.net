@@ -1,17 +1,17 @@
 ﻿namespace IssuesOfDotNet.Querying
 {
-    public sealed class AndExpressionSyntax : ExpressionSyntax
+    public sealed class AndQuerySyntax : QuerySyntax
     {
-        public AndExpressionSyntax(ExpressionSyntax left, ExpressionSyntax right)
+        public AndQuerySyntax(QuerySyntax left, QuerySyntax right)
         {
             Left = left;
             Right = right;
         }
 
-        public override QuerySyntaxKind Kind => QuerySyntaxKind.AndExpression;
+        public override QuerySyntaxKind Kind => QuerySyntaxKind.AndQuery;
         public override TextSpan Span => TextSpan.FromBounds(Left.Span.Start, Right.Span.End);
-        public ExpressionSyntax Left { get; }
-        public ExpressionSyntax Right { get; }
+        public QuerySyntax Left { get; }
+        public QuerySyntax Right { get; }
 
         public override QueryNodeOrToken[] GetChildren()
         {
