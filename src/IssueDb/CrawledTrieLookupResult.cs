@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace IssuesOfDotNet
 {
+    // TODO: Should this be a struct? It just wraps an array.
     public sealed class CrawledTrieLookupResult
     {
         public static CrawledTrieLookupResult Empty => new(Array.Empty<CrawledIssue>());
@@ -13,6 +14,8 @@ namespace IssuesOfDotNet
 
         public CrawledTrieLookupResult(IEnumerable<CrawledIssue> issues)
         {
+            // TODO: We should probably ToArray first and then sort
+            // the array with a singleton comparer.
             _issues = issues.OrderByDescending(i => i.UpdatedAt ?? i.CreatedAt).ToArray();
         }
 
