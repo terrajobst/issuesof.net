@@ -161,8 +161,8 @@ namespace IssuesOfDotNet.Querying
                 }
                 else
                 {
-                    stack.Push(and.Left);
                     stack.Push(and.Right);
+                    stack.Push(and.Left);
                 }
             }
 
@@ -184,8 +184,8 @@ namespace IssuesOfDotNet.Querying
                 }
                 else
                 {
-                    stack.Push(or.Left);
                     stack.Push(or.Right);
+                    stack.Push(or.Left);
                 }
             }
 
