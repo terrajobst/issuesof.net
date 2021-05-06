@@ -36,7 +36,7 @@ namespace IssuesOfDotNet.Querying
                 var start = child.Span.Start;
                 var end = nextChild == null ? int.MaxValue : nextChild.Span.Start;
 
-                if (start <= position && position < end)
+                if (start <= position && position <= end)
                 {
                     if (child is QuerySyntax expression)
                         return Complete(expression, position);
