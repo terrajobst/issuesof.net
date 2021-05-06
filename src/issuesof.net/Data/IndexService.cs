@@ -37,6 +37,8 @@ namespace IssuesOfDotNet.Data
             {
                 try
                 {
+                    _logger.LogInformation("Loading index");
+
                     var azureConnectionString = _configuration["AzureStorageConnectionString"];
                     var binDirectory = Path.GetDirectoryName(GetType().Assembly.Location);
                     var indexName = "index.cicache";

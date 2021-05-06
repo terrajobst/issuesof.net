@@ -35,7 +35,7 @@ namespace IssuesOfDotNet.Controllers
 
             if (contentType.MediaType != MediaTypeNames.Application.Json)
             {
-                _logger.LogError($"Received invalid content type {contentType.MediaType}");
+                _logger.LogError("Received invalid content type {0}", contentType.MediaType);
                 return BadRequest();
             }
 
@@ -45,9 +45,12 @@ namespace IssuesOfDotNet.Controllers
 
             if (json.Contains("index.cicache"))
             {
+                _logger.LogInformation("Received request to update index");
                 _indexService.Reload();
                 return Ok();
             }
+
+            _logger.LogInformation("Received non-index related request with payload {0}", json);
 
             // OK, check for event subscription request
 
@@ -59,7 +62,9 @@ namespace IssuesOfDotNet.Controllers
                     payloads[0].data is not null &&
                     !string.IsNullOrEmpty(payloads[0].data.validationCode))
                 {
-                    return Ok($"{{ \"validationResponse\": \"{payloads[0].data.validationCode}\" }}");
+                    var validationCode = payloads[0].data.validationCode;
+                    _logger.LogInformation("Received subscription confirmation request with code {0}", validationCode);
+                    return Ok($"{{ \"validationResponse\": \"{validationCode}\" }}");
                 }
             }
             catch (Exception ex)
@@ -67,9 +72,7 @@ namespace IssuesOfDotNet.Controllers
                 _logger.LogError(ex, $"Couldn't parse payload: {json}");
             }
 
-            _logger.LogError($"Received payload I didn't care about: {json}");
             return BadRequest();
-
         }
 
         public class Payload
