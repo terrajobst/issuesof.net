@@ -121,7 +121,7 @@ namespace IssuesOfDotNet.Pages
         private async void ChangeUrl()
         {
             var isDefaultQuery = (string.IsNullOrEmpty(_searchText) ||
-                                  _searchText != _defaultSearch) &&
+                                  _searchText.Trim() == _defaultSearch) &&
                                   PageNumber <= 1;
 
             if (isDefaultQuery)
