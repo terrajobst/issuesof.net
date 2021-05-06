@@ -120,16 +120,21 @@ namespace IssuesOfDotNet.Pages
 
         private async void ChangeUrl()
         {
-            var queryString = !string.IsNullOrEmpty(_searchText) && _searchText != _defaultSearch
-                ? "?q=" + _searchText
-                : string.Empty;
+            var isDefaultQuery = (string.IsNullOrEmpty(_searchText) ||
+                                  _searchText != _defaultSearch) &&
+                                  PageNumber <= 1;
 
-            if (queryString.Length > 0 && PageNumber > 1)
-                queryString += "&page=" + PageNumber;
+            if (isDefaultQuery)
+                return;                    
+
+            var query = $"?q={Uri.EscapeDataString(_searchText)}";
+
+            if (query.Length > 0 && PageNumber > 1)
+                query += $"&page={PageNumber}";
 
             var uri = new UriBuilder(NavigationManager.Uri)
             {
-                Query = queryString
+                Query = query
             }.ToString();
 
             await JSRuntime.InvokeAsync<object>("changeUrl", uri);
