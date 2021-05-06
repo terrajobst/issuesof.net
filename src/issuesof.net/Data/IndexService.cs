@@ -9,7 +9,9 @@ using Azure.Storage.Blobs;
 
 using IssuesOfDotNet.net.Data;
 
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace IssuesOfDotNet.Data
@@ -18,12 +20,16 @@ namespace IssuesOfDotNet.Data
     {
         private readonly ILogger<IndexService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
         private string _progress;
 
-        public IndexService(ILogger<IndexService> logger, IConfiguration configuration)
+        public IndexService(ILogger<IndexService> logger,
+                            IConfiguration configuration,
+                            IWebHostEnvironment environment)
         {
             _logger = logger;
             _configuration = configuration;
+            _environment = environment;
             Reload();
         }
 
@@ -44,7 +50,7 @@ namespace IssuesOfDotNet.Data
                     var indexName = "index.cicache";
                     var indexFile = Path.Combine(binDirectory, indexName);
 
-                    if (!File.Exists(indexFile))
+                    if (!_environment.IsDevelopment() || !File.Exists(indexFile))
                     {
                         ProgressText = $"Downloading index...";
                         var blobClient = new BlobClient(azureConnectionString, "index", indexName);
