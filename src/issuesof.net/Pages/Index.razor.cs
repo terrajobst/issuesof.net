@@ -33,19 +33,6 @@ namespace IssuesOfDotNet.Pages
 
         public bool IsDevelopment => Environment.IsDevelopment();
 
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                if (_searchText != value)
-                {
-                    _searchText = value;
-                    Search();
-                }
-            }
-        }
-
         public int PageNumber
         {
             get => _pageNumber;
@@ -54,7 +41,7 @@ namespace IssuesOfDotNet.Pages
                 if (_pageNumber != value)
                 {
                     _pageNumber = value;
-                    UpdateQueryParameters();
+                    ChangeUrl();
                 }
             }
         }
@@ -88,7 +75,6 @@ namespace IssuesOfDotNet.Pages
             InvokeAsync(() =>
             {
                 ApplyQueryParameters();
-                StateHasChanged();
             });
         }
 
@@ -97,48 +83,45 @@ namespace IssuesOfDotNet.Pages
             var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
             var parameters = QueryHelpers.ParseQuery(uri.Query);
 
-            _searchText = null;
-
             if (parameters.TryGetValue("q", out var q))
-                SearchText = q;
+                _searchText = q;
             else
-                SearchText = _defaultSearch;
-
-            _pageNumber = -1;
+                _searchText = _defaultSearch;
 
             if (parameters.TryGetValue("page", out var pageText) && int.TryParse(pageText, out var page))
-                PageNumber = page;
+                _pageNumber = page;
             else
-                PageNumber = 0;
-        }
+                _pageNumber = 0;
 
-        private void Search()
-        {
-            if (TrieService.Index is null)
-                return;
-
-            SearchResults = Find(SearchText);
-            PageNumber = 1;
-            UpdateQueryParameters();
+            SearchResults = Find(_searchText);
+            StateHasChanged();
         }
 
         [JSInvokable]
         public void Search(string searchText)
         {
-            SearchText = searchText;
+            SearchResults = Find(searchText);
+            PageNumber = 1;
+            ChangeUrl();
+            StateHasChanged();
         }
 
         private CrawledTrieLookupResult Find(string searchText)
         {
+            _searchText = searchText;
+
+            if (TrieService.Index is null)
+                return CrawledTrieLookupResult.Empty;
+
             var query = IssueQuery.Create(searchText);
             var issues = query.Execute(TrieService.Index);
             return new CrawledTrieLookupResult(issues);
         }
 
-        private async void UpdateQueryParameters()
+        private async void ChangeUrl()
         {
-            var queryString = !string.IsNullOrEmpty(SearchText) && SearchText != _defaultSearch
-                ? "?q=" + SearchText
+            var queryString = !string.IsNullOrEmpty(_searchText) && _searchText != _defaultSearch
+                ? "?q=" + _searchText
                 : string.Empty;
 
             if (queryString.Length > 0 && PageNumber > 1)
@@ -150,7 +133,6 @@ namespace IssuesOfDotNet.Pages
             }.ToString();
 
             await JSRuntime.InvokeAsync<object>("changeUrl", uri);
-            StateHasChanged();
         }
     }
 }

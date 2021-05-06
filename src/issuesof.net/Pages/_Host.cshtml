@@ -91,34 +91,42 @@
             ]
         });
 
+        function getCompletions(cm, option) {
+            var url = "api/completion"
+            var cursor = cm.getCursor();
+            var line = cm.getLine(cursor.line);
+
+            return fetch(url + '?q=' + escape(line) + '&pos=' + cursor.ch, {
+                method: 'get',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => response.json()
+            ).then(json => {
+                json.from = CodeMirror.Pos(cursor.line, json.from);
+                json.to = CodeMirror.Pos(cursor.line, json.to);
+                return json;
+            });
+        }
+
         var observer = new MutationObserver(function (mutations, observer) {
             var codeMirror = document.querySelector('.CodeMirror');
             var myTextarea = document.querySelector('#myTextarea');
-            if (!codeMirror && myTextarea) {
-                function getCompletions(cm, option) {
-                    var url = "api/completion"
-                    var cursor = cm.getCursor();
-                    var line = cm.getLine(cursor.line);
 
-                    return fetch(url + '?q=' + escape(line) + '&pos=' + cursor.ch, {
-                        method: 'get',
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    }).then(response => response.json()
-                    ).then(json => {
-                        json.from = CodeMirror.Pos(cursor.line, json.from);
-                        json.to = CodeMirror.Pos(cursor.line, json.to);
-                        return json;
-                    });
-                }
+            if (!codeMirror && myTextarea) {
+
+                var url = new URL(window.location.href);
+                var searchParams = new URLSearchParams(url.search);
+                var q = searchParams.get("q");
+                if (!q || q.length == 0)
+                    q = "is:open is:issue";
+
                 var editor = CodeMirror.fromTextArea(myTextarea, {
                     lineNumbers: false,
                     tabSize: 2,
                     mode: 'github-query',
                     autofocus: true,
                     theme: 'default',
-                    value: myTextarea.value,
                     extraKeys: {
                         "Ctrl-Space": "autocomplete",
                         "':'": function (cm) {
@@ -140,6 +148,7 @@
                     },
                     scrollbarStyle: 'null'
                 });
+                editor.setValue(q);
                 editor.on("change", function (cm, changeObj) {
                     if (typeof invokeSearch == 'function')
                         invokeSearch(cm.getValue());
