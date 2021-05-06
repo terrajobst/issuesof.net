@@ -24,9 +24,6 @@ namespace IssuesOfDotNet
             services.AddServerSideBlazor();
             services.AddSingleton<IndexService>();
             services.AddSingleton<CompletionService>();
-
-            // TODO: Remove
-            services.AddCors();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -46,18 +43,7 @@ namespace IssuesOfDotNet
             }
 
             app.UseHttpsRedirection();
-
-            // TODO: Remove
-            app.UseCors(builder =>
-            {
-                builder
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-            });
-
             app.UseStaticFiles();
-
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
