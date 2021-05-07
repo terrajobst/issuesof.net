@@ -12,6 +12,15 @@ using Microsoft.JSInterop;
 
 namespace IssuesOfDotNet.Pages
 {
+    // TODO: After the initial render, the URL should only be changed on the client.
+    //
+    //       This means the client can unsubscribe from location changes before updating
+    //       it in raction to a query editor edit so that it knows when the location
+    //       changed, it was due to a server side change.
+    //
+    //       Hopefully this fixes the issue where navigating on the server will not
+    //       refresh the value of the query string in the text box, for example, when
+    //       the user navigates to home.
     public sealed partial class Index : IDisposable
     {
         private static readonly string _defaultSearch = "is:issue is:open";
