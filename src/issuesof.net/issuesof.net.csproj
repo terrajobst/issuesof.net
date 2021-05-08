@@ -16,4 +16,12 @@
     <ProjectReference Include="..\IssueDb\IssueDb.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Pages\New.razor.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Pages\New.razor.txt" />
+  </ItemGroup>
+
 </Project>

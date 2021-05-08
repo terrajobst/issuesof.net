@@ -1,0 +1,58 @@
+﻿.NET Framework
+    
+    Dev Community                       Report isssues to .NET Framework Developer Community
+    microsoft/dotnet-framework-docker   .NET Framework Docker images
+
+.NET Core
+
+    Runtimes and libraries
+
+        dotnet/core                     .NET Core home repository
+        dotnet/runtime                  .NET Core runtime, runtime installers, application model, & Base Class Library (BCL)
+        dotnet/docs                     .NET documentation
+        dotnet/dotnet-api-docs          .NET API documentation
+        dotnet/extensions               .NET extension APIs (DI, logging, configuration, etc.)
+        dotnet/dotnet-docker            .NET Core Docker images
+        dotnet/standard                 .NET Standard definition
+        dotnet/wcf                      WCF client libraries
+
+    Entity Framework (EF) and data access
+
+        dotnet/efcore                   EF Core
+        dotnet/ef6                      EF 6
+        dotnet/EntityFramework.Docs     EF Core & EF 6 documentation
+        dotnet/sqlclient                SqlClient data provider for SQL Server
+
+    Client UI
+
+        dotnet/winforms                 Windows Forms
+        dotnet/wpf                      Windows Presentation Foundation (WPF)
+        dotnet/maui                     .NET Multi-platform App UI
+
+    Web
+
+        dotnet/aspnetcore               ASP.NET Core framework
+        dotnet/AspNetCore.Docs          ASP.NET Core documentation
+        dotnet/AspNetDocs               ASP.NET 4.x documentation
+        dotnet/Scaffolding              ASP.NET Core code generators
+        dotnet/websdk                   MSBuild tasks & targets for ASP.NET Core apps
+
+    Languages
+
+        dotnet/roslyn                   Roslyn (C# / VB compiler)
+        dotnet/csharplang               C# suggestions, specification, ongoing language design
+        dotnet/vblang                   VB suggestions, specification, ongoing language design
+        dotnet/fsharp                   The F# compiler, FSharp.Core library, and tools for F#
+        fsharp/fslang-design            RFCs and docs related to the F# language design process
+        fsharp/fslang-suggestions       F# language and FSharp.Core library suggestions
+
+    Tooling and SDK
+
+        dotnet/project-system           Visual Studio project system for C#, F#, & VB
+        dotnet/sdk                      .NET Core SDK (used by Visual Studio & .NET Core CLI)
+        dotnet/installer                .NET Core installer (produces zips, tarballs, and installers for the .NET SDK)
+        dotnet/templating               Templating engine used by dotnet new
+        dotnet/test-templates           .NET Core unit testing project templates
+        dotnet/msbuild                  Build platform for .NET & Visual Studio
+        nuget/home                      NuGet client
+        nuget/nugetgallery              NuGet.org

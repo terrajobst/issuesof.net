@@ -1,0 +1,45 @@
+﻿@page "/new"
+
+<div class="alert alert-info">
+    Below are the main repos you can use to file bugs and feature requests for .NET. Please try to find
+    the repo that is most closely related to your issue. But don't sweat it too much -- we'll transfer
+    the issue to the appropriate repo should you get it wrong.
+</div>
+
+<form>
+    <div class="form-group">
+        <input type="text" class="form-control" placeholder="Search" @bind="Filter" @bind:event="oninput" />
+    </div>
+</form>
+
+<table class="table">
+    <tbody>
+        @foreach (var entry in FilteredRepoEntries)
+        {
+            var marginLeft = $"{entry.Indent * 30}px";
+            var isRepo = entry.Link is not null;
+            var colspan = isRepo ? null : "2";
+
+            <tr>
+                <td class="w-25" colspan="@colspan">
+                    <div style="margin-left: @marginLeft">
+                        @if (entry.Link is not null)
+                        {
+                            <a href="@entry.Link">@entry.Name</a>
+                        }
+                        else
+                        {
+                            <strong>@entry.Name</strong>
+                        }
+                    </div>
+                </td>
+
+                @if (entry.Description is not null)
+                {
+                    <td class="w-75">@entry.Description</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
