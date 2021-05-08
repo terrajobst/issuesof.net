@@ -14,6 +14,8 @@ namespace IssuesOfDotNet
 
         public CrawledTrieLookupResult(IEnumerable<CrawledIssue> issues)
         {
+            // TODO: Move sorting to the query processing
+            //
             // TODO: We should probably ToArray first and then sort
             // the array with a singleton comparer.
             _issues = issues.OrderByDescending(i => i.UpdatedAt ?? i.CreatedAt).ToArray();
