@@ -16,23 +16,6 @@
     <link rel="stylesheet" href="~/lib/codemirror/codemirror.min.css">
     <link rel="stylesheet" href="~/lib/codemirror/addon/hint/show-hint.min.css">
     <link rel="stylesheet" href="css/site.css" />
-
-    <style>
-        .query-editor .CodeMirror {
-            max-height: 2em;
-            border: 1px solid #ced4da;
-            border-radius: .25rem;
-            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-        }
-
-            .query-editor .CodeMirror:focus-within {
-                color: #495057;
-                background-color: #fff;
-                border-color: #80bdff;
-                outline: 0;
-                box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
-            }
-    </style>
 </head>
 <body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
