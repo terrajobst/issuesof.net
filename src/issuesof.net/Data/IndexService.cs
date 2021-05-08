@@ -46,19 +46,33 @@ namespace IssuesOfDotNet.Data
                     _logger.LogInformation("Loading index");
 
                     var azureConnectionString = _configuration["AzureStorageConnectionString"];
-                    var binDirectory = Path.GetDirectoryName(GetType().Assembly.Location);
                     var indexName = "index.cicache";
-                    var indexFile = Path.Combine(binDirectory, indexName);
+                    var blobClient = new BlobClient(azureConnectionString, "index", indexName);
 
-                    if (!_environment.IsDevelopment() || !File.Exists(indexFile))
+                    if (!_environment.IsDevelopment())
                     {
+                        using var memoryStream = new MemoryStream();
                         ProgressText = $"Downloading index...";
-                        var blobClient = new BlobClient(azureConnectionString, "index", indexName);
-                        await blobClient.DownloadToAsync(indexFile);
+                        await blobClient.DownloadToAsync(memoryStream);
+                        memoryStream.Position = 0;
+                        ProgressText = "Loading index...";
+                        Index = await CrawledIndex.LoadAsync(memoryStream);
+                    }
+                    else
+                    {
+                        var binDirectory = Path.GetDirectoryName(GetType().Assembly.Location);
+                        var indexFile = Path.Combine(binDirectory, indexName);
+
+                        if (!File.Exists(indexFile))
+                        {
+                            ProgressText = $"Downloading index...";
+                            await blobClient.DownloadToAsync(indexFile);
+                        }
+
+                        ProgressText = "Loading index...";
+                        Index = await CrawledIndex.LoadAsync(indexFile);
                     }
 
-                    ProgressText = "Loading index...";
-                    Index = await CrawledIndex.LoadAsync(indexFile);
                     Exeption = null;
                     IndexStats = CreateIndexStats(Index);
                     ProgressText = null;

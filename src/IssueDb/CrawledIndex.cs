@@ -183,154 +183,157 @@ namespace IssuesOfDotNet
             }
         }
 
-        public static Task<CrawledIndex> LoadAsync(string path)
+        public static async Task<CrawledIndex> LoadAsync(string path)
         {
-            using (var stream = File.OpenRead(path))
+            using var stream = File.OpenRead(path);
+            return await LoadAsync(stream);
+        }
+
+        public static Task<CrawledIndex> LoadAsync(Stream stream)
+        {            
+            // Validate header
+
+            if (stream.Length < 6)
+                throw new InvalidDataException();
+
+            var header = new byte[6];
+            stream.Read(header);
+
+            if (!header.AsSpan(0, 4).SequenceEqual(_formatMagicNumbers))
+                throw new InvalidDataException();
+
+            var formatVersion = BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(4));
+            if (formatVersion != _formatVersion)
+                throw new InvalidDataException();
+
+            // Read contents
+
+            var issueIndex = new Dictionary<int, CrawledIssue>();
+
+            using (var deflateStream = new DeflateStream(stream, CompressionMode.Decompress))
+            using (var reader = new BinaryReader(deflateStream, Encoding.UTF8))
             {
-                // Validate header
+                // Read strings
 
-                if (stream.Length < 6)
-                    throw new InvalidDataException();
-
-                var header = new byte[6];
-                stream.Read(header);
-
-                if (!header.AsSpan(0, 4).SequenceEqual(_formatMagicNumbers))
-                    throw new InvalidDataException();
-
-                var formatVersion = BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(4));
-                if (formatVersion != _formatVersion)
-                    throw new InvalidDataException();
-
-                // Read contents
-
-                var issueIndex = new Dictionary<int, CrawledIssue>();
-
-                using (var deflateStream = new DeflateStream(stream, CompressionMode.Decompress))
-                using (var reader = new BinaryReader(deflateStream, Encoding.UTF8))
+                var stringCount = reader.ReadInt32();
+                var stringIndex = new Dictionary<int, string>()
                 {
-                    // Read strings
+                    { -1, null }
+                };
 
-                    var stringCount = reader.ReadInt32();
-                    var stringIndex = new Dictionary<int, string>()
+                for (var i = 0; i < stringCount; i++)
+                {
+                    var s = reader.ReadString();
+                    stringIndex.Add(i, s);
+                }
+
+                // Read repos
+
+                var repoCount = reader.ReadInt32();
+                var repos = new List<CrawledRepo>(repoCount);
+
+                for (var i = 0; i < repoCount; i++)
+                {
+                    var org = stringIndex[reader.ReadInt32()];
+                    var name = stringIndex[reader.ReadInt32()];
+                    var isArchived = reader.ReadBoolean();
+
+                    var repo = new CrawledRepo()
+                    {
+                        Org = org,
+                        Name = name,
+                        IsArchived = isArchived,
+                    };
+                    repos.Add(repo);
+
+                    // Read labels
+
+                    var labelCount = reader.ReadInt32();
+                    var labelIndex = new Dictionary<int, CrawledLabel>();
+
+                    for (var labelId = 0; labelId < labelCount; labelId++)
+                    {
+                        var label = new CrawledLabel
+                        {
+                            Name = stringIndex[reader.ReadInt32()],
+                            Description = stringIndex[reader.ReadInt32()],
+                            ForegroundColor = stringIndex[reader.ReadInt32()],
+                            BackgroundColor = stringIndex[reader.ReadInt32()]
+                        };
+                        labelIndex.Add(labelId, label);
+                        repo.Labels.Add(label);
+                    }
+
+                    // Read milestones
+
+                    var milestoneCount = reader.ReadInt32();
+                    var milestoneIndex = new Dictionary<int, CrawledMilestone>
                     {
                         { -1, null }
                     };
 
-                    for (var i = 0; i < stringCount; i++)
+                    for (var milestoneId = 0; milestoneId < milestoneCount; milestoneId++)
                     {
-                        var s = reader.ReadString();
-                        stringIndex.Add(i, s);
+                        var milestone = new CrawledMilestone
+                        {
+                            Number = reader.ReadInt32(),
+                            Title = stringIndex[reader.ReadInt32()],
+                            Description = stringIndex[reader.ReadInt32()],
+                        };
+                        milestoneIndex.Add(milestoneId, milestone);
+                        repo.Milestones.Add(milestone);
                     }
 
-                    // Read repos
+                    var issueCount = reader.ReadInt32();
 
-                    var repoCount = reader.ReadInt32();
-                    var repos = new List<CrawledRepo>(repoCount);
-
-                    for (var i = 0; i < repoCount; i++)
+                    while (issueCount-- > 0)
                     {
-                        var org = stringIndex[reader.ReadInt32()];
-                        var name = stringIndex[reader.ReadInt32()];
-                        var isArchived = reader.ReadBoolean();
+                        var issueId = reader.ReadInt32();
 
-                        var repo = new CrawledRepo()
+                        var issue = new CrawledIssue
                         {
                             Org = org,
-                            Name = name,
-                            IsArchived = isArchived,
-                        };
-                        repos.Add(repo);
-
-                        // Read labels
-
-                        var labelCount = reader.ReadInt32();
-                        var labelIndex = new Dictionary<int, CrawledLabel>();
-
-                        for (var labelId = 0; labelId < labelCount; labelId++)
-                        {
-                            var label = new CrawledLabel
-                            {
-                                Name = stringIndex[reader.ReadInt32()],
-                                Description = stringIndex[reader.ReadInt32()],
-                                ForegroundColor = stringIndex[reader.ReadInt32()],
-                                BackgroundColor = stringIndex[reader.ReadInt32()]
-                            };
-                            labelIndex.Add(labelId, label);
-                            repo.Labels.Add(label);
-                        }
-
-                        // Read milestones
-
-                        var milestoneCount = reader.ReadInt32();
-                        var milestoneIndex = new Dictionary<int, CrawledMilestone>
-                        {
-                            { -1, null }
+                            Repo = name,
+                            State = (CrawledIssueState)reader.ReadByte(),
+                            Number = reader.ReadInt32(),
+                            IsPullRequest = reader.ReadBoolean(),
+                            IsDraft = reader.ReadBoolean(),
+                            IsMerged = reader.ReadBoolean(),
+                            Title = stringIndex[reader.ReadInt32()],
+                            // Body : ignored because we don't need here
+                            CreatedAt = new DateTime(reader.ReadInt64()),
+                            UpdatedAt = ToNullableDateTime(reader.ReadInt64()),
+                            ClosedAt = ToNullableDateTime(reader.ReadInt64()),
+                            CreatedBy = stringIndex[reader.ReadInt32()],
+                            ClosedBy = stringIndex[reader.ReadInt32()],
                         };
 
-                        for (var milestoneId = 0; milestoneId < milestoneCount; milestoneId++)
-                        {
-                            var milestone = new CrawledMilestone
-                            {
-                                Number = reader.ReadInt32(),
-                                Title = stringIndex[reader.ReadInt32()],
-                                Description = stringIndex[reader.ReadInt32()],
-                            };
-                            milestoneIndex.Add(milestoneId, milestone);
-                            repo.Milestones.Add(milestone);
-                        }
+                        var assigneeCount = reader.ReadInt32();
+                        var assignees = new List<string>(assigneeCount);
+                        while (assigneeCount-- > 0)
+                            assignees.Add(stringIndex[reader.ReadInt32()]);
+                        issue.Assignees = assignees.ToArray();
 
-                        var issueCount = reader.ReadInt32();
+                        var assignedLabelCount = reader.ReadInt32();
+                        var labels = new List<CrawledLabel>(assignedLabelCount);
+                        while (assignedLabelCount-- > 0)
+                            labels.Add(labelIndex[reader.ReadInt32()]);
+                        issue.Labels = labels.ToArray();
 
-                        while (issueCount-- > 0)
-                        {
-                            var issueId = reader.ReadInt32();
+                        issue.Milestone = milestoneIndex[reader.ReadInt32()];
 
-                            var issue = new CrawledIssue
-                            {
-                                Org = org,
-                                Repo = name,
-                                State = (CrawledIssueState)reader.ReadByte(),
-                                Number = reader.ReadInt32(),
-                                IsPullRequest = reader.ReadBoolean(),
-                                IsDraft = reader.ReadBoolean(),
-                                IsMerged = reader.ReadBoolean(),
-                                Title = stringIndex[reader.ReadInt32()],
-                                // Body : ignored because we don't need here
-                                CreatedAt = new DateTime(reader.ReadInt64()),
-                                UpdatedAt = ToNullableDateTime(reader.ReadInt64()),
-                                ClosedAt = ToNullableDateTime(reader.ReadInt64()),
-                                CreatedBy = stringIndex[reader.ReadInt32()],
-                                ClosedBy = stringIndex[reader.ReadInt32()],
-                            };
-
-                            var assigneeCount = reader.ReadInt32();
-                            var assignees = new List<string>(assigneeCount);
-                            while (assigneeCount-- > 0)
-                                assignees.Add(stringIndex[reader.ReadInt32()]);
-                            issue.Assignees = assignees.ToArray();
-
-                            var assignedLabelCount = reader.ReadInt32();
-                            var labels = new List<CrawledLabel>(assignedLabelCount);
-                            while (assignedLabelCount-- > 0)
-                                labels.Add(labelIndex[reader.ReadInt32()]);
-                            issue.Labels = labels.ToArray();
-
-                            issue.Milestone = milestoneIndex[reader.ReadInt32()];
-
-                            repo.Issues.Add(issue.Number, issue);
-                            issueIndex.Add(issueId, issue);
-                        }
+                        repo.Issues.Add(issue.Number, issue);
+                        issueIndex.Add(issueId, issue);
                     }
-
-                    var root = ReadNode(reader, stringIndex, issueIndex);
-
-                    return Task.FromResult(new CrawledIndex
-                    {
-                        Repos = repos.ToArray(),
-                        Trie = new CrawledTrie(root)
-                    });
                 }
+
+                var root = ReadNode(reader, stringIndex, issueIndex);
+
+                return Task.FromResult(new CrawledIndex
+                {
+                    Repos = repos.ToArray(),
+                    Trie = new CrawledTrie(root)
+                });
             }
 
             static DateTime? ToNullableDateTime(long ticks)
