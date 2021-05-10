@@ -99,7 +99,7 @@ namespace IssuesOfDotNet.Querying
 
             static void ApplyTerm(ref HashSet<CrawledIssue> result, CrawledTrie trie, string term)
             {
-                var issues = trie.LookupIssuesForTerm(term);
+                var issues = trie.Lookup(term);
                 if (result is null)
                     result = issues.ToHashSet();
                 else
@@ -111,7 +111,7 @@ namespace IssuesOfDotNet.Querying
                 if (result is null)
                     result = new HashSet<CrawledIssue>(index.Repos.SelectMany(r => r.Issues.Values));
 
-                var issues = index.Trie.LookupIssuesForTerm(term);
+                var issues = index.Trie.Lookup(term);
                 result.ExceptWith(issues);
             }
 

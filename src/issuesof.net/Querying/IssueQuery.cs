@@ -140,10 +140,14 @@ namespace IssuesOfDotNet.Querying
 
         private static void Apply(IssueFilter result, BoundTextQuery expression)
         {
-            if (expression.IsNegated)
-                result.ExcludedTerms.Add(expression.Text);
-            else
-                result.IncludedTerms.Add(expression.Text);
+            var terms = TextTokenizer.Tokenize(expression.Text);
+            foreach (var term in terms)
+            {
+                if (expression.IsNegated)
+                    result.ExcludedTerms.Add(term);
+                else
+                    result.IncludedTerms.Add(term);
+            }
         }
 
         private static IEnumerable<BoundQuery> FlattenAnds(BoundQuery node)

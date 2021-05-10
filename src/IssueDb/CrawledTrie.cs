@@ -54,15 +54,8 @@ namespace IssuesOfDotNet
 
             foreach (var term in terms)
             {
-                if (!Skip(term))
-                    AddIssue(term, issue);
+                AddIssue(term, issue);
             }
-        }
-
-        private static bool Skip(string term)
-        {
-            // Let's skip really short words
-            return term.Length < 3;
         }
 
         private static IEnumerable<string> GetTerms(CrawledIssue issue)
@@ -111,96 +104,17 @@ namespace IssuesOfDotNet
             if (string.IsNullOrEmpty(text))
                 return;
 
-            var tokens = Tokenize(text);
-            foreach (var token in tokens)
-                target.Add(token);
+            var tokens = TextTokenizer.Tokenize(text);
+            target.UnionWith(tokens);
         }
 
-        private static string[] Tokenize(string text)
+        public IEnumerable<CrawledIssue> Lookup(string term)
         {
-            // TODO: Fix handling of puncuation
-            //
-            // We want to index tokens like ".NET" but we don't want to index comma or periods
-            // at the end of words.
-            //
-            // Also, if a word starts with '<' we don't want to index it.
-            //
-            // If a word only contains punctuation, we don't want to index it.
-
-            if (string.IsNullOrEmpty(text))
-                return Array.Empty<string>();
-
-            var result = new List<string>();
-            var start = -1;
-
-            for (var i = 0; i < text.Length; i++)
-            {
-                var c = text[i];
-
-                if (!char.IsWhiteSpace(c))
-                {
-                    if (start < 0)
-                        start = i;
-                }
-                else if (start >= 0 && i > start)
-                {
-                    var word = text[start..i];
-                    result.Add(word);
-                    start = -1;
-                }
-            }
-
-            if (start >= 0 && start < text.Length - 1)
-                result.Add(text[start..]);
-
-            return result.ToArray();
-        }
-
-        public CrawledTrieLookupResult LookupIssues(string query)
-        {
-            var terms = Tokenize(query);
-            var issues = LookupIssues(terms);
-            return new CrawledTrieLookupResult(issues);
-        }
-
-        public IEnumerable<CrawledIssue> LookupIssuesForTerm(string term)
-        {
-            if (Skip(term))
-                return Enumerable.Empty<CrawledIssue>();
-
-            var node = LookupNode(term);
+            var node = Walk(term, addNodes: false);
             if (node is null)
                 return Enumerable.Empty<CrawledIssue>();
 
             return node.Issues;
-        }
-
-        private IReadOnlyCollection<CrawledIssue> LookupIssues(IEnumerable<string> terms)
-        {
-            var result = (HashSet<CrawledIssue>)null;
-
-            foreach (var term in terms)
-            {
-                if (Skip(term))
-                    continue;
-
-                var node = LookupNode(term);
-
-                if (node is null)
-                    return Array.Empty<CrawledIssue>();
-
-                if (result is null)
-                    result = node.Issues.ToHashSet();
-                else
-                    result.IntersectWith(node.Issues);
-            }
-
-            return (IReadOnlyCollection<CrawledIssue>)result ?? Array.Empty<CrawledIssue>();
-        }
-
-        public CrawledTrieNode LookupNode(string text)
-        {
-            return Walk(text, addNodes: false);
         }
 
         private CrawledTrieNode Walk(string text, bool addNodes)
