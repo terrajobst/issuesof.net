@@ -21,7 +21,7 @@ namespace IssuesOfDotNet.Controllers
         [HttpGet]
         public CompletionResponse GetCompletions(string q, int pos)
         {
-            var syntax = QuerySyntax.Parse(q);
+            var syntax = QuerySyntax.Parse(q ?? string.Empty);
             var result = _completionService.Provider.Complete(syntax, pos);
 
             if (result is null)
