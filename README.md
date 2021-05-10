@@ -27,14 +27,10 @@ such as [aspnet], [dotnet], and [nuget].
           in:body console in:title` means "search for console and developer in
           either body or title".
     - Do all key value pairs support commas or just `in`?
-    - `type:pr`
-    - `type:issue`
     - `in:title`
     - `in:body`
     - `in:comments` 
     - `repo:{org/repo}`
-    - `state:open`
-    - `state:closed`
     - `is:public`
     - `is:internal`
     - `is:private`
@@ -54,8 +50,6 @@ such as [aspnet], [dotnet], and [nuget].
     - `comments:{range}` (range is `n`, `<n`, `<=n`, `>n`, `>=n`, or `n..m`)
     - `reactions:{range}`
     - `interactions:{range}` (interactions := reactions + comments)
-    - `draft:true`
-    - `draft:false`
     - `review:none`
     - `review:required`
     - `review:approved`
@@ -67,8 +61,6 @@ such as [aspnet], [dotnet], and [nuget].
     - `updated:{range}`
     - `closed:{range}`
     - `merged:{range}`
-    - `is:merged`
-    - `is:unmerged`
     - `archived:true`
     - `archived:false`
     - `is:locked`

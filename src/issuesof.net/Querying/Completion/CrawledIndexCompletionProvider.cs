@@ -10,6 +10,9 @@ namespace IssuesOfDotNet.Querying
         private readonly string[] _repos;
         private readonly string[] _isValues;
         private readonly string[] _noValues;
+        private readonly string[] _draftValues;
+        private readonly string[] _typeValues;
+        private readonly string[] _stateValues;
         private readonly string[] _users;
         private readonly string[] _labels;
         private readonly string[] _milestones;
@@ -26,8 +29,11 @@ namespace IssuesOfDotNet.Querying
                  StringComparer.OrdinalIgnoreCase
             ).ToArray();
 
-            _isValues = new[] { "closed", "issue", "open", "merged", "pr" };
+            _isValues = new[] { "closed", "draft", "issue", "open", "merged", "pr", "unmerged" };
             _noValues = new[] { "assignee", "label", "milestone" };
+            _draftValues = new[] { "false", "true" };
+            _typeValues = new[] { "issue", "pr" };
+            _stateValues = new[] { "closed", "merged", "open", "unmerged" };
 
             _users = new SortedSet<string>(
                  index.Repos.SelectMany(r => r.Issues.Values)
@@ -55,6 +61,9 @@ namespace IssuesOfDotNet.Querying
                 "org" => _orgs,
                 "repo" => _repos,
                 "is" => _isValues,
+                "type" => _typeValues,
+                "state" => _stateValues,
+                "draft" => _draftValues,
                 "no" => _noValues,
                 "author" => _users,
                 "assignee" => _users,

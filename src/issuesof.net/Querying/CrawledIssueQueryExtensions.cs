@@ -60,7 +60,12 @@ namespace IssuesOfDotNet.Querying
             if (filter.IsMerged == true)
                 ApplyPredicate(ref result, index, i => i.IsMerged);
             else if (filter.IsMerged == false)
-                ApplyPredicate(ref result, index, i => !i.IsMerged);
+                ApplyPredicate(ref result, index, i => i.IsPullRequest && !i.IsMerged);
+
+            if (filter.IsDraft == true)
+                ApplyPredicate(ref result, index, i => i.IsDraft);
+            else if (filter.IsDraft == false)
+                ApplyPredicate(ref result, index, i => i.IsPullRequest && !i.IsDraft);
 
             if (filter.NoAssignees == true)
                 ApplyPredicate(ref result, index, i => i.Assignees.Length == 0);

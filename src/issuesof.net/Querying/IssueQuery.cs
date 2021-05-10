@@ -65,19 +65,36 @@ namespace IssuesOfDotNet.Querying
             switch ((key, value))
             {
                 case ("is", "open"):
+                case ("state", "open"):
                     result.IsOpen = !expression.IsNegated;
                     break;
                 case ("is", "closed"):
+                case ("state", "closed"):
                     result.IsOpen = expression.IsNegated;
                     break;
                 case ("is", "pr"):
+                case ("type", "pr"):
                     result.IsPullRequest = !expression.IsNegated;
                     break;
                 case ("is", "issue"):
+                case ("type", "issue"):
                     result.IsPullRequest = expression.IsNegated;
                     break;
                 case ("is", "merged"):
+                case ("state", "merged"):
                     result.IsMerged = !expression.IsNegated;
+                    break;
+                case ("is", "unmerged"):
+                case ("state", "unmerged"):
+                    result.IsMerged = expression.IsNegated;
+                    break;
+
+                case ("is", "draft"):
+                case ("draft", "true"):
+                    result.IsDraft = !expression.IsNegated;
+                    break;
+                case ("draft", "false"):
+                    result.IsDraft = expression.IsNegated;
                     break;
 
                 case ("no", "assignee"):
