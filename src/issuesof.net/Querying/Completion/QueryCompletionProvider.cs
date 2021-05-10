@@ -10,19 +10,10 @@ namespace IssuesOfDotNet.Querying
         public QueryCompletionResult Complete(QuerySyntax node, int position)
         {
             if (node is TextQuerySyntax text)
-            {
-                var completions = GetCompletionsForText(text.TextToken.Value);
-                return new QueryCompletionResult(completions, text.TextToken.Span);
-            }
+                return GetTextCompletions(text);
 
             if (node is KeyValueQuerySyntax keyValue)
-            {
-                if (position < keyValue.ColonToken.Span.End)
-                    return null;
-
-                var completions = GetCompletionForKeyValue(keyValue.KeyToken.Value, keyValue.ValueToken.Value);
-                return new QueryCompletionResult(completions, keyValue.ValueToken.Span);
-            }
+                return GetKeyValueCompletions(keyValue, position);
 
             var children = node.GetChildren();
 
@@ -34,7 +25,7 @@ namespace IssuesOfDotNet.Querying
                                     : null;
 
                 var start = child.Span.Start;
-                var end = nextChild == null ? int.MaxValue : nextChild.Span.Start;
+                var end = nextChild == null ? child.Span.End : nextChild.Span.Start;
 
                 if (start <= position && position <= end)
                 {
@@ -45,7 +36,33 @@ namespace IssuesOfDotNet.Querying
                 }
             }
 
-            return null;
+            return GetKeywordCompletions(position);
+        }
+
+        private QueryCompletionResult GetTextCompletions(TextQuerySyntax text)
+        {
+            var completions = GetCompletionsForText(text.TextToken.Value);
+            return new QueryCompletionResult(completions, text.TextToken.Span);
+        }
+
+        private QueryCompletionResult GetKeyValueCompletions(KeyValueQuerySyntax keyValue, int position)
+        {
+            if (position < keyValue.ColonToken.Span.End)
+            {
+                var completions = GetCompletionsForText(keyValue.KeyToken.Value);
+                return new QueryCompletionResult(completions, keyValue.KeyToken.Span);
+            }
+            else
+            {
+                var completions = GetCompletionForKeyValue(keyValue.KeyToken.Value, keyValue.ValueToken.Value);
+                return new QueryCompletionResult(completions, keyValue.ValueToken.Span);
+            }
+        }
+
+        private QueryCompletionResult GetKeywordCompletions(int position)
+        {
+            var completions = GetCompletionsForText(string.Empty);
+            return new QueryCompletionResult(completions, TextSpan.FromBounds(position, position));
         }
 
         public virtual IEnumerable<string> GetCompletionForKeyValue(string key, string value) => Array.Empty<string>();

@@ -6,6 +6,7 @@ namespace IssuesOfDotNet.Querying
 {
     public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
     {
+        private readonly string[] _keywords;
         private readonly string[] _orgs;
         private readonly string[] _repos;
         private readonly string[] _isValues;
@@ -21,6 +22,23 @@ namespace IssuesOfDotNet.Querying
 
         public CrawledIndexCompletionProvider(CrawledIndex index)
         {
+            _keywords = new[] {
+                "area",
+                "area-under",
+                "assignee",
+                "author",
+                "draft",
+                "is",
+                "label",
+                "milestone",
+                "no",
+                "org",
+                "repo",
+                "sort",
+                "state",
+                "type"
+            };
+
             _orgs = new SortedSet<string>(
                  index.Repos.Select(r => r.Org),
                  StringComparer.OrdinalIgnoreCase
@@ -95,6 +113,22 @@ namespace IssuesOfDotNet.Querying
                     yield break;
 
                 yield return Escape(c);
+            }
+        }
+
+        public override IEnumerable<string> GetCompletionsForText(string text)
+        {
+            var index = Array.BinarySearch(_keywords, text, StringComparer.OrdinalIgnoreCase);
+            if (index < 0)
+                index = ~index;
+
+            for (var i = index; i < _keywords.Length; i++)
+            {
+                var keyword = _keywords[i];
+                if (!keyword.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                    yield break;
+
+                yield return keyword;
             }
         }
 
