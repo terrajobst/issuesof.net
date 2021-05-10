@@ -14,7 +14,6 @@ namespace IssuesOfDotNet
             {
                 var normalized = nestedToken.ToLowerInvariant();
                 var singular = normalized.Singularize();
-                result.Add(normalized);
                 result.Add(singular);
             }
 
