@@ -16,6 +16,7 @@ namespace IssuesOfDotNet.Querying
         private readonly string[] _users;
         private readonly string[] _labels;
         private readonly string[] _milestones;
+        private readonly string[] _areaPaths;
         private readonly string[] _sortValues;
 
         public CrawledIndexCompletionProvider(CrawledIndex index)
@@ -31,7 +32,7 @@ namespace IssuesOfDotNet.Querying
             ).ToArray();
 
             _isValues = new[] { "closed", "draft", "issue", "open", "merged", "pr", "unmerged" };
-            _noValues = new[] { "assignee", "label", "milestone" };
+            _noValues = new[] { "area", "assignee", "label", "milestone" };
             _draftValues = new[] { "false", "true" };
             _typeValues = new[] { "issue", "pr" };
             _stateValues = new[] { "closed", "merged", "open", "unmerged" };
@@ -54,6 +55,12 @@ namespace IssuesOfDotNet.Querying
                 StringComparer.OrdinalIgnoreCase
             ).ToArray();
 
+            _areaPaths = new SortedSet<string>(
+                index.Repos.SelectMany(r => r.Labels)
+                           .SelectMany(l => TextTokenizer.GetAreaPaths(l.Name)),
+                StringComparer.OrdinalIgnoreCase
+            ).ToArray();
+
             _sortValues = new[] { "created-asc", "created-desc", "updated-asc", "updated-desc" };
         }
 
@@ -72,6 +79,7 @@ namespace IssuesOfDotNet.Querying
                 "assignee" => _users,
                 "label" => _labels,
                 "milestone" => _milestones,
+                "area" or "area-under" => _areaPaths,
                 "sort" => _sortValues,
                 _ => Array.Empty<string>(),
             };

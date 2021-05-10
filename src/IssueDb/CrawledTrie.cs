@@ -70,6 +70,9 @@ namespace IssuesOfDotNet
             foreach (var label in issue.Labels)
                 result.Add("label:" + label.Name);
 
+            foreach (var area in issue.Areas)
+                result.Add("area:" + area);
+
             if (issue.Milestone is not null)
                 result.Add("milestone:" + issue.Milestone.Title);
 

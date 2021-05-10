@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 using Humanizer;
 
@@ -57,6 +60,31 @@ namespace IssuesOfDotNet
 
             if (start >= 0)
                 yield return token[start..];
+        }
+
+        public static IReadOnlyList<string> GetAreaPaths(string label)
+        {
+            const string prefix = "area-";
+            if (!label.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return Array.Empty<string>();
+
+            var result = new List<string>();
+            var remainder = label.Substring(prefix.Length);
+            var wasSeparator = true;
+            for (var i = 0; i < remainder.Length; i++)
+            {
+                var c = remainder[i];
+                var isAreaPathText = char.IsLetterOrDigit(c) ||
+                                     char.IsWhiteSpace(c);
+
+                if (isAreaPathText)
+                    wasSeparator = false;
+                else if (!wasSeparator)
+                    result.Add(remainder.Substring(0, i));
+            }
+
+            result.Add(remainder);
+            return result;
         }
     }
 }

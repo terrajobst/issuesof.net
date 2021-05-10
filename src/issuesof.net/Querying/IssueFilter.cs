@@ -12,6 +12,7 @@ namespace IssuesOfDotNet.Querying
         public bool? IsDraft { get; set; }
         public bool? NoAssignees { get; set; }
         public bool? NoLabels { get; set; }
+        public bool? NoArea { get; set; }
         public bool? NoMilestone { get; set; }
 
         public string Author { get; set; }
@@ -21,6 +22,7 @@ namespace IssuesOfDotNet.Querying
         public List<string> IncludedRepos { get; } = new List<string>();
         public List<string> IncludedAssignees { get; } = new List<string>();
         public List<string> IncludedLabels { get; } = new List<string>();
+        public List<string> IncludedAreas { get; } = new List<string>();
         public List<string> IncludedTerms { get; } = new List<string>();
 
         public List<string> ExcludedOrgs { get; } = new List<string>();
@@ -28,6 +30,7 @@ namespace IssuesOfDotNet.Querying
         public List<string> ExcludedAssignees { get; } = new List<string>();
         public List<string> ExcludedAuthors { get; } = new List<string>();
         public List<string> ExcludedLabels { get; } = new List<string>();
+        public List<string> ExcludedAreas { get; } = new List<string>();
         public List<string> ExcludedMilestones { get; } = new List<string>();
         public List<string> ExcludedTerms { get; } = new List<string>();
 
@@ -56,6 +59,7 @@ namespace IssuesOfDotNet.Querying
             AddBooleanFilter(lines, IsDraft, nameof(IsDraft));
             AddBooleanFilter(lines, NoAssignees, nameof(NoAssignees));
             AddBooleanFilter(lines, NoLabels, nameof(NoLabels));
+            AddBooleanFilter(lines, NoArea, nameof(NoArea));
             AddBooleanFilter(lines, NoMilestone, nameof(NoMilestone));
 
             AddStringFilter(lines, Author, nameof(Author));
@@ -65,6 +69,7 @@ namespace IssuesOfDotNet.Querying
             AddListFilter(lines, IncludedRepos, nameof(IncludedRepos));
             AddListFilter(lines, IncludedAssignees, nameof(IncludedAssignees));
             AddListFilter(lines, IncludedLabels, nameof(IncludedLabels));
+            AddListFilter(lines, IncludedAreas, nameof(IncludedAreas));
             AddListFilter(lines, IncludedTerms, nameof(IncludedTerms));
 
             AddListFilter(lines, ExcludedOrgs, nameof(ExcludedOrgs));
@@ -72,6 +77,7 @@ namespace IssuesOfDotNet.Querying
             AddListFilter(lines, ExcludedAssignees, nameof(ExcludedAssignees));
             AddListFilter(lines, ExcludedAuthors, nameof(ExcludedAuthors));
             AddListFilter(lines, ExcludedLabels, nameof(ExcludedLabels));
+            AddListFilter(lines, ExcludedAreas, nameof(ExcludedAreas));
             AddListFilter(lines, ExcludedMilestones, nameof(ExcludedMilestones));
             AddListFilter(lines, ExcludedTerms, nameof(ExcludedTerms));
 

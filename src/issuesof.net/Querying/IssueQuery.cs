@@ -149,6 +149,19 @@ namespace IssuesOfDotNet.Querying
                         result.Milestone = value;
                     break;
 
+                case ("area", _):
+                    if (expression.IsNegated)
+                        result.ExcludedLabels.Add("area-" + value);
+                    else
+                        result.IncludedLabels.Add("area-" + value);
+                    break;
+                case ("area-under", _):
+                    if (expression.IsNegated)
+                        result.ExcludedAreas.Add(value);
+                    else
+                        result.IncludedAreas.Add(value);
+                    break;
+
                 case ("sort", "created-asc"):
                     result.Sort.Add(IssueSort.CreatedAscending);
                     break;

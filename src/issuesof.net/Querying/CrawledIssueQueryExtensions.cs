@@ -50,6 +50,9 @@ namespace IssuesOfDotNet.Querying
             foreach (var label in filter.IncludedLabels)
                 ApplyTerm(ref result, index.Trie, $"label:{label}");
 
+            foreach (var area in filter.IncludedAreas)
+                ApplyTerm(ref result, index.Trie, $"area:{area}");
+
             if (filter.Author != null)
                 ApplyTerm(ref result, index.Trie, $"author:{filter.Author}");
 
@@ -86,6 +89,11 @@ namespace IssuesOfDotNet.Querying
             else if (filter.NoLabels == false)
                 ApplyPredicate(ref result, index, i => i.Labels.Length > 0);
 
+            if (filter.NoArea == true)
+                ApplyPredicate(ref result, index, i => !i.Areas.Any());
+            else if (filter.NoArea == false)
+                ApplyPredicate(ref result, index, i => i.Areas.Any());
+
             if (filter.NoMilestone == true)
                 ApplyPredicate(ref result, index, i => i.Milestone is null);
             else if (filter.NoMilestone == false)
@@ -105,6 +113,9 @@ namespace IssuesOfDotNet.Querying
 
             foreach (var label in filter.ExcludedLabels)
                 ApplyNegatedTerm(ref result, index, $"label:{label}");
+
+            foreach (var area in filter.ExcludedAreas)
+                ApplyNegatedTerm(ref result, index, $"area:{area}");
 
             foreach (var milestone in filter.ExcludedMilestones)
                 ApplyNegatedTerm(ref result, index, $"milestone:{milestone}");

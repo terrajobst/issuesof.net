@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace IssuesOfDotNet
@@ -38,5 +40,8 @@ namespace IssuesOfDotNet
         public string Url => IsPullRequest
                                 ? $"https://github.com/{Org}/{Repo}/issues/{Number}"
                                 : $"https://github.com/{Org}/{Repo}/pull/{Number}";
+
+        [JsonIgnore]
+        public IEnumerable<string> Areas => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name));
     }
 }
