@@ -9,14 +9,8 @@ such as [aspnet], [dotnet], and [nuget].
 
 ## Next steps
 
-* Measure how large the issues are vs. how large the trie is
-    - Indexing just the title creates working set of ~500 MB, indexing both
-      title and body results in 2+GB.
-    - We should dump all words contained in the trie and see whether we can
-      exclude some during tokenization. I suspect that we have some amount of
-      non-words (punctuation).
-    - We should also consider using a stop list to avoid indexing super common
-      words, such as "the".
+* We should consider using a stop list to avoid indexing super common words,
+  such as "the".
 * Find a way to incrementally update the trie so that we can offer quasi
   real-time indexing based on web hook events.
 
@@ -90,15 +84,6 @@ such as [aspnet], [dotnet], and [nuget].
     - `sort:reactions-{reaction}-asc` where `{reaction}` is `+1`, `-1`, `smile`,
       `tada`, `heart`, `thinking_face`, `rocket`, `eyes`
     - `sort:reactions-{reaction}-desc`
-* We should change the indexing so that it breaks words futher down, e.g.
-  - `net5.0-tizen` should index `net5.0-tizen`, `net5.0`, and `tizen`
-  - We need to remove quotes
-  - Looks like GitHub also indexes plural and singular forms, e.g.
-    `dependencies` is indexed as both `dependency` and `dependencies`. Maybe we
-    can just humanizer for that?
-* Add a page for filing new issues
-    - Should point out how to file issues in VS
-    - Navigate to the right repo (e.g. NuGet home vs. gallery)
 * We should replace the JavaScript octo-icon library with static CSS-based icons
   because the JavaScript ones don't work well with Blazor (basically, it works
   on initial render but when the page gets updated, for example, due to paging,
