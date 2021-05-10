@@ -103,6 +103,9 @@ namespace IssuesOfDotNet.Querying
                 case ("no", "label"):
                     result.NoLabels = !expression.IsNegated;
                     break;
+                case ("no", "area"):
+                    result.NoArea = !expression.IsNegated;
+                    break;
                 case ("no", "milestone"):
                     result.NoMilestone = !expression.IsNegated;
                     break;
