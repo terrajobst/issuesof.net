@@ -8,11 +8,6 @@ namespace IssuesOfDotNet
 {
     // TODO: We should compactify this data structure this further (see perf below)
     //
-    // TODO: We should think about normalization of text
-    //
-    // - For example, we should include ".NET" and "C#", but we should generally strip punctuation.
-    // - We should also consider breaking pascal case as individual words.
-    //
     // Performance
     // ===========
     //
