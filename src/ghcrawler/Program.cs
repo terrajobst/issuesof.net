@@ -22,15 +22,33 @@ namespace IssuesOfDotNet.Crawler
     {
         private static async Task<int> Main(string[] args)
         {
+            //args = new[]
+            //{
+            //    "--org",
+            //    "aspnet",
+            //    "dotnet",
+            //    "nuget",
+            //    "--no-pull-latest",
+            //    "--no-upload",
+            //    "--out",
+            //    @"P:\issuesof.net\src\issuesof.net\bin\Debug\net5.0\index.cicache",
+            //};
+
             var appName = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
             var orgs = new List<string>();
             var help = false;
             var activeTerms = (List<string>)null;
+            var pullLatest = true;
+            var uploadToAzure = true;
+            var outputPath = "";
 
             var options = new OptionSet
             {
                 $"usage: {appName} [OPTIONS]+",
                 { "org", "The names of the GitHub orgs to index", v => activeTerms = orgs },
+                { "out=", "The output path the index should be written to", v => outputPath = v },
+                { "no-pull-latest", null, v => pullLatest = false, true },
+                { "no-upload", null, v => uploadToAzure = false, true },
                 { "h|?|help", null, v => help = true, true },
                 { "<>", v => activeTerms?.Add(v) },
                 new ResponseFileSource()
@@ -69,7 +87,7 @@ namespace IssuesOfDotNet.Crawler
 
             try
             {
-                await RunAsync(orgs);
+                await RunAsync(orgs, pullLatest, uploadToAzure, outputPath);
                 return 0;
             }
             catch (Exception ex) when (!Debugger.IsAttached)
@@ -79,7 +97,7 @@ namespace IssuesOfDotNet.Crawler
             }
         }
 
-        private static async Task RunAsync(IEnumerable<string> orgs)
+        private static async Task RunAsync(IEnumerable<string> orgs, bool pullLatest, bool uploadToAzure, string outputPath)
         {
             var connectionString = GetAzureStorageConnectionString();
             var token = GetGitHubToken();
@@ -127,85 +145,102 @@ namespace IssuesOfDotNet.Crawler
 
                 var existingRepos = Directory.GetFiles(orgDirectory, "*.crcache")
                                              .Select(p => Path.GetFileNameWithoutExtension(p));
-                var availableRepos = await RequestReposAsync(client, org);
 
-                var deletedRepos = existingRepos.ToHashSet(StringComparer.OrdinalIgnoreCase);
-                deletedRepos.ExceptWith(availableRepos.Select(r => r.Name));
-
-                foreach (var deletedRepo in deletedRepos)
+                if (!pullLatest)
                 {
-                    var blobName = $"{org}/{deletedRepo}.crcache";
-                    var repoPath = Path.Join(tempDirectory, blobName);
-
-                    Console.WriteLine($"Deleting {blobName}...");
-                    File.Delete(repoPath);
-                    await cacheContainerClient.DeleteBlobAsync(blobName);
+                    foreach (var repoName in existingRepos)
+                    {
+                        var blobName = $"{repoName}.crcache";
+                        var repoPath = Path.Join(orgDirectory, blobName);
+                        var repo = await CrawledRepo.LoadAsync(repoPath);
+                        if (repo is not null)
+                            repos.Add(repo);
+                    }
                 }
-
-                foreach (var repo in availableRepos)
+                else
                 {
-                    var blobName = $"{org}/{repo.Name}.crcache";
-                    var repoPath = Path.Join(tempDirectory, blobName);
-                    var crawledRepo = await CrawledRepo.LoadAsync(repoPath);
-                    if (crawledRepo is null)
+                    var availableRepos = await RequestReposAsync(client, org);
+
+                    var deletedRepos = existingRepos.ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    deletedRepos.ExceptWith(availableRepos.Select(r => r.Name));
+
+                    foreach (var deletedRepo in deletedRepos)
                     {
-                        crawledRepo = new CrawledRepo
+                        var blobName = $"{org}/{deletedRepo}.crcache";
+                        var repoPath = Path.Join(tempDirectory, blobName);
+
+                        Console.WriteLine($"Deleting {blobName}...");
+                        File.Delete(repoPath);
+                        await cacheContainerClient.DeleteBlobAsync(blobName);
+                    }
+
+                    foreach (var repo in availableRepos)
+                    {
+                        var blobName = $"{org}/{repo.Name}.crcache";
+                        var repoPath = Path.Join(tempDirectory, blobName);
+                        var crawledRepo = await CrawledRepo.LoadAsync(repoPath);
+                        if (crawledRepo is null)
                         {
-                            Org = org,
-                            Name = repo.Name
-                        };
+                            crawledRepo = new CrawledRepo
+                            {
+                                Org = org,
+                                Name = repo.Name
+                            };
+                        }
+
+                        repos.Add(crawledRepo);
+
+                        var existingIssues = crawledRepo.Issues.Values;
+                        var since = existingIssues.Any()
+                                        ? existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt)
+                                        : (DateTimeOffset?)null;
+
+                        if (since is null)
+                            Console.WriteLine($"Crawling {org}/{repo.Name}...");
+                        else
+                            Console.WriteLine($"Crawling {org}/{repo.Name} since {since}...");
+
+                        crawledRepo.IsArchived = repo.Archived;
+
+                        var labels = new Dictionary<string, CrawledLabel>();
+
+                        foreach (var label in await RequestLabelsAsync(client, org, repo.Name))
+                        {
+                            var crawledLabel = ConvertLabel(label);
+                            labels[label.Name] = crawledLabel;
+                            crawledRepo.Labels.Add(crawledLabel);
+                        }
+
+                        var milestones = new Dictionary<int, CrawledMilestone>();
+
+                        foreach (var milestone in await RequestMilestonesAsync(client, org, repo.Name))
+                        {
+                            var crawledMilestone = ConvertMilestone(milestone);
+                            milestones[milestone.Number] = crawledMilestone;
+                            crawledRepo.Milestones.Add(crawledMilestone);
+                        }
+
+                        foreach (var issue in await RequestIssuesAsync(client, org, repo.Name, since))
+                        {
+                            var crawledIssue = ConvertIssue(org, repo.Name, issue, labels, milestones);
+                            crawledRepo.Issues[issue.Number] = crawledIssue;
+                        }
+
+                        foreach (var pullRequest in await RequestPullRequestsAsync(client, org, repo.Name, since))
+                        {
+                            if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
+                                UpdateIssue(issue, pullRequest);
+                        }
+
+                        await crawledRepo.SaveAsync(repoPath);
+
+                        if (uploadToAzure)
+                        {
+                            Console.WriteLine($"Uploading {blobName} to Azure...");
+                            var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
+                            await repoClient.UploadAsync(repoPath, overwrite: true);
+                        }
                     }
-
-                    repos.Add(crawledRepo);
-
-                    var existingIssues = crawledRepo.Issues.Values;
-                    var since = existingIssues.Any()
-                                    ? existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt)
-                                    : (DateTimeOffset?)null;
-
-                    if (since is null)
-                        Console.WriteLine($"Crawling {org}/{repo.Name}...");
-                    else
-                        Console.WriteLine($"Crawling {org}/{repo.Name} since {since}...");
-
-                    crawledRepo.IsArchived = repo.Archived;
-
-                    var labels = new Dictionary<string, CrawledLabel>();
-
-                    foreach (var label in await RequestLabelsAsync(client, org, repo.Name))
-                    {
-                        var crawledLabel = ConvertLabel(label);
-                        labels[label.Name] = crawledLabel;
-                        crawledRepo.Labels.Add(crawledLabel);
-                    }
-
-                    var milestones = new Dictionary<int, CrawledMilestone>();
-
-                    foreach (var milestone in await RequestMilestonesAsync(client, org, repo.Name))
-                    {
-                        var crawledMilestone = ConvertMilestone(milestone);
-                        milestones[milestone.Number] = crawledMilestone;
-                        crawledRepo.Milestones.Add(crawledMilestone);
-                    }
-
-                    foreach (var issue in await RequestIssuesAsync(client, org, repo.Name, since))
-                    {
-                        var crawledIssue = ConvertIssue(org, repo.Name, issue, labels, milestones);
-                        crawledRepo.Issues[issue.Number] = crawledIssue;
-                    }
-
-                    foreach (var pullRequest in await RequestPullRequestsAsync(client, org, repo.Name, since))
-                    {
-                        if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
-                            UpdateIssue(issue, pullRequest);
-                    }
-
-                    await crawledRepo.SaveAsync(repoPath);
-
-                    Console.WriteLine($"Uploading {blobName} to Azure...");
-
-                    var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
-                    await repoClient.UploadAsync(repoPath, overwrite: true);
                 }
             }
 
@@ -228,13 +263,19 @@ namespace IssuesOfDotNet.Crawler
             };
 
             var indexName = "index.cicache";
-            var indexPath = Path.Join(tempDirectory, indexName);
+            var indexPath = string.IsNullOrEmpty(outputPath)
+                                ? Path.Join(tempDirectory, indexName)
+                                : outputPath;
+
             await index.SaveAsync(indexPath);
 
-            Console.WriteLine("Uploading index to Azure...");
+            if (uploadToAzure)
+            {
+                Console.WriteLine("Uploading index to Azure...");
 
-            var indexClient = new BlobClient(connectionString, "index", indexName);
-            await indexClient.UploadAsync(indexPath, overwrite: true);
+                var indexClient = new BlobClient(connectionString, "index", indexName);
+                await indexClient.UploadAsync(indexPath, overwrite: true);
+            }
 
             Console.WriteLine("Deleting temp files...");
 
