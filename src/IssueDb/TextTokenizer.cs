@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 using Humanizer;
 
@@ -25,6 +23,9 @@ namespace IssuesOfDotNet
             return result;
         }
 
+        // TODO: PascalCased identifiers should include the entire identifier.
+        //
+        // Righ now, we index AddFooBar as as Add, Foo, and Bar. We should also include AddFooBar.
         private static IEnumerable<string> SplitByPunctuationAndCaseChanges(string token)
         {
             var position = 0;
