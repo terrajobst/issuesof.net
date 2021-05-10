@@ -6,17 +6,35 @@ using Markdig;
 
 namespace IssuesOfDotNet
 {
-    // TODO: We need to compactify this data structure
-    //
-    // Couple of ideas:
-    // - We should consider a flat buffer representation
-    // - We should intern strings
-    // - We should only store necessary information, e.g. not issue bodies
+    // TODO: We should compactify this data structure this further (see perf below)
     //
     // TODO: We should think about normalization of text
     //
     // - For example, we should include ".NET" and "C#", but we should generally strip punctuation.
     // - We should also consider breaking pascal case as individual words.
+    //
+    // Performance
+    // ===========
+    //
+    // Replacing the implementation of our trie with different data structures yields
+    // these results:
+    //
+    //      # | Approach   |  Issues           | Null Issues
+    //      ---------------|-------------------|-----------------
+    //      1 | UTF8 Trie  | 249,796,264 bytes | 74,505,928 bytes
+    //      2 | Trie       | 253,479,976 bytes | 78,213,392 bytes
+    //      3 | Dictionary | 266,435,040 bytes | 91,148,128 bytes
+    //
+    // Using the UTF8 trie and then storing the issues as a byte array of 7-bit compressed
+    // ints and then compressing them using different algorithms yields these results:
+    //
+    //      # | Algorithm  | Issues            | Null Issues
+    //      --|------------|-------------------|-----------------
+    //      1 | Deflate    | 224,990,336 bytes | 49,699,984 bytes
+    //      2 | Brotli     | 225,473,400 bytes | 50,183,024 bytes
+    //      3 | None       | 226,650,352 bytes | 51,360,000 bytes
+    //      4 | zlib       | 227,115,648 bytes | 51,825,272 bytes
+    //      5 | gzip       | 229,847,168 bytes | 54,556,792 bytes
 
     public sealed class CrawledTrie
     {
