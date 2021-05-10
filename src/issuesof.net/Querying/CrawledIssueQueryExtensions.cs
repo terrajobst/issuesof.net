@@ -6,6 +6,8 @@ namespace IssuesOfDotNet.Querying
 {
     public static class CrawledIssueQueryExtensions
     {
+        private static readonly IEnumerable<IssueSort> _defaultSort = new[] { IssueSort.UpdatedDescending };
+
         public static IEnumerable<CrawledIssue> Execute(this IssueQuery query, CrawledIndex index)
         {
             var result = (HashSet<CrawledIssue>)null;
@@ -19,7 +21,14 @@ namespace IssuesOfDotNet.Querying
                     result.UnionWith(next);
             }
 
-            return (IEnumerable<CrawledIssue>)result ?? Array.Empty<CrawledIssue>();
+            if (result is null)
+                return Array.Empty<CrawledIssue>();
+
+            var sorts = query.Filters.SelectMany(f => f.Sort);
+            if (!sorts.Any())
+                sorts = _defaultSort;
+
+            return Sort(result, sorts);
         }
 
         private static HashSet<CrawledIssue> Execute(CrawledIndex index, IssueFilter filter)
@@ -129,5 +138,42 @@ namespace IssuesOfDotNet.Querying
             }
         }
 
+        private static IEnumerable<CrawledIssue> Sort(IEnumerable<CrawledIssue> result, IEnumerable<IssueSort> sorts)
+        {
+            foreach (var sort in sorts)
+            {
+                var orderedEnumerable = result as IOrderedEnumerable<CrawledIssue>;
+
+                switch (sort)
+                {
+                    case IssueSort.CreatedAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.CreatedAt);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.CreatedAt);
+                        break;
+                    case IssueSort.CreatedDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.CreatedAt);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.CreatedAt);
+                        break;
+                    case IssueSort.UpdatedAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.UpdatedAt);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.UpdatedAt);
+                        break;
+                    case IssueSort.UpdatedDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.UpdatedAt);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.UpdatedAt);
+                        break;
+                }
+            }
+
+            return result;
+        }
     }
 }

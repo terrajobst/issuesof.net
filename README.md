@@ -67,12 +67,8 @@ such as [aspnet], [dotnet], and [nuget].
     - `is:unlocked`
     - `no:project`
 * We should support custom sorting
-    - `sort:created-asc`
-    - `sort:created-desc`
     - `sort:comments-asc`
     - `sort:comments-desc`
-    - `sort:updated-asc`
-    - `sort:updated-desc`
     - `sort:reactions-{reaction}-asc` where `{reaction}` is `+1`, `-1`, `smile`,
       `tada`, `heart`, `thinking_face`, `rocket`, `eyes`
     - `sort:reactions-{reaction}-desc`

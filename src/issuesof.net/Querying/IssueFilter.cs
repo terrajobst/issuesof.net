@@ -31,6 +31,8 @@ namespace IssuesOfDotNet.Querying
         public List<string> ExcludedMilestones { get; } = new List<string>();
         public List<string> ExcludedTerms { get; } = new List<string>();
 
+        public List<IssueSort> Sort { get; } = new List<IssueSort>();
+
         public void WriteTo(TextWriter writer)
         {
             if (writer is IndentedTextWriter indentedTextWriter)
@@ -86,6 +88,15 @@ namespace IssuesOfDotNet.Querying
 
             if (lines.Count > 1)
             {
+                writer.Indent--;
+            }
+
+            if (Sort.Count > 0)
+            {
+                writer.WriteLine("ORDER BY");
+                writer.Indent++;
+                foreach (var sort in Sort)
+                    writer.WriteLine(sort);
                 writer.Indent--;
             }
 

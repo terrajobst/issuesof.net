@@ -16,6 +16,7 @@ namespace IssuesOfDotNet.Querying
         private readonly string[] _users;
         private readonly string[] _labels;
         private readonly string[] _milestones;
+        private readonly string[] _sortValues;
 
         public CrawledIndexCompletionProvider(CrawledIndex index)
         {
@@ -52,6 +53,8 @@ namespace IssuesOfDotNet.Querying
                            .Select(m => m.Title),
                 StringComparer.OrdinalIgnoreCase
             ).ToArray();
+
+            _sortValues = new[] { "created-asc", "created-desc", "updated-asc", "updated-desc" };
         }
 
         public override IEnumerable<string> GetCompletionForKeyValue(string key, string value)
@@ -69,6 +72,7 @@ namespace IssuesOfDotNet.Querying
                 "assignee" => _users,
                 "label" => _labels,
                 "milestone" => _milestones,
+                "sort" => _sortValues,
                 _ => Array.Empty<string>(),
             };
 

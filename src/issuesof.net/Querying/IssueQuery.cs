@@ -149,6 +149,19 @@ namespace IssuesOfDotNet.Querying
                         result.Milestone = value;
                     break;
 
+                case ("sort", "created-asc"):
+                    result.Sort.Add(IssueSort.CreatedAscending);
+                    break;
+                case ("sort", "created-desc"):
+                    result.Sort.Add(IssueSort.CreatedDescending);
+                    break;
+                case ("sort", "updated-asc"):
+                    result.Sort.Add(IssueSort.UpdatedAscending);
+                    break;
+                case ("sort", "updated-desc"):
+                    result.Sort.Add(IssueSort.UpdatedDescending);
+                    break;
+
                 default:
                     Apply(result, new BoundTextQuery(expression.IsNegated, $"{key}:{value}"));
                     break;
