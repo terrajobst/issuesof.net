@@ -61,11 +61,11 @@
                     token: "keyword"
                 },
                 {
-                    regex: /closed|issue|open|merged|pr/,
+                    regex: /(?:closed|issue|open|merged|pr)\b/,
                     token: "atom"
                 },
                 {
-                    regex: /\:|or|not|-/,
+                    regex: /(?:\:|or|not|-)\b/,
                     token: "operator"
                 },
                 {
