@@ -18,6 +18,10 @@ using Octokit;
 
 namespace IssuesOfDotNet.Crawler
 {
+    // TODO: For transferred issues, we should check whether we're ending up indexing issues
+    //       twice. For example, there are no issues for repo CoreFX right now, but that's
+    //       probably because they are all returned for runtime.
+    //
     internal static class Program
     {
         private static async Task<int> Main(string[] args)
