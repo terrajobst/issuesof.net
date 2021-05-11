@@ -79,6 +79,12 @@ a, .btn-link {
     font-weight: bold;
 }
 
+    .gh-issue-title code {
+        border-radius: 6px;
+        background-color: lightgray;
+        padding: 2px 4px;
+    }
+
 .gh-label {
     margin: 0 2px;
     padding: 0 7px;
