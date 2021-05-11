@@ -137,7 +137,15 @@ namespace IssuesOfDotNet.Pages
                 Query = query
             }.ToString();
 
-            await JSRuntime.InvokeAsync<object>("changeUrl", uri);
+            // Let's update the URL on the client without navigating.
+            //
+            // NOTE: We want to replace the history state because this is done on every
+            //       keystroke in the search box.
+
+            await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",
+                                            uri.ToString(),
+                                            /* forceLoad */ false,
+                                            /* replace */ true);
         }
     }
 }

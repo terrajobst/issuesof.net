@@ -36,10 +36,6 @@
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
 
     <script>
-        window.changeUrl = function (url) {
-            @* Don't use pushState, because we don't need to record a history entry. *@
-            history.replaceState(null, "", url);
-        };
         window.registerPage = function (dotNetObjRef) {
             window.invokeSearch = function (text) {
                 dotNetObjRef.invokeMethodAsync('Search', text);
