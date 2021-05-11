@@ -11,11 +11,13 @@ namespace IssuesOfDotNet
         {
             var result = new SortedSet<string>();
 
-            foreach (var nestedToken in SplitByPunctuationAndCaseChanges(text))
+            foreach (var token in SplitByPunctuation(text))
             {
-                var normalized = nestedToken.ToLowerInvariant();
-                var singular = normalized.Singularize();
-                result.Add(singular);
+                var singular = token.Singularize();
+                result.Add(singular.ToLowerInvariant());
+
+                foreach (var nestedToken in SplitByCaseChanges(token))
+                    result.Add(nestedToken.ToLowerInvariant());
             }
 
             result.RemoveWhere(x => x.Length < 2);
@@ -23,10 +25,7 @@ namespace IssuesOfDotNet
             return result;
         }
 
-        // TODO: PascalCased identifiers should include the entire identifier.
-        //
-        // Righ now, we index AddFooBar as as Add, Foo, and Bar. We should also include AddFooBar.
-        private static IEnumerable<string> SplitByPunctuationAndCaseChanges(string token)
+        private static IEnumerable<string> SplitByPunctuation(string token)
         {
             var position = 0;
             var start = -1;
@@ -34,16 +33,8 @@ namespace IssuesOfDotNet
             while (position < token.Length)
             {
                 var c = token[position];
-                var l = position < token.Length - 1 ? token[position + 1] : '\0';
-                var caseChanged = char.IsLower(c) && char.IsUpper(l);
 
-                if (caseChanged)
-                {
-                    position++;
-                    yield return token[start..position];
-                    start = position;
-                }
-                else if (char.IsLetterOrDigit(c))
+                if (char.IsLetterOrDigit(c))
                 {
                     if (start < 0)
                         start = position;
@@ -61,6 +52,30 @@ namespace IssuesOfDotNet
 
             if (start >= 0)
                 yield return token[start..];
+        }
+
+        private static IEnumerable<string> SplitByCaseChanges(string token)
+        {
+            var position = 0;
+            var start = 0;
+
+            while (position < token.Length)
+            {
+                var c = token[position];
+                var l = position < token.Length - 1 ? token[position + 1] : '\0';
+                var nextCharacterChangesToUpperCase = char.IsLower(c) && char.IsUpper(l);
+                var wordHasStarted = start > 0;
+                var isLastCharacter = l == '\0';
+                var wordHasEnded = nextCharacterChangesToUpperCase ||
+                                   wordHasStarted && isLastCharacter;
+                position++;
+
+                if (wordHasEnded)
+                {
+                    yield return token[start..position];
+                    start = position;
+                }
+            }
         }
 
         public static IReadOnlyList<string> GetAreaPaths(string label)
