@@ -24,6 +24,9 @@ namespace IssuesOfDotNet
         public List<CrawledLabel> Labels { get; set; } = new();
         public List<CrawledMilestone> Milestones { get; set; } = new();
 
+        [JsonIgnore]
+        public string FullName => $"{Org}/{Name}";
+
         public static async Task<CrawledRepo> LoadAsync(string path)
         {
             if (!File.Exists(path))

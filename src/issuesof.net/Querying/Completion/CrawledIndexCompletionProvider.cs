@@ -47,7 +47,7 @@ namespace IssuesOfDotNet.Querying
             ).ToArray();
 
             _repos = new SortedSet<string>(
-                 index.Repos.Select(r => r.Name),
+                 index.Repos.SelectMany(r => new[] { r.Name, r.FullName }),
                  StringComparer.OrdinalIgnoreCase
             ).ToArray();
 

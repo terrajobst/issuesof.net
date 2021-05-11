@@ -68,6 +68,7 @@ namespace IssuesOfDotNet
 
             result.Add($"org:{issue.Repo.Org}");
             result.Add($"repo:{issue.Repo.Name}");
+            result.Add($"repo:{issue.Repo.FullName}");
             result.Add($"author:{issue.CreatedBy}");
 
             foreach (var assignee in issue.Assignees)

@@ -30,7 +30,6 @@ such as [aspnet], [dotnet], and [nuget].
     - `in:title`
     - `in:body`
     - `in:comments` 
-    - `repo:{org/repo}`
     - `is:public`
     - `is:internal`
     - `is:private`
