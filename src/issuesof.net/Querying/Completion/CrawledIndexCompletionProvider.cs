@@ -14,6 +14,7 @@ namespace IssuesOfDotNet.Querying
         private readonly string[] _draftValues;
         private readonly string[] _typeValues;
         private readonly string[] _stateValues;
+        private readonly string[] _archivedValues;
         private readonly string[] _users;
         private readonly string[] _labels;
         private readonly string[] _milestones;
@@ -23,6 +24,7 @@ namespace IssuesOfDotNet.Querying
         public CrawledIndexCompletionProvider(CrawledIndex index)
         {
             _keywords = new[] {
+                "archived",
                 "area",
                 "area-under",
                 "assignee",
@@ -54,6 +56,7 @@ namespace IssuesOfDotNet.Querying
             _draftValues = new[] { "false", "true" };
             _typeValues = new[] { "issue", "pr" };
             _stateValues = new[] { "closed", "merged", "open", "unmerged" };
+            _archivedValues = new[] { "false", "true" };
 
             _users = new SortedSet<string>(
                  index.Repos.SelectMany(r => r.Issues.Values)
@@ -92,6 +95,7 @@ namespace IssuesOfDotNet.Querying
                 "type" => _typeValues,
                 "state" => _stateValues,
                 "draft" => _draftValues,
+                "archived" => _archivedValues,
                 "no" => _noValues,
                 "author" => _users,
                 "assignee" => _users,

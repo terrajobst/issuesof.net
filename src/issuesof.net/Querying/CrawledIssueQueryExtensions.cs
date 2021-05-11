@@ -79,6 +79,11 @@ namespace IssuesOfDotNet.Querying
             else if (filter.IsDraft == false)
                 ApplyPredicate(ref result, index, i => i.IsPullRequest && !i.IsDraft);
 
+            if (filter.IsArchived == true)
+                ApplyPredicate(ref result, index, i => i.Repo.IsArchived);
+            else if (filter.IsArchived == false)
+                ApplyPredicate(ref result, index, i => !i.Repo.IsArchived);
+
             if (filter.NoAssignees == true)
                 ApplyPredicate(ref result, index, i => i.Assignees.Length == 0);
             else if (filter.NoAssignees == false)

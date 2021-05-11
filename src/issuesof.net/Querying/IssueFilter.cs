@@ -10,6 +10,7 @@ namespace IssuesOfDotNet.Querying
         public bool? IsPullRequest { get; set; }
         public bool? IsMerged { get; set; }
         public bool? IsDraft { get; set; }
+        public bool? IsArchived { get; set; }
         public bool? NoAssignees { get; set; }
         public bool? NoLabels { get; set; }
         public bool? NoArea { get; set; }
@@ -57,6 +58,7 @@ namespace IssuesOfDotNet.Querying
             AddBooleanFilter(lines, IsPullRequest, nameof(IsPullRequest));
             AddBooleanFilter(lines, IsMerged, nameof(IsMerged));
             AddBooleanFilter(lines, IsDraft, nameof(IsDraft));
+            AddBooleanFilter(lines, IsArchived, nameof(IsArchived));
             AddBooleanFilter(lines, NoAssignees, nameof(NoAssignees));
             AddBooleanFilter(lines, NoLabels, nameof(NoLabels));
             AddBooleanFilter(lines, NoArea, nameof(NoArea));

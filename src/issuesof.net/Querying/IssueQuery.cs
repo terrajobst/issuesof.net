@@ -97,6 +97,13 @@ namespace IssuesOfDotNet.Querying
                     result.IsDraft = expression.IsNegated;
                     break;
 
+                case ("archived", "true"):
+                    result.IsArchived = !expression.IsNegated;
+                    break;
+                case ("archived", "false"):
+                    result.IsArchived = expression.IsNegated;
+                    break;
+
                 case ("no", "assignee"):
                     result.NoAssignees = !expression.IsNegated;
                     break;
