@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Azure.Storage.Blobs;
@@ -237,6 +238,17 @@ namespace IssuesOfDotNet.Crawler
 
                         foreach (var issue in await RequestIssuesAsync(client, org, repo.Name, since))
                         {
+                            // NOTE: Sadly GitHub doesn't tell us the original issue number
+                            //
+                            //       That means we have no good way to remove the transferred issues. Double
+                            //       sadly even the issue events don't reveal the original ID the issue was
+                            //       transferred from.
+                            //
+                            //       We probably have to accept that we need to re-index everything every
+                            //       once in a while to get rid of transferred issues.
+                            if (IssueWasTransferred(crawledRepo, issue))
+                                continue;
+
                             var crawledIssue = ConvertIssue(crawledRepo, issue, labels, milestones);
                             crawledRepo.Issues[issue.Number] = crawledIssue;
                         }
@@ -445,6 +457,23 @@ namespace IssuesOfDotNet.Crawler
             }
 
             return Color.Black;
+        }
+
+        private static bool IssueWasTransferred(CrawledRepo repo, Issue issue)
+        {
+            var match = Regex.Match(issue.Url, @"https://api.github.com/repos/(?<org>[^/]+)/(?<repo>[^/]+)/issues/(?<id>[^/]+)");
+            if (match.Success)
+            {
+                var issueOrg = match.Groups["org"].Value;
+                var issueRepo = match.Groups["repo"].Value;
+                var matchesRepo = string.Equals(issueOrg, repo.Org, StringComparison.OrdinalIgnoreCase) &&
+                                  string.Equals(issueRepo, repo.Name, StringComparison.OrdinalIgnoreCase);
+
+                if (!matchesRepo)
+                    return true;
+            }
+
+            return false;
         }
 
         private static CrawledIssue ConvertIssue(CrawledRepo repo, Issue issue, Dictionary<string, CrawledLabel> labels, Dictionary<int, CrawledMilestone> milestones)
