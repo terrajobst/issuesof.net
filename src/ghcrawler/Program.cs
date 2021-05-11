@@ -402,7 +402,7 @@ namespace IssuesOfDotNet.Crawler
                     var padding = TimeSpan.FromMinutes(2);
                     var delay = ex.Reset - DateTimeOffset.Now + padding;
                     var time = ex.Reset + padding;
-                    Console.WriteLine($"API rate limit exceeded. Waiting {delay.TotalMinutes:N0} until it resets at {time.ToLocalTime():M/d/yyyy h:mm tt}...");
+                    Console.WriteLine($"API rate limit exceeded. Waiting {delay.TotalMinutes:N0} minutes until it resets at {time.ToLocalTime():M/d/yyyy h:mm tt}...");
                     await Task.Delay(delay);
                     Console.WriteLine("Trying again...");
                 }
