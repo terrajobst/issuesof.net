@@ -66,21 +66,21 @@ namespace IssuesOfDotNet
             // TODO: Should we index the body or not?
             // AddTermsFromMarkdown(result, issue.Body);
 
-            result.Add("org:" + issue.Repo.Org);
-            result.Add("repo:" + issue.Repo.Name);
-            result.Add("author:" + issue.CreatedBy);
+            result.Add($"org:{issue.Repo.Org}");
+            result.Add($"repo:{issue.Repo.Name}");
+            result.Add($"author:{issue.CreatedBy}");
 
             foreach (var assignee in issue.Assignees)
-                result.Add("assignee:" + assignee);
+                result.Add($"assignee:{assignee}");
 
             foreach (var label in issue.Labels)
-                result.Add("label:" + label.Name);
+                result.Add($"label:{label.Name}");
 
             foreach (var area in issue.Areas)
-                result.Add("area:" + area);
+                result.Add($"area:{area}");
 
             if (issue.Milestone is not null)
-                result.Add("milestone:" + issue.Milestone.Title);
+                result.Add($"milestone:{issue.Milestone.Title}");
 
             return result;
         }

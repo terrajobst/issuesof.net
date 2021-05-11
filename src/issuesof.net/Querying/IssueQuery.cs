@@ -154,9 +154,9 @@ namespace IssuesOfDotNet.Querying
 
                 case ("area", _):
                     if (expression.IsNegated)
-                        result.ExcludedLabels.Add("area-" + value);
+                        result.ExcludedLabels.Add($"area-{value}");
                     else
-                        result.IncludedLabels.Add("area-" + value);
+                        result.IncludedLabels.Add($"area-{value}");
                     break;
                 case ("area-under", _):
                     if (expression.IsNegated)

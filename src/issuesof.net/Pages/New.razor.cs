@@ -148,7 +148,7 @@ namespace IssuesOfDotNet.Pages
             if (repo == "Dev Community")
                 return "https://developercommunity.visualstudio.com/search?space=61";
 
-            return "https://github.com/" + repo;
+            return $"https://github.com/{repo}";
         }
     }
 }
