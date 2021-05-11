@@ -106,7 +106,7 @@ else
                 <tr>
                     <td>
                         @{
-                            var isClosed = issue.State == IssuesOfDotNet.CrawledIssueState.Closed;
+                            var isClosed = !issue.IsOpen;
                             var isPr = issue.IsPullRequest;
                             var isDraft = issue.IsDraft;
                             var isMerged = issue.IsMerged;
@@ -153,15 +153,15 @@ else
                         <div class="small text-muted">
                             @if (isMerged)
                             {
-                                <text>@issue.Org/@issue.Repo#@issue.Number by @issue.CreatedBy was merged @issue.ClosedAt.Humanize()</text>
+                                <text>@issue.Repo.Org/@issue.Repo.Name#@issue.Number by @issue.CreatedBy was merged @issue.ClosedAt.Humanize()</text>
                             }
                             else if (isClosed)
                             {
-                                <text>@issue.Org/@issue.Repo#@issue.Number by @issue.CreatedBy was closed @issue.ClosedAt.Humanize()</text>
+                                <text>@issue.Repo.Org/@issue.Repo.Name#@issue.Number by @issue.CreatedBy was closed @issue.ClosedAt.Humanize()</text>
                             }
                             else
                             {
-                                <text>@issue.Org/@issue.Repo#@issue.Number opened by @issue.CreatedBy @issue.CreatedAt.Humanize()</text>
+                                <text>@issue.Repo.Org/@issue.Repo.Name#@issue.Number opened by @issue.CreatedBy @issue.CreatedAt.Humanize()</text>
                             }
 
                             @if (issue.Milestone != null)

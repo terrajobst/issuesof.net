@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace IssuesOfDotNet
 {
-    public readonly struct CrawledTrieLookupResult
+    public readonly struct CrawledIssueResults
     {
-        public static CrawledTrieLookupResult Empty => new(Array.Empty<CrawledIssue>());
+        public static CrawledIssueResults Empty => new(Array.Empty<CrawledIssue>());
 
         private const int ItemsPerPage = 25;
         private readonly IReadOnlyCollection<CrawledIssue> _issues;
 
-        public CrawledTrieLookupResult(IEnumerable<CrawledIssue> issues)
+        public CrawledIssueResults(IEnumerable<CrawledIssue> issues)
         {
             _issues = issues.ToArray();
         }

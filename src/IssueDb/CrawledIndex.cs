@@ -12,7 +12,7 @@ namespace IssuesOfDotNet
     public sealed class CrawledIndex
     {
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-        private static readonly short _formatVersion = 1;
+        private static readonly short _formatVersion = 2;
 
         public IReadOnlyList<CrawledRepo> Repos { get; set; } = Array.Empty<CrawledRepo>();
 
@@ -137,8 +137,8 @@ namespace IssuesOfDotNet
                         writer.Write(issueId);
                         // Org  : Ignored, because it's implied by the containing repo.
                         // Repo : Ignored, because it's implied by the containing repo.
-                        writer.Write((byte)issue.State);
                         writer.Write(issue.Number);
+                        writer.Write(issue.IsOpen);
                         writer.Write(issue.IsPullRequest);
                         writer.Write(issue.IsDraft);
                         writer.Write(issue.IsMerged);
@@ -148,7 +148,6 @@ namespace IssuesOfDotNet
                         writer.Write(issue.UpdatedAt?.Ticks ?? -1);
                         writer.Write(issue.ClosedAt?.Ticks ?? -1);
                         writer.Write(stringIndexer(issue.CreatedBy));
-                        writer.Write(stringIndexer(issue.ClosedBy));
 
                         writer.Write(issue.Assignees.Length);
                         foreach (var assignee in issue.Assignees)
@@ -292,10 +291,9 @@ namespace IssuesOfDotNet
 
                         var issue = new CrawledIssue
                         {
-                            Org = org,
-                            Repo = name,
-                            State = (CrawledIssueState)reader.ReadByte(),
+                            Repo = repo,
                             Number = reader.ReadInt32(),
+                            IsOpen = reader.ReadBoolean(),
                             IsPullRequest = reader.ReadBoolean(),
                             IsDraft = reader.ReadBoolean(),
                             IsMerged = reader.ReadBoolean(),
@@ -305,7 +303,6 @@ namespace IssuesOfDotNet
                             UpdatedAt = ToNullableDateTime(reader.ReadInt64()),
                             ClosedAt = ToNullableDateTime(reader.ReadInt64()),
                             CreatedBy = stringIndex[reader.ReadInt32()],
-                            ClosedBy = stringIndex[reader.ReadInt32()],
                         };
 
                         var assigneeCount = reader.ReadInt32();

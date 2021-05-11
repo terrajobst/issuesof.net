@@ -17,10 +17,9 @@ namespace IssuesOfDotNet
 
     public sealed class CrawledIssue
     {
-        public string Org { get; set; }
-        public string Repo { get; set; }
-        public CrawledIssueState State { get; set; }
+        public CrawledRepo Repo { get; set; }
         public int Number { get; set; }
+        public bool IsOpen { get; set; }
         public bool IsPullRequest { get; set; }
         public bool IsDraft { get; set; }
         public bool IsMerged { get; set; }
@@ -30,16 +29,14 @@ namespace IssuesOfDotNet
         public DateTimeOffset? UpdatedAt { get; set; }
         public DateTimeOffset? ClosedAt { get; set; }
         public string CreatedBy { get; set; }
-        // TODO: Seems this is always null. Should we strip that?
-        public string ClosedBy { get; set; }
         public string[] Assignees { get; set; }
         public CrawledLabel[] Labels { get; set; }
         public CrawledMilestone Milestone { get; set; }
 
         [JsonIgnore]
         public string Url => IsPullRequest
-                                ? $"https://github.com/{Org}/{Repo}/issues/{Number}"
-                                : $"https://github.com/{Org}/{Repo}/pull/{Number}";
+                                ? $"https://github.com/{Repo.Org}/{Repo.Name}/issues/{Number}"
+                                : $"https://github.com/{Repo.Org}/{Repo.Name}/pull/{Number}";
 
         [JsonIgnore]
         public IEnumerable<string> Areas => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name));

@@ -48,7 +48,7 @@ namespace IssuesOfDotNet.Pages
 
         public bool ShowHelp { get; set; }
 
-        public CrawledTrieLookupResult SearchResults { get; private set; } = CrawledTrieLookupResult.Empty;
+        public CrawledIssueResults SearchResults { get; private set; } = CrawledIssueResults.Empty;
 
         protected override void OnInitialized()
         {
@@ -106,16 +106,16 @@ namespace IssuesOfDotNet.Pages
             StateHasChanged();
         }
 
-        private CrawledTrieLookupResult Find(string searchText)
+        private CrawledIssueResults Find(string searchText)
         {
             _searchText = searchText;
 
             if (TrieService.Index is null)
-                return CrawledTrieLookupResult.Empty;
+                return CrawledIssueResults.Empty;
 
             var query = IssueQuery.Create(searchText);
             var issues = query.Execute(TrieService.Index);
-            return new CrawledTrieLookupResult(issues);
+            return new CrawledIssueResults(issues);
         }
 
         private async void ChangeUrl()

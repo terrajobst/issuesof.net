@@ -60,9 +60,9 @@ namespace IssuesOfDotNet.Querying
                 ApplyTerm(ref result, index.Trie, $"milestone:{filter.Milestone}");
 
             if (filter.IsOpen == true)
-                ApplyPredicate(ref result, index, i => i.State == CrawledIssueState.Open);
+                ApplyPredicate(ref result, index, i => i.IsOpen);
             else if (filter.IsOpen == false)
-                ApplyPredicate(ref result, index, i => i.State == CrawledIssueState.Closed);
+                ApplyPredicate(ref result, index, i => !i.IsOpen);
 
             if (filter.IsPullRequest == true)
                 ApplyPredicate(ref result, index, i => i.IsPullRequest);

@@ -53,6 +53,12 @@ namespace IssuesOfDotNet
             }
         }
 
+        private void AddIssue(string text, CrawledIssue issue)
+        {
+            var current = Walk(text, addNodes: true);
+            current.AddIssue(issue);
+        }
+
         private static IEnumerable<string> GetTerms(CrawledIssue issue)
         {
             var result = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -60,8 +66,8 @@ namespace IssuesOfDotNet
             // TODO: Should we index the body or not?
             // AddTermsFromMarkdown(result, issue.Body);
 
-            result.Add("org:" + issue.Org);
-            result.Add("repo:" + issue.Repo);
+            result.Add("org:" + issue.Repo.Org);
+            result.Add("repo:" + issue.Repo.Name);
             result.Add("author:" + issue.CreatedBy);
 
             foreach (var assignee in issue.Assignees)
@@ -214,12 +220,6 @@ namespace IssuesOfDotNet
             }
 
             return prefixLength;
-        }
-
-        public void AddIssue(string text, CrawledIssue issue)
-        {
-            var current = Walk(text, addNodes: true);
-            current.AddIssue(issue);
         }
 
         private static int BinarySearch(CrawledTrieNode node, string text)

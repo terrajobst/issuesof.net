@@ -178,7 +178,18 @@ namespace IssuesOfDotNet.Crawler
                     {
                         var blobName = $"{org}/{repo.Name}.crcache";
                         var repoPath = Path.Join(tempDirectory, blobName);
-                        var crawledRepo = await CrawledRepo.LoadAsync(repoPath);
+
+                        CrawledRepo crawledRepo;
+                        try
+                        {
+                            crawledRepo = await CrawledRepo.LoadAsync(repoPath);
+                        }
+                        catch (JsonException)
+                        {
+                            Console.WriteLine($"WARNING: Couldn't parse {blobName}");
+                            crawledRepo = null;
+                        }
+
                         if (crawledRepo is null)
                         {
                             crawledRepo = new CrawledRepo
@@ -222,7 +233,7 @@ namespace IssuesOfDotNet.Crawler
 
                         foreach (var issue in await RequestIssuesAsync(client, org, repo.Name, since))
                         {
-                            var crawledIssue = ConvertIssue(org, repo.Name, issue, labels, milestones);
+                            var crawledIssue = ConvertIssue(crawledRepo, issue, labels, milestones);
                             crawledRepo.Issues[issue.Number] = crawledIssue;
                         }
 
@@ -432,33 +443,31 @@ namespace IssuesOfDotNet.Crawler
             return Color.Black;
         }
 
-        private static CrawledIssue ConvertIssue(string org, string repo, Issue issue, Dictionary<string, CrawledLabel> labels, Dictionary<int, CrawledMilestone> milestones)
+        private static CrawledIssue ConvertIssue(CrawledRepo repo, Issue issue, Dictionary<string, CrawledLabel> labels, Dictionary<int, CrawledMilestone> milestones)
         {
             return new CrawledIssue
             {
-                Org = org,
                 Repo = repo,
                 Number = issue.Number,
-                State = ConvertIssueState(issue.State),
+                IsOpen = ConvertIssueState(issue.State),
                 Title = issue.Title,
                 Body = issue.Body,
                 CreatedAt = issue.CreatedAt,
                 UpdatedAt = issue.UpdatedAt,
                 ClosedAt = issue.ClosedAt,
                 CreatedBy = issue.User.Login,
-                ClosedBy = issue.ClosedBy?.Login,
                 Assignees = ConvertUsers(issue.Assignees),
                 Labels = ConvertLabels(issue.Labels, labels),
                 Milestone = GetMilestone(issue.Milestone, milestones)
             };
         }
 
-        private static CrawledIssueState ConvertIssueState(StringEnum<ItemState> state)
+        private static bool ConvertIssueState(StringEnum<ItemState> state)
         {
             return state.Value switch
             {
-                ItemState.Open => CrawledIssueState.Open,
-                ItemState.Closed => CrawledIssueState.Closed,
+                ItemState.Open => true,
+                ItemState.Closed => false,
                 _ => throw new NotImplementedException($"Unhandled issue state: '{state.StringValue}'"),
             };
         }
