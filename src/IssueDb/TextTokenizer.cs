@@ -78,7 +78,7 @@ namespace IssuesOfDotNet
             }
         }
 
-        public static IReadOnlyList<string> GetAreaPaths(string label)
+        public static IReadOnlyList<string> GetAreaPaths(string label, bool segmentsOnly = false)
         {
             const string prefix = "area-";
             if (!label.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
@@ -87,6 +87,8 @@ namespace IssuesOfDotNet
             var result = new List<string>();
             var remainder = label.Substring(prefix.Length);
             var wasSeparator = true;
+            var start = 0;
+
             for (var i = 0; i < remainder.Length; i++)
             {
                 var c = remainder[i];
@@ -94,12 +96,22 @@ namespace IssuesOfDotNet
                                      char.IsWhiteSpace(c);
 
                 if (isAreaPathText)
-                    wasSeparator = false;
+                {
+                    if (wasSeparator)
+                    {
+                        wasSeparator = false;
+                        if (segmentsOnly)
+                            start = i;
+                    }
+                }
                 else if (!wasSeparator)
-                    result.Add(remainder.Substring(0, i));
+                {
+                    result.Add(remainder[start..i]);
+                    wasSeparator = true;
+                }
             }
 
-            result.Add(remainder);
+            result.Add(remainder[start..]);
             return result;
         }
     }

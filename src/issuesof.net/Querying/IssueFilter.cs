@@ -25,6 +25,7 @@ namespace IssuesOfDotNet.Querying
         public List<string> IncludedAssignees { get; } = new List<string>();
         public List<string> IncludedLabels { get; } = new List<string>();
         public List<string> IncludedAreas { get; } = new List<string>();
+        public List<string> IncludedAreaNodes { get; } = new List<string>();
         public List<string> IncludedTerms { get; } = new List<string>();
 
         public List<string> ExcludedOrgs { get; } = new List<string>();
@@ -33,6 +34,7 @@ namespace IssuesOfDotNet.Querying
         public List<string> ExcludedAuthors { get; } = new List<string>();
         public List<string> ExcludedLabels { get; } = new List<string>();
         public List<string> ExcludedAreas { get; } = new List<string>();
+        public List<string> ExcludedAreaNodes { get; } = new List<string>();
         public List<string> ExcludedMilestones { get; } = new List<string>();
         public List<string> ExcludedTerms { get; } = new List<string>();
 
@@ -74,6 +76,7 @@ namespace IssuesOfDotNet.Querying
             AddListFilter(lines, IncludedAssignees, nameof(IncludedAssignees));
             AddListFilter(lines, IncludedLabels, nameof(IncludedLabels));
             AddListFilter(lines, IncludedAreas, nameof(IncludedAreas));
+            AddListFilter(lines, IncludedAreaNodes, nameof(IncludedAreaNodes));
             AddListFilter(lines, IncludedTerms, nameof(IncludedTerms));
 
             AddListFilter(lines, ExcludedOrgs, nameof(ExcludedOrgs));
@@ -82,6 +85,7 @@ namespace IssuesOfDotNet.Querying
             AddListFilter(lines, ExcludedAuthors, nameof(ExcludedAuthors));
             AddListFilter(lines, ExcludedLabels, nameof(ExcludedLabels));
             AddListFilter(lines, ExcludedAreas, nameof(ExcludedAreas));
+            AddListFilter(lines, ExcludedAreaNodes, nameof(ExcludedAreaNodes));
             AddListFilter(lines, ExcludedMilestones, nameof(ExcludedMilestones));
             AddListFilter(lines, ExcludedTerms, nameof(ExcludedTerms));
 

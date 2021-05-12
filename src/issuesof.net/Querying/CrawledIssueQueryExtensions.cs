@@ -51,7 +51,10 @@ namespace IssuesOfDotNet.Querying
                 ApplyTerm(ref result, index.Trie, $"label:{label}");
 
             foreach (var area in filter.IncludedAreas)
-                ApplyTerm(ref result, index.Trie, $"area:{area}");
+                ApplyTerm(ref result, index.Trie, $"area-under:{area}");
+
+            foreach (var areaNode in filter.IncludedAreaNodes)
+                ApplyTerm(ref result, index.Trie, $"area-node:{areaNode}");
 
             if (filter.Author != null)
                 ApplyTerm(ref result, index.Trie, $"author:{filter.Author}");
@@ -125,7 +128,10 @@ namespace IssuesOfDotNet.Querying
                 ApplyNegatedTerm(ref result, index, $"label:{label}");
 
             foreach (var area in filter.ExcludedAreas)
-                ApplyNegatedTerm(ref result, index, $"area:{area}");
+                ApplyNegatedTerm(ref result, index, $"area-under:{area}");
+
+            foreach (var areaNode in filter.ExcludedAreaNodes)
+                ApplyNegatedTerm(ref result, index, $"area-node:{areaNode}");
 
             foreach (var milestone in filter.ExcludedMilestones)
                 ApplyNegatedTerm(ref result, index, $"milestone:{milestone}");

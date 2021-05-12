@@ -50,6 +50,9 @@ namespace IssuesOfDotNet
         public IEnumerable<string> Areas => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name));
 
         [JsonIgnore]
+        public IEnumerable<string> AreaNodes => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name, segmentsOnly: true));
+
+        [JsonIgnore]
         public int Reactions => ReactionsPlus1
                                 + ReactionsMinus1
                                 + ReactionsSmile

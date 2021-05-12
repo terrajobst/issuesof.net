@@ -78,7 +78,10 @@ namespace IssuesOfDotNet
                 result.Add($"label:{label.Name}");
 
             foreach (var area in issue.Areas)
-                result.Add($"area:{area}");
+                result.Add($"area-under:{area}");
+
+            foreach (var areaNode in issue.AreaNodes)
+                result.Add($"area-node:{areaNode}");
 
             if (issue.Milestone is not null)
                 result.Add($"milestone:{issue.Milestone.Title}");

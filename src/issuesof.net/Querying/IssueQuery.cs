@@ -177,6 +177,12 @@ namespace IssuesOfDotNet.Querying
                     else
                         result.IncludedAreas.Add(value);
                     break;
+                case ("area-node", _):
+                    if (expression.IsNegated)
+                        result.ExcludedAreaNodes.Add(value);
+                    else
+                        result.IncludedAreaNodes.Add(value);
+                    break;
 
                 case ("sort", "created"):
                 case ("sort", "created-asc"):

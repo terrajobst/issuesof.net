@@ -19,6 +19,7 @@ namespace IssuesOfDotNet.Querying
         private readonly string[] _labels;
         private readonly string[] _milestones;
         private readonly string[] _areaPaths;
+        private readonly string[] _areaNodes;
         private readonly string[] _sortValues;
 
         public CrawledIndexCompletionProvider(CrawledIndex index)
@@ -26,6 +27,7 @@ namespace IssuesOfDotNet.Querying
             _keywords = new[] {
                 "archived",
                 "area",
+                "area-node",
                 "area-under",
                 "assignee",
                 "author",
@@ -79,6 +81,12 @@ namespace IssuesOfDotNet.Querying
             _areaPaths = new SortedSet<string>(
                 index.Repos.SelectMany(r => r.Labels)
                            .SelectMany(l => TextTokenizer.GetAreaPaths(l.Name)),
+                StringComparer.OrdinalIgnoreCase
+            ).ToArray();
+
+            _areaNodes = new SortedSet<string>(
+                index.Repos.SelectMany(r => r.Labels)
+                           .SelectMany(l => TextTokenizer.GetAreaPaths(l.Name, segmentsOnly: true)),
                 StringComparer.OrdinalIgnoreCase
             ).ToArray();
 
@@ -136,6 +144,7 @@ namespace IssuesOfDotNet.Querying
                 "label" => _labels,
                 "milestone" => _milestones,
                 "area" or "area-under" => _areaPaths,
+                "area-node" => _areaNodes,
                 "sort" => _sortValues,
                 _ => Array.Empty<string>(),
             };
