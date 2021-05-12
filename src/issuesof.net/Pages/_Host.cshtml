@@ -61,8 +61,16 @@
                     token: "atom"
                 },
                 {
+                    regex: /(?:@@today)\b/,
+                    token: "atom"
+                },
+                {
                     regex: /(?:\:|or|not|-)\b/,
                     token: "operator"
+                },
+                {
+                    regex: /[0-9$][\w$]*/,
+                    token: "number"
                 },
                 {
                     regex: /[_a-zA-Z0-9$][\w$]*/,
