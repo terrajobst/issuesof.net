@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 using Azure.Storage.Blobs;
 
+using IssueDb.Crawling;
+
 using Microsoft.Extensions.Configuration.UserSecrets;
 
 using Mono.Options;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Humanizer;
 
-namespace IssuesOfDotNet
+namespace IssueDb
 {
     public static class TextTokenizer
     {

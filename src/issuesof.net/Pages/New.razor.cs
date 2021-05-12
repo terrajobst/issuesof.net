@@ -51,7 +51,7 @@ namespace IssuesOfDotNet.Pages
                 {
                     foreach (var ancestor in entry.Ancestors)
                         ancestor.IsVisible = true;
-                }    
+                }
             }
         }
 

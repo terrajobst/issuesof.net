@@ -1,4 +1,6 @@
-﻿using IssuesOfDotNet.Data;
+﻿using IssueDb.Crawling;
+
+using IssuesOfDotNet.Data;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;

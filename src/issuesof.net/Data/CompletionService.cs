@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using IssuesOfDotNet.Querying;
+using IssueDb.Crawling;
+using IssueDb.Querying.Completion;
 
 using Microsoft.Extensions.Logging;
 

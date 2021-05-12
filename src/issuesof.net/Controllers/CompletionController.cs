@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 
+using IssueDb.Querying.Syntax;
+
 using IssuesOfDotNet.Data;
-using IssuesOfDotNet.Querying;
 
 using Microsoft.AspNetCore.Mvc;
 

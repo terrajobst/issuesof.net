@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 using Azure.Storage.Blobs;
 
+using IssueDb.Crawling;
+
 using IssuesOfDotNet.net.Data;
 
 using Microsoft.AspNetCore.Hosting;

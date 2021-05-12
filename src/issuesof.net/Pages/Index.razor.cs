@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using IssueDb.Crawling;
+using IssueDb.Querying;
+
 using IssuesOfDotNet.Data;
-using IssuesOfDotNet.Querying;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -125,7 +127,7 @@ namespace IssuesOfDotNet.Pages
                                   PageNumber <= 1;
 
             if (isDefaultQuery)
-                return;                    
+                return;
 
             var query = $"?q={Uri.EscapeDataString(_searchText)}";
 
