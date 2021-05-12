@@ -27,12 +27,18 @@ else @if (TrieService.Index is null)
 else
 {
     <form>
-        <div class="form-check mb-2 text-muted small">
-            <input type="checkbox" class="form-check-input" id="show-help-checkbox" @bind="ShowHelp">
-            <label class="form-check-label" for="show-help-checkbox">Show query help</label>
-        </div>
-        <div class="form-group query-editor">
-            <input id="myTextarea" type="text" class="form-control" placeholder="Search" />
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter</button>
+                <div class="dropdown-menu small">
+                    <button class="dropdown-item" href="#" @onclick:preventDefault @onclick="() => ShowHelp = !ShowHelp">@(ShowHelp ? "Hide" : "Show") syntax help</button>
+                    <div role="separator" class="dropdown-divider"></div>
+                    <a class="dropdown-item" target="_blank" href="https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests">GitHub syntax reference</a>
+                </div>
+            </div>
+            <div class="form-control query-editor">
+                <input id="myTextarea" type="text" class="form-control" placeholder="Search" />
+            </div>
         </div>
     </form>
 
