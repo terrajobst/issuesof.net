@@ -16,6 +16,9 @@ such as [aspnet], [dotnet], and [nuget].
 
 ## Features
 
+* Dark mode
+    - Would be nice to automatically respect the OS-wide setting. No idea how to
+      get this though.
 * We should support all of [GitHub's query syntax](https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests)
     - It seems some of them use `and` while some use `or` semantics. For
       example, `involves` uses `or` while `label` uses `and`.
