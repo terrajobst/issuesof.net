@@ -33,16 +33,22 @@ namespace IssueDb.Crawling
                 "area-under",
                 "assignee",
                 "author",
+                "closed",
+                "comments",
+                "created",
                 "draft",
+                "interactions",
                 "is",
                 "label",
                 "milestone",
                 "no",
                 "org",
+                "reactions",
                 "repo",
                 "sort",
                 "state",
-                "type"
+                "type",
+                "updated"
             };
 
             _orgs = new SortedSet<string>(
