@@ -1,4 +1,7 @@
-﻿namespace IssueDb.Querying
+﻿using System;
+using System.Globalization;
+
+namespace IssueDb.Querying
 {
     public enum IssueSort
     {

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 
 using IssueDb.Querying.Binding;
+using IssueDb.Querying.Ranges;
 using IssueDb.Querying.Syntax;
 
 namespace IssueDb.Querying
@@ -185,6 +186,26 @@ namespace IssueDb.Querying
                         result.ExcludedAreaNodes.Add(value);
                     else
                         result.IncludedAreaNodes.Add(value);
+                    break;
+
+                case ("created", _) when RangeSyntax.ParseDateTimeOffset(value) is RangeSyntax<DateTimeOffset> r:
+                    result.Created = r.Negate(expression.IsNegated);
+                    break;
+                case ("updated", _) when RangeSyntax.ParseDateTimeOffset(value) is RangeSyntax<DateTimeOffset> r:
+                    result.Updated = r.Negate(expression.IsNegated);
+                    break;
+                case ("closed", _) when RangeSyntax.ParseDateTimeOffset(value) is RangeSyntax<DateTimeOffset> r:
+                    result.Closed = r.Negate(expression.IsNegated);
+                    break;
+
+                case ("comments", _) when RangeSyntax.ParseInt32(value) is RangeSyntax<int> r:
+                    result.Comments = r.Negate(expression.IsNegated);
+                    break;
+                case ("reactions", _) when RangeSyntax.ParseInt32(value) is RangeSyntax<int> r:
+                    result.Reactions = r.Negate(expression.IsNegated);
+                    break;
+                case ("interactions", _) when RangeSyntax.ParseInt32(value) is RangeSyntax<int> r:
+                    result.Interactions = r.Negate(expression.IsNegated);
                     break;
 
                 case ("sort", "created"):

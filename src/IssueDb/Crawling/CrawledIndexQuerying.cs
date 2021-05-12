@@ -114,6 +114,20 @@ namespace IssueDb.Crawling
             else if (filter.NoMilestone == false)
                 ApplyPredicate(ref result, index, i => i.Milestone is not null);
 
+            if (filter.Created is not null)
+                ApplyPredicate(ref result, index, i => filter.Created.Contains(i.CreatedAt));
+            if (filter.Updated is not null)
+                ApplyPredicate(ref result, index, i => i.UpdatedAt != null && filter.Updated.Contains(i.UpdatedAt.Value));
+            if (filter.Closed is not null)
+                ApplyPredicate(ref result, index, i => i.ClosedAt != null && filter.Closed.Contains(i.ClosedAt.Value));
+
+            if (filter.Comments is not null)
+                ApplyPredicate(ref result, index, i => filter.Comments.Contains(i.Comments));
+            if (filter.Reactions is not null)
+                ApplyPredicate(ref result, index, i => filter.Reactions.Contains(i.Reactions));
+            if (filter.Interactions is not null)
+                ApplyPredicate(ref result, index, i => filter.Interactions.Contains(i.Interactions));
+
             foreach (var org in filter.ExcludedOrgs)
                 ApplyNegatedTerm(ref result, index, $"org:{org}");
 

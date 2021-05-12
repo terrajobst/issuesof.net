@@ -1,6 +1,9 @@
-﻿using System.CodeDom.Compiler;
+﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+
+using IssueDb.Querying.Ranges;
 
 namespace IssueDb.Querying
 {
@@ -37,6 +40,14 @@ namespace IssueDb.Querying
         public List<string> ExcludedAreaNodes { get; } = new List<string>();
         public List<string> ExcludedMilestones { get; } = new List<string>();
         public List<string> ExcludedTerms { get; } = new List<string>();
+
+        public RangeSyntax<DateTimeOffset> Created { get; set; }
+        public RangeSyntax<DateTimeOffset> Updated { get; set; }
+        public RangeSyntax<DateTimeOffset> Closed { get; set; }
+
+        public RangeSyntax<int> Comments { get; set; }
+        public RangeSyntax<int> Reactions { get; set; }
+        public RangeSyntax<int> Interactions { get; set; }
 
         public List<IssueSort> Sort { get; } = new List<IssueSort>();
 
@@ -89,6 +100,14 @@ namespace IssueDb.Querying
             AddListFilter(lines, ExcludedMilestones, nameof(ExcludedMilestones));
             AddListFilter(lines, ExcludedTerms, nameof(ExcludedTerms));
 
+            AddRangeFilter(lines, Created, nameof(Created));
+            AddRangeFilter(lines, Updated, nameof(Updated));
+            AddRangeFilter(lines, Closed, nameof(Closed));
+
+            AddRangeFilter(lines, Comments, nameof(Comments));
+            AddRangeFilter(lines, Reactions, nameof(Reactions));
+            AddRangeFilter(lines, Interactions, nameof(Interactions));
+
             if (lines.Count > 1)
             {
                 writer.WriteLine("AND");
@@ -130,6 +149,13 @@ namespace IssueDb.Querying
             {
                 if (value.Count > 0)
                     lines.Add($"{name} = {string.Join(",", value)}");
+            }
+
+            static void AddRangeFilter<T>(List<string> lines, RangeSyntax<T> range, string name)
+                where T: IComparable<T>
+            {
+                if (range is not null)
+                    lines.Add($"{name} {range}");
             }
         }
 

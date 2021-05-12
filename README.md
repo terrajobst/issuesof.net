@@ -46,9 +46,6 @@ such as [aspnet], [dotnet], and [nuget].
     - `{sha}`
     - `head:{branch}`
     - `base:{branch}`
-    - `comments:{range}` (range is `n`, `<n`, `<=n`, `>n`, `>=n`, or `n..m`)
-    - `reactions:{range}`
-    - `interactions:{range}` (interactions := reactions + comments)
     - `review:none`
     - `review:required`
     - `review:approved`
@@ -56,9 +53,6 @@ such as [aspnet], [dotnet], and [nuget].
     - `reviewed-by:{user}`
     - `review-requested:{user}`
     - `team-review-requested:{user}`
-    - `created:{range}`
-    - `updated:{range}`
-    - `closed:{range}`
     - `merged:{range}`
     - `no:project`
 * We should replace the JavaScript octo-icon library with static CSS-based icons
