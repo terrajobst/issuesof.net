@@ -82,7 +82,41 @@ namespace IssuesOfDotNet.Querying
                 StringComparer.OrdinalIgnoreCase
             ).ToArray();
 
-            _sortValues = new[] { "created-asc", "created-desc", "updated-asc", "updated-desc" };
+            _sortValues = new[] {
+                "comments",
+                "comments-asc",
+                "comments-desc",
+                "created",
+                "created-asc",
+                "created-desc",
+                "interactions",
+                "interactions-asc",
+                "interactions-desc",
+                "reactions",
+                "reactions-+1",
+                "reactions-+1-asc",
+                "reactions-+1-desc",
+                "reactions--1",
+                "reactions--1-asc",
+                "reactions--1-desc",
+                "reactions-asc",
+                "reactions-desc",
+                "reactions-heart",
+                "reactions-heart-asc",
+                "reactions-heart-desc",
+                "reactions-smile",
+                "reactions-smile-asc",
+                "reactions-smile-desc",
+                "reactions-tada",
+                "reactions-tada-asc",
+                "reactions-tada-desc",
+                "reactions-thinking_face",
+                "reactions-thinking_face-asc",
+                "reactions-thinking_face-desc",
+                "updated",
+                "updated-asc",
+                "updated-desc"
+            };
         }
 
         public override IEnumerable<string> GetCompletionForKeyValue(string key, string value)

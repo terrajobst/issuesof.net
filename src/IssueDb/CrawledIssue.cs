@@ -29,6 +29,14 @@ namespace IssuesOfDotNet
         public DateTimeOffset? UpdatedAt { get; set; }
         public DateTimeOffset? ClosedAt { get; set; }
         public string CreatedBy { get; set; }
+        public bool IsLocked { get; set; }
+        public int Comments { get; set; }
+        public int ReactionsPlus1 { get; set; }
+        public int ReactionsMinus1 { get; set; }
+        public int ReactionsSmile { get; set; }
+        public int ReactionsTada { get; set; }
+        public int ReactionsThinkingFace { get; set; }
+        public int ReactionsHeart { get; set; }
         public string[] Assignees { get; set; }
         public CrawledLabel[] Labels { get; set; }
         public CrawledMilestone Milestone { get; set; }
@@ -40,5 +48,16 @@ namespace IssuesOfDotNet
 
         [JsonIgnore]
         public IEnumerable<string> Areas => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name));
+
+        [JsonIgnore]
+        public int Reactions => ReactionsPlus1
+                                + ReactionsMinus1
+                                + ReactionsSmile
+                                + ReactionsTada
+                                + ReactionsThinkingFace
+                                + ReactionsHeart;
+
+        [JsonIgnore]
+        public int Interactions => Comments + Reactions;
     }
 }

@@ -60,17 +60,7 @@ such as [aspnet], [dotnet], and [nuget].
     - `updated:{range}`
     - `closed:{range}`
     - `merged:{range}`
-    - `archived:true`
-    - `archived:false`
-    - `is:locked`
-    - `is:unlocked`
     - `no:project`
-* We should support custom sorting
-    - `sort:comments-asc`
-    - `sort:comments-desc`
-    - `sort:reactions-{reaction}-asc` where `{reaction}` is `+1`, `-1`, `smile`,
-      `tada`, `heart`, `thinking_face`, `rocket`, `eyes`
-    - `sort:reactions-{reaction}-desc`
 * We should replace the JavaScript octo-icon library with static CSS-based icons
   because the JavaScript ones don't work well with Blazor (basically, it works
   on initial render but when the page gets updated, for example, due to paging,

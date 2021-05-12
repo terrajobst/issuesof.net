@@ -72,6 +72,12 @@ namespace IssuesOfDotNet.Querying
                 case ("state", "closed"):
                     result.IsOpen = expression.IsNegated;
                     break;
+                case ("is", "locked"):
+                    result.IsLocked = !expression.IsNegated;
+                    break;
+                case ("is", "unlocked"):
+                    result.IsLocked = expression.IsNegated;
+                    break;
                 case ("is", "pr"):
                 case ("type", "pr"):
                     result.IsPullRequest = !expression.IsNegated;
@@ -172,17 +178,82 @@ namespace IssuesOfDotNet.Querying
                         result.IncludedAreas.Add(value);
                     break;
 
+                case ("sort", "created"):
                 case ("sort", "created-asc"):
                     result.Sort.Add(IssueSort.CreatedAscending);
                     break;
                 case ("sort", "created-desc"):
                     result.Sort.Add(IssueSort.CreatedDescending);
                     break;
+                case ("sort", "updated"):
                 case ("sort", "updated-asc"):
                     result.Sort.Add(IssueSort.UpdatedAscending);
                     break;
                 case ("sort", "updated-desc"):
                     result.Sort.Add(IssueSort.UpdatedDescending);
+                    break;
+                case ("sort", "comments"):
+                case ("sort", "comments-asc"):
+                    result.Sort.Add(IssueSort.CommentsAscending);
+                    break;
+                case ("sort", "comments-desc"):
+                    result.Sort.Add(IssueSort.CommentsDescending);
+                    break;
+                case ("sort", "reactions"):
+                case ("sort", "reactions-asc"):
+                    result.Sort.Add(IssueSort.ReactionsAscending);
+                    break;
+                case ("sort", "reactions-desc"):
+                    result.Sort.Add(IssueSort.ReactionsDescending);
+                    break;
+                case ("sort", "reactions-+1"):
+                case ("sort", "reactions-+1-asc"):
+                    result.Sort.Add(IssueSort.ReactionsPlus1Ascending);
+                    break;
+                case ("sort", "reactions-+1-desc"):
+                    result.Sort.Add(IssueSort.ReactionsPlus1Descending);
+                    break;
+                case ("sort", "reactions--1"):
+                case ("sort", "reactions--1-asc"):
+                    result.Sort.Add(IssueSort.ReactionsMinus1Ascending);
+                    break;
+                case ("sort", "reactions--1-desc"):
+                    result.Sort.Add(IssueSort.ReactionsMinus1Descending);
+                    break;
+                case ("sort", "reactions-smile"):
+                case ("sort", "reactions-smile-asc"):
+                    result.Sort.Add(IssueSort.ReactionsSmileAscending);
+                    break;
+                case ("sort", "reactions-smile-desc"):
+                    result.Sort.Add(IssueSort.ReactionsSmileDescending);
+                    break;
+                case ("sort", "reactions-heart"):
+                case ("sort", "reactions-heart-asc"):
+                    result.Sort.Add(IssueSort.ReactionsHeartAscending);
+                    break;
+                case ("sort", "reactions-heart-desc"):
+                    result.Sort.Add(IssueSort.ReactionsHeartDescending);
+                    break;
+                case ("sort", "reactions-tada"):
+                case ("sort", "reactions-tada-asc"):
+                    result.Sort.Add(IssueSort.ReactionsTadaAscending);
+                    break;
+                case ("sort", "reactions-tada-desc"):
+                    result.Sort.Add(IssueSort.ReactionsTadaDescending);
+                    break;
+                case ("sort", "reactions-thinking_face"):
+                case ("sort", "reactions-thinking_face-asc"):
+                    result.Sort.Add(IssueSort.ReactionsThinkingFaceAscending);
+                    break;
+                case ("sort", "reactions-thinking_face-desc"):
+                    result.Sort.Add(IssueSort.ReactionsThinkingFaceDescending);
+                    break;
+                case ("sort", "interactions"):
+                case ("sort", "interactions-asc"):
+                    result.Sort.Add(IssueSort.InteractionsAscending);
+                    break;
+                case ("sort", "interactions-desc"):
+                    result.Sort.Add(IssueSort.InteractionsDescending);
                     break;
 
                 default:

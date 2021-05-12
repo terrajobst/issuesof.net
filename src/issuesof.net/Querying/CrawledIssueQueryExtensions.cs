@@ -64,6 +64,11 @@ namespace IssuesOfDotNet.Querying
             else if (filter.IsOpen == false)
                 ApplyPredicate(ref result, index, i => !i.IsOpen);
 
+            if (filter.IsLocked == true)
+                ApplyPredicate(ref result, index, i => i.IsLocked);
+            else if (filter.IsLocked == false)
+                ApplyPredicate(ref result, index, i => !i.IsLocked);
+
             if (filter.IsPullRequest == true)
                 ApplyPredicate(ref result, index, i => i.IsPullRequest);
             else if (filter.IsPullRequest == false)
@@ -185,6 +190,114 @@ namespace IssuesOfDotNet.Querying
                             result = result.OrderByDescending(i => i.UpdatedAt);
                         else
                             result = orderedEnumerable.ThenByDescending(i => i.UpdatedAt);
+                        break;
+                    case IssueSort.CommentsAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.Comments);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.Comments);
+                        break;
+                    case IssueSort.CommentsDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.Comments);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.Comments);
+                        break;
+                    case IssueSort.ReactionsAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.Reactions);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.Reactions);
+                        break;
+                    case IssueSort.ReactionsDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.Reactions);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.Reactions);
+                        break;
+                    case IssueSort.ReactionsPlus1Ascending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.ReactionsPlus1);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.ReactionsPlus1);
+                        break;
+                    case IssueSort.ReactionsPlus1Descending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.ReactionsPlus1);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.ReactionsPlus1);
+                        break;
+                    case IssueSort.ReactionsMinus1Ascending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.ReactionsMinus1);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.ReactionsMinus1);
+                        break;
+                    case IssueSort.ReactionsMinus1Descending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.ReactionsMinus1);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.ReactionsMinus1);
+                        break;
+                    case IssueSort.ReactionsSmileAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.ReactionsSmile);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.ReactionsSmile);
+                        break;
+                    case IssueSort.ReactionsSmileDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.ReactionsSmile);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.ReactionsSmile);
+                        break;
+                    case IssueSort.ReactionsHeartAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.ReactionsHeart);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.ReactionsHeart);
+                        break;
+                    case IssueSort.ReactionsHeartDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.ReactionsHeart);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.ReactionsHeart);
+                        break;
+                    case IssueSort.ReactionsTadaAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.ReactionsTada);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.ReactionsTada);
+                        break;
+                    case IssueSort.ReactionsTadaDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.ReactionsTada);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.ReactionsTada);
+                        break;
+                    case IssueSort.ReactionsThinkingFaceAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.ReactionsThinkingFace);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.ReactionsThinkingFace);
+                        break;
+                    case IssueSort.ReactionsThinkingFaceDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.ReactionsThinkingFace);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.ReactionsThinkingFace);
+                        break;
+                    case IssueSort.InteractionsAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.Interactions);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.Interactions);
+                        break;
+                    case IssueSort.InteractionsDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.Interactions);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.Interactions);
                         break;
                 }
             }

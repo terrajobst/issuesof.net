@@ -5,6 +5,24 @@
         CreatedAscending,
         CreatedDescending,
         UpdatedAscending,
-        UpdatedDescending
+        UpdatedDescending,
+        CommentsAscending,
+        CommentsDescending,
+        ReactionsAscending,
+        ReactionsDescending,
+        ReactionsPlus1Ascending,
+        ReactionsPlus1Descending,
+        ReactionsMinus1Ascending,
+        ReactionsMinus1Descending,
+        ReactionsSmileAscending,
+        ReactionsSmileDescending,
+        ReactionsHeartAscending,
+        ReactionsHeartDescending,
+        ReactionsTadaAscending,
+        ReactionsTadaDescending,
+        ReactionsThinkingFaceAscending,
+        ReactionsThinkingFaceDescending,
+        InteractionsAscending,
+        InteractionsDescending
     }
 }

@@ -468,7 +468,16 @@ namespace IssuesOfDotNet.Crawler
                 CreatedBy = issue.User.Login,
                 Assignees = ConvertUsers(issue.Assignees),
                 Labels = ConvertLabels(issue.Labels, labels),
-                Milestone = GetMilestone(issue.Milestone, milestones)
+                Milestone = GetMilestone(issue.Milestone, milestones),
+                IsLocked = issue.Locked,
+                Comments = issue.Comments,
+                ReactionsPlus1 = issue.Reactions?.Plus1 ?? 0,
+                ReactionsMinus1 = issue.Reactions?.Minus1 ?? 0,
+                ReactionsSmile = issue.Reactions?.Laugh ?? 0,
+                ReactionsTada = issue.Reactions?.Hooray ?? 0,
+                ReactionsThinkingFace = issue.Reactions?.Confused ?? 0,
+                ReactionsHeart = issue.Reactions?.Heart ?? 0
+                // TODO: RocketShip and Eyes are missing
             };
         }
 

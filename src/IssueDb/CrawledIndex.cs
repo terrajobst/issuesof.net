@@ -12,7 +12,7 @@ namespace IssuesOfDotNet
     public sealed class CrawledIndex
     {
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-        private static readonly short _formatVersion = 2;
+        private static readonly short _formatVersion = 3;
 
         public IReadOnlyList<CrawledRepo> Repos { get; set; } = Array.Empty<CrawledRepo>();
 
@@ -148,6 +148,14 @@ namespace IssuesOfDotNet
                         writer.Write(issue.UpdatedAt?.Ticks ?? -1);
                         writer.Write(issue.ClosedAt?.Ticks ?? -1);
                         writer.Write(stringIndexer(issue.CreatedBy));
+                        writer.Write(issue.IsLocked);
+                        writer.Write(issue.Comments);
+                        writer.Write(issue.ReactionsPlus1);
+                        writer.Write(issue.ReactionsMinus1);
+                        writer.Write(issue.ReactionsSmile);
+                        writer.Write(issue.ReactionsTada);
+                        writer.Write(issue.ReactionsThinkingFace);
+                        writer.Write(issue.ReactionsHeart);
 
                         writer.Write(issue.Assignees.Length);
                         foreach (var assignee in issue.Assignees)
@@ -303,6 +311,14 @@ namespace IssuesOfDotNet
                             UpdatedAt = ToNullableDateTime(reader.ReadInt64()),
                             ClosedAt = ToNullableDateTime(reader.ReadInt64()),
                             CreatedBy = stringIndex[reader.ReadInt32()],
+                            IsLocked = reader.ReadBoolean(),
+                            Comments = reader.ReadInt32(),
+                            ReactionsPlus1 = reader.ReadInt32(),
+                            ReactionsMinus1 = reader.ReadInt32(),
+                            ReactionsSmile = reader.ReadInt32(),
+                            ReactionsTada = reader.ReadInt32(),
+                            ReactionsThinkingFace = reader.ReadInt32(),
+                            ReactionsHeart = reader.ReadInt32()
                         };
 
                         var assigneeCount = reader.ReadInt32();

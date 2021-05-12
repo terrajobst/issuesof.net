@@ -170,6 +170,14 @@ else
                             }
                         </div>
                     </td>
+                    <td>
+                        @if (issue.Comments > 0)                     
+                        {
+                            <span class="text-nowrap text-muted">
+                                <span class="iconify" data-icon="octicon:comment-16" data-inline="false"></span> @issue.Comments
+                            </span>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
