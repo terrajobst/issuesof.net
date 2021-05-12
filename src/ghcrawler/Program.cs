@@ -253,6 +253,10 @@ namespace IssuesOfDotNet.Crawler
                         {
                             if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
                                 UpdateIssue(issue, pullRequest);
+
+                            // TODO: Get PR reviews
+                            // TODO: Get PR commits
+                            // TODO: Get PR status
                         }
 
                         await crawledRepo.SaveAsync(repoPath);
@@ -524,6 +528,11 @@ namespace IssuesOfDotNet.Crawler
             issue.IsPullRequest = true;
             issue.IsDraft = pullRequest.Draft;
             issue.IsMerged = pullRequest.Merged;
+            // TODO: pullRequest.MergedAt
+            // TODO: pullRequest.Base?.Ref
+            // TODO: pullRequest.Head?.Ref
+            // TODO: pullRequest.RequestedReviewers
+            // TODO: pullRequest.RequestedTeams
         }
 
         private static string GetAzureStorageConnectionString()
