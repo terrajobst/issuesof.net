@@ -4,6 +4,19 @@
     --dotnet-purple: #512bd4;
     --dotnet-purple-hover: #4411BB;
     --dotnet-purple-border-hover: #3311BB;
+    --body-bg: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --body-bg: #0d1117;
+        --text-color: #8b949e;
+        --alert-text-color: #c9d1d9;
+        --link-color: #c9d1d9;
+        --link-hover-color: #58a6ff;
+        --form-color: #f0f6fc;
+        --form-background-color: #000;
+    }
 }
 
 .bg-dotnet {
@@ -24,6 +37,7 @@
 
 html, body {
     font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: var(--body-bg);
 }
 
 a, .btn-link {
@@ -135,4 +149,41 @@ a, .btn-link {
 
 .dropdown-menu:hover {
     display: block;
+}
+
+/* Bootstrap overrides for dark mode */
+
+@media (prefers-color-scheme: dark) {
+    a {
+        color: var(--link-color);
+    }
+
+    a:hover {
+        color: var(--link-hover-color);
+    }
+
+    .alert, .alert pre {
+        color: var(--alert-text-color);
+        background-color: #1c2128;
+        border-color: #31363D;
+    }
+
+    div.bg-light {
+        background-color: #171B22 !important;
+    }
+
+    table.table {
+        color: var(--text-color);
+    }
+
+    .form-control {
+        background-color: var(--form-background-color);
+        border-color: #22262D;
+        color: var(--form-color);
+    }
+
+        .form-control:focus {
+            background-color: var(--form-background-color);
+            border-color: #4A8CFF;
+        }
 }
