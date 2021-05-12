@@ -1,0 +1,117 @@
+﻿@page "/help"
+
+<div class="container">
+
+    <div class="alert alert-info">
+        Most of the standard <a href="https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests">GitHub query syntax</a>
+        is supported by <code>issuesof.net</code>. Below is the list of extensions that are specific to this site.
+    </div>
+
+    <h4>Logical Conditions</h4>
+
+    <p>
+        Just like in GitHub, all query terms are implicitly combined with a logical <code>AND</code>.
+        But you can also combine queries using <code>OR</code> and <code>NOT</code>, such as:
+    </p>
+<pre class="ml-5"><code>org:dotnet (author:terrajobst <span class="text-primary">OR</span> author:jaredpar) <span class="text-primary">NOT</span> (label:api-ready-for-review <span class="text-primary">OR</span> label:api-needs-work)</code></pre>
+    <p>
+        This will show all issues in the <code>dotnet</code> org that were created by either
+        <code>terrajobst</code> or <code>jaredpar</code>, and aren't labelled as
+        <code>api-ready-for-review</code> or <code>api-needs-work</code>.
+    </p>
+    <p>
+        Like in GitHub, you can also use the simple <code>-</code> prefix instead of <code>NOT</code>,
+        so this will show all open issues that aren't labelled as bugs:
+    </p>
+<pre class="ml-5"><code>is:open is:issue <span class="text-primary">-</span>label:bug</code></pre>
+
+    <h4>Relative Dates</h4>
+
+    <p>
+        Standard GitHub supports range queries like <code>created:>2012-01-05</code> and
+        <code>created:2012-01-05..2012-01-30</code>. Here you can also use relative dates
+        like <code>@@today</code>, <code>@@today-{days}</code> and <code>@@today+{days}</code>.
+    </p>
+
+    <p>
+        For example, this shows all non-draft PRs that were created 30 days ago and weren't
+        updated in the last 10 days:
+    </p>
+<pre class="ml-5"><code>is:open is:pr -is:draft repo:dotnet/runtime <span class="text-primary">created:&lt;@@today-30 updated:&lt;@@today-10</span> sort:updated-asc</code></pre>
+
+    <h4>Area Paths</h4>
+
+    <p>
+        Areas are taken from labels that start with <code>area-</code> (casing doesn't
+        matter). Inside an area path, anything that isn't a a digit or letter is considered a
+        separator. So a label <code>area-CodeGen-Mono</code> is interpreted as an area path of
+        <code>CodeGen-Mono</code> which has two nodes <code>CodeGen</code> and <code>Mono</code>.
+    </p>
+
+    <p>
+        We have three ways to match areas:
+    </p>
+
+    <dl class="row ml-5">
+        <dt class="col-sm-3"><code>area:{area-path}</code></dt>
+        <dd class="col-sm-9">Only shows issues with a label of <code>area-{area}</code>, equivalent to <code>label:area-{area}</code></dd>
+        <dt class="col-sm-3"><code>area-under:{area-path}</code></dt>
+        <dd class="col-sm-9">Only shows issues with any label of the form <code>area-{area}*</code>, that is it includes other labels with that prefix</dd>
+        <dt class="col-sm-3"><code>area-node:{area-node}</code></dt>
+        <dd class="col-sm-9">Only shows issues with any label of the form <code>area-*{area}*</code></dd>
+    </dl>
+
+    <p>
+        The first two take an area path, such as <code>System.Runtime.InteropServices</code>.
+        Let's say you have 1 issue that is labelled with <code>area-System.Runtime</code> and two
+        other issues that are labelled with <code>area-System.Runtime.InteropServices</code>.
+        Here is what these queries would return:
+    </p>
+
+    <table class="table ml-5 w-auto">
+        <thead>
+            <tr>
+                <th>Query</th>
+                <th>#Results</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>area:System</code></td>
+                <td>0</td>
+            </tr>
+            <tr>
+                <td><code>area:System.Runtime</code></td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td><code>area:System.Runtime.InteropServices</code></td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td><code>area-under:System</code></td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td><code>area-under:System.Runtime</code></td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td><code>area-under:System.Runtime.InteropServices</code></td>
+                <td>2</td>
+            </tr>
+            <tr>
+                <td><code>area-node:System</code></td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td><code>area-node:Runtime</code></td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td><code>area-node:InteropServices</code></td>
+                <td>2</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

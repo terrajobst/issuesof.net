@@ -48,8 +48,6 @@ namespace IssuesOfDotNet.Pages
             }
         }
 
-        public bool ShowHelp { get; set; }
-
         public CrawledIssueResults SearchResults { get; private set; } = CrawledIssueResults.Empty;
 
         protected override void OnInitialized()

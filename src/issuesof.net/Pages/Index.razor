@@ -31,7 +31,7 @@ else
             <div class="input-group-prepend">
                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter</button>
                 <div class="dropdown-menu small">
-                    <button class="dropdown-item" href="#" @onclick:preventDefault @onclick="() => ShowHelp = !ShowHelp">@(ShowHelp ? "Hide" : "Show") syntax help</button>
+                    <a class="dropdown-item" target="_blank" href="help">Syntax help</a>
                     <div role="separator" class="dropdown-divider"></div>
                     <a class="dropdown-item" target="_blank" href="https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests">GitHub syntax reference</a>
                 </div>
@@ -41,67 +41,6 @@ else
             </div>
         </div>
     </form>
-
-    @if (ShowHelp)
-    {
-        <div class="alert alert-info">
-            <h4 class="alert-heading">Query Syntax</h4>
-            <p>
-                The following query synatx is recognized:
-            </p>
-            <dl class="row">
-                <dt class="col-sm-3"><code>is:open</code></dt>
-                <dd class="col-sm-9">Only shows open issues</dd>
-                <dt class="col-sm-3"><code>is:closed</code></dt>
-                <dd class="col-sm-9">Only shows closed issues</dd>
-                <dt class="col-sm-3"><code>is:issue</code></dt>
-                <dd class="col-sm-9">Only shows issues</dd>
-                <dt class="col-sm-3"><code>is:pr</code></dt>
-                <dd class="col-sm-9">Only shows pull requests</dd>
-                <dt class="col-sm-3"><code>is:merged</code></dt>
-                <dd class="col-sm-9">Only shows merged pull requests</dd>
-                <dt class="col-sm-3"><code>org:{org}</code></dt>
-                <dd class="col-sm-9">Only shows issues of the given org</dd>
-                <dt class="col-sm-3"><code>repo:{repo}</code></dt>
-                <dd class="col-sm-9">Only shows issues of the given repo</dd>
-                <dt class="col-sm-3"><code>author:{user}</code></dt>
-                <dd class="col-sm-9">Only shows issues created by the given user</dd>
-                <dt class="col-sm-3"><code>assignee:{user}</code></dt>
-                <dd class="col-sm-9">Only shows issues assigned to the given user</dd>
-                <dt class="col-sm-3"><code>label:{label}</code></dt>
-                <dd class="col-sm-9">Only shows issues with the given label</dd>
-                <dt class="col-sm-3"><code>area:{area}</code></dt>
-                <dd class="col-sm-9">Only shows issues with a label of <code>area-{area}</code></dd>
-                <dt class="col-sm-3"><code>area-under:{area}</code></dt>
-                <dd class="col-sm-9">Only shows issues with a label of <code>area-{area}</code>, which includes other labels with that prefix</dd>
-                <dt class="col-sm-3"><code>area-node:{area}</code></dt>
-                <dd class="col-sm-9">Only shows issues with a label of <code>area-*{area}*</code></dd>
-                <dt class="col-sm-3"><code>milestone:{milestone}</code></dt>
-                <dd class="col-sm-9">Only shows issues with the given milestone</dd>
-                <dt class="col-sm-3"><code>no:assignee</code></dt>
-                <dd class="col-sm-9">Only shows issues assigned to nobody</dd>
-                <dt class="col-sm-3"><code>no:milestone</code></dt>
-                <dd class="col-sm-9">Only shows issues with no milestone</dd>
-                <dt class="col-sm-3"><code>no:label</code></dt>
-                <dd class="col-sm-9">Only shows issues with no labels</dd>
-            </dl>
-            <p>
-                All query terms are implicitly combined with a logical <code>AND</code>. You can also
-                combine queries using <code>OR</code> and <code>NOT</code>, such as:
-            </p>
-            <pre><code>org:dotnet (author:terrajobst OR author:jaredpar) NOT (label:api-ready-for-review OR label:api-needs-work)</code></pre>
-            <p>
-                This will show all issues in the <code>dotnet</code> org that were created by either
-                <code>terrajobst</code> or <code>jaredpar</code>, and aren't labelled as
-                <code>api-ready-for-review</code> or <code>api-needs-work</code>.
-            </p>
-            <p>
-                You can also use the simple <code>-</code> prefix instead of <code>NOT</code>, so this
-                will show all open issues that aren't labelled as bugs:
-            </p>
-            <pre><code>is:open is:issue -label:bug</code></pre>
-        </div>
-    }
 
     <div class="bg-light p-2 rounded-top text-secondary">
         @($"{SearchResults.TotalCount:N0} issues")
