@@ -104,6 +104,12 @@ html, body {
     color: #a371f7;
 }
 
+pre {
+    border-radius: 6px;
+    padding: 10px 20px;
+    background-color: var(--light);
+}
+
 @media (prefers-color-scheme: dark) {
 
     a:hover {
@@ -126,6 +132,11 @@ html, body {
 
     .gh-table-header {
         background: var(--dark);
+    }
+
+    pre {
+        background-color: rgba(240, 246, 252, 0.15);
+        color: var(--light);
     }
 }
 
