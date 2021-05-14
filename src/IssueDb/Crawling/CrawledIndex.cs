@@ -106,8 +106,7 @@ namespace IssueDb.Crawling
 
                         writer.Write(stringIndexer(label.Name));
                         writer.Write(stringIndexer(label.Description));
-                        writer.Write(stringIndexer(label.ForegroundColor));
-                        writer.Write(stringIndexer(label.BackgroundColor));
+                        writer.Write(stringIndexer(label.ColorText));
                     }
 
                     // Write milestones
@@ -264,8 +263,7 @@ namespace IssueDb.Crawling
                         {
                             Name = stringIndex[reader.ReadInt32()],
                             Description = stringIndex[reader.ReadInt32()],
-                            ForegroundColor = stringIndex[reader.ReadInt32()],
-                            BackgroundColor = stringIndex[reader.ReadInt32()]
+                            ColorText = stringIndex[reader.ReadInt32()]
                         };
                         labelIndex.Add(labelId, label);
                         repo.Labels.Add(label);

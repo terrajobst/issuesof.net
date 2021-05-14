@@ -42,7 +42,7 @@ else
         </div>
     </form>
 
-    <div class="bg-light p-2 rounded-top text-secondary">
+    <div class="gh-table-header">
         @($"{SearchResults.TotalCount:N0} issues")
     </div>
 
@@ -91,9 +91,23 @@ else
                             <span>
                                 @foreach (var label in issue.Labels)
                                 {
+                                    var labelR = label.Color.R;
+                                    var labelG = label.Color.G;
+                                    var labelB = label.Color.B;
+                                    var labelH = label.Color.GetHue();
+                                    var labelS = label.Color.GetSaturation() * 100;
+                                    var labelL = label.Color.GetBrightness() * 100;
+                                    var style = "";
+                                    style += $"--label-r: {labelR};";
+                                    style += $"--label-g: {labelG};";
+                                    style += $"--label-b: {labelB};";
+                                    style += $"--label-h: {labelH};";
+                                    style += $"--label-s: {labelS};";
+                                    style += $"--label-l: {labelL};";
+
                                     <span class="gh-label"
                                           title="@label.Description"
-                                          style="background: @("#" + label.BackgroundColor); color: @label.ForegroundColor">@label.Name</span>
+                                          style="@style">@label.Name</span>
                                 }
                             </span>
                         </div>

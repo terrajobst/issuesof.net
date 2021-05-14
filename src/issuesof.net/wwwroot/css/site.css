@@ -26,20 +26,6 @@ html, body {
     font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-a, .btn-link {
-    color: #0366d6;
-}
-
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
-}
-
-.content {
-    padding-top: 1.1rem;
-}
-
 .valid.modified:not([type=checkbox]) {
     outline: 1px solid #26b050;
 }
@@ -75,7 +61,7 @@ a, .btn-link {
 
 .gh-issue-title {
     text-decoration: none !important;
-    color: black;
+    color: var(--color-text-primary);
     font-weight: bold;
 }
 
@@ -95,37 +81,123 @@ a, .btn-link {
     border: 1px solid transparent;
     display: inline-block;
     vertical-align: top;
-    background: #d4c5f9;
-    color: black;
+
+    --perceived-lightness: calc((var(--label-r)*0.2126 + var(--label-g)*0.7152 + var(--label-b)*0.0722)/255);
+    --lightness-switch: max(0,min(calc((var(--perceived-lightness) - var(--lightness-threshold))*-1000),1));
+    --lightness-threshold: 0.453;
+    --border-threshold: 0.96;
+    --border-alpha: max(0,min(calc((var(--perceived-lightness) - var(--border-threshold))*100),1));
+    
+    background: rgb(var(--label-r),var(--label-g),var(--label-b));
+    color: hsl(0,0%,calc(var(--lightness-switch)*100%));
+    border-color: hsla(var(--label-h),calc(var(--label-s)*1%),calc((var(--label-l) - 25)*1%),var(--border-alpha));    
+}
+
+.gh-table-header {
+    padding: 8px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    background: var(--light);
 }
 
 .text-merged {
     color: #a371f7;
 }
 
+@media (prefers-color-scheme: dark) {
+
+    a:hover {
+        color: rgb(88, 166, 255);
+    }
+
+    .gh-issue-title code {
+        background-color: rgba(240, 246, 252, 0.15);
+    }
+
+    .gh-label {
+        --lightness-threshold: 0.6;
+        --background-alpha: 0.18;
+        --border-alpha: 0.3;
+        --lighten-by: calc((var(--lightness-threshold) - var(--perceived-lightness))*100*var(--lightness-switch));
+        background: rgba(var(--label-r),var(--label-g),var(--label-b),var(--background-alpha));
+        color: hsl(var(--label-h),calc(var(--label-s)*1%),calc((var(--label-l) + var(--lighten-by))*1%));
+        border-color: hsla(var(--label-h),calc(var(--label-s)*1%),calc((var(--label-l) + var(--lighten-by))*1%),var(--border-alpha));
+    }
+
+    .gh-table-header {
+        background: var(--dark);
+    }
+}
+
 /* Code Mirror */
 
-.query-editor  {
+.query-editor {
     padding: 0;
+    border-top-right-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+    z-index: 3;
 }
+
+    .query-editor:focus-within {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+    }
 
     .query-editor .CodeMirror {
         height: 100%;
         padding: 0;
         padding-left: 0.25em;
         padding-top: 1px;
-        border-top-right-radius: .25rem;
-        border-bottom-right-radius: .25rem;
-        z-index: 2;
+        background: unset;
+        z-index: 3;
     }
 
-        .query-editor .CodeMirror:focus-within {
-            color: #495057;
-            background-color: #fff;
-            border-color: #80bdff;
-            outline: 0;
-            box-shadow: 0 0 0 0.2rem rgb(0 123 255 / 25%);
+@media (prefers-color-scheme: dark) {
+
+    .query-editor {
+        background-color: black;
+    }
+
+        .query-editor:focus-within {
+            color: rgb(222, 226, 230);
+            background-color: rgb(25, 29, 33);
+            border-color: rgb(179, 215, 255);
+            box-shadow: rgb(0 123 255 / 25%) 0px 0px 0px 0.2rem;
         }
+
+    .CodeMirror-hints {
+        position: absolute;
+        z-index: 10;
+        overflow: hidden;
+        list-style: none;
+        margin: 0;
+        padding: 2px;
+        border-radius: 3px;
+        border: 1px solid silver;
+        border-color: rgb(179, 215, 255);
+        box-shadow: rgb(0 123 255 / 25%) 0px 0px 0px 0.2rem;
+        background: black;
+        font-size: 90%;
+        font-family: monospace;
+        max-height: 20em;
+        overflow-y: auto
+    }
+
+    .CodeMirror-hint {
+        margin: 0;
+        padding: 0 4px;
+        border-radius: 2px;
+        white-space: pre;
+        color: var(--color-text-primary);
+        cursor: pointer
+    }
+
+    li.CodeMirror-hint-active {
+        background: #08f;
+        color: #fff
+    }
+}
 
 /* Dropdown */
 

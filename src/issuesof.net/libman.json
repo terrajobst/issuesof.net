@@ -10,7 +10,16 @@
         "codemirror.min.js",
         "addon/hint/show-hint.min.css",
         "addon/hint/show-hint.min.js",
-        "addon/mode/simple.min.js"
+        "addon/mode/simple.min.js",
+        "theme/material-darker.min.css"
+      ]
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "@forevolve/bootstrap-dark@1.0.0",
+      "destination": "wwwroot/lib/forevolve/bootstrap-dark/",
+      "files": [
+        "dist/css/bootstrap-dark.min.css"
       ]
     }
   ]

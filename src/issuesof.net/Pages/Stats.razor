@@ -17,7 +17,7 @@
     </div>
 }
 
-<div class="bg-light p-2 rounded-top text-secondary">
+<div class="gh-table-header">
     @{
         var stats = TrieService.IndexStats;
         var orgCount = stats.Select(r => r.Org).Distinct().Count();

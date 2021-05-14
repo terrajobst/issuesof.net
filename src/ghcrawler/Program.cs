@@ -415,8 +415,7 @@ namespace IssuesOfDotNet.Crawler
             {
                 Name = label.Name,
                 Description = label.Description,
-                ForegroundColor = GetForegroundColor(label.Color),
-                BackgroundColor = label.Color
+                ColorText = label.Color
             };
         }
 
@@ -428,35 +427,6 @@ namespace IssuesOfDotNet.Crawler
                 Title = milestone.Title,
                 Description = milestone.Description
             };
-        }
-
-        private static string GetForegroundColor(string backgroundColor)
-        {
-            var brightness = PerceivedBrightness(backgroundColor);
-            var foregroundColor = brightness > 130 ? "black" : "white";
-            return foregroundColor;
-        }
-
-        private static int PerceivedBrightness(string color)
-        {
-            var c = ParseColor(color);
-            return (int)Math.Sqrt(
-                c.R * c.R * .241 +
-                c.G * c.G * .691 +
-                c.B * c.B * .068);
-        }
-
-        private static Color ParseColor(string color)
-        {
-            if (!string.IsNullOrEmpty(color) && color.Length == 6 &&
-                int.TryParse(color.Substring(0, 2), NumberStyles.HexNumber, null, out var r) &&
-                int.TryParse(color.Substring(2, 2), NumberStyles.HexNumber, null, out var g) &&
-                int.TryParse(color.Substring(4, 2), NumberStyles.HexNumber, null, out var b))
-            {
-                return Color.FromArgb(r, g, b);
-            }
-
-            return Color.Black;
         }
 
         private static CrawledIssue ConvertIssue(CrawledRepo repo, Issue issue, Dictionary<string, CrawledLabel> labels, Dictionary<int, CrawledMilestone> milestones)
