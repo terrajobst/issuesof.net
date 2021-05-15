@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Markdig;
-
 namespace IssueDb.Crawling
 {
     // TODO: We should compactify this data structure this further (see perf below)
@@ -31,99 +29,34 @@ namespace IssueDb.Crawling
     //      4 | zlib       | 227,115,648 bytes | 51,825,272 bytes
     //      5 | gzip       | 229,847,168 bytes | 54,556,792 bytes
 
-    public sealed class CrawledTrie
+    public sealed class CrawledTrie<T>
     {
         public CrawledTrie()
-            : this(new CrawledTrieNode())
+            : this(new CrawledTrieNode<T>())
         {
         }
 
-        public CrawledTrie(CrawledTrieNode root)
+        public CrawledTrie(CrawledTrieNode<T> root)
         {
             Root = root;
         }
 
-        public void AddIssue(CrawledIssue issue)
-        {
-            var terms = GetTerms(issue);
-
-            foreach (var term in terms)
-                AddIssue(term, issue);
-        }
-
-        private void AddIssue(string text, CrawledIssue issue)
+        public void Add(string text, T value)
         {
             var current = Walk(text, addNodes: true);
-            current.AddIssue(issue);
+            current.AddValue(value);
         }
 
-        private static IEnumerable<string> GetTerms(CrawledIssue issue)
+        public IEnumerable<T> Lookup(string text)
         {
-            var result = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-            AddTermsFromMarkdown(result, issue.Title);
-            // TODO: Should we index the body or not?
-            // AddTermsFromMarkdown(result, issue.Body);
-
-            result.Add($"org:{issue.Repo.Org}");
-            result.Add($"repo:{issue.Repo.Name}");
-            result.Add($"repo:{issue.Repo.FullName}");
-            result.Add($"author:{issue.CreatedBy}");
-
-            foreach (var assignee in issue.Assignees)
-                result.Add($"assignee:{assignee}");
-
-            foreach (var label in issue.Labels)
-                result.Add($"label:{label.Name}");
-
-            foreach (var area in issue.Areas)
-                result.Add($"area-under:{area}");
-
-            foreach (var areaNode in issue.AreaNodes)
-                result.Add($"area-node:{areaNode}");
-
-            if (issue.Milestone is not null)
-                result.Add($"milestone:{issue.Milestone.Title}");
-
-            return result;
-        }
-
-        private static void AddTermsFromMarkdown(ISet<string> target, string markdown)
-        {
-            if (string.IsNullOrEmpty(markdown))
-                return;
-
-            try
-            {
-                var plainText = Markdown.ToPlainText(markdown);
-                AddTermsFromPlainText(target, plainText);
-            }
-            catch (Exception)
-            {
-                // If we can't convert the Markdown (e.g. very large table or something)
-                // we just give up.
-                return;
-            }
-        }
-
-        private static void AddTermsFromPlainText(ISet<string> target, string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return;
-
-            var tokens = TextTokenizer.Tokenize(text);
-            target.UnionWith(tokens);
-        }
-
-        public IEnumerable<CrawledIssue> Lookup(string term)
-        {
-            var node = Walk(term, addNodes: false);
+            var node = Walk(text, addNodes: false);
             if (node is null)
-                return Enumerable.Empty<CrawledIssue>();
+                return Enumerable.Empty<T>();
 
-            return node.Issues;
+            return node.Values;
         }
 
-        private CrawledTrieNode Walk(string text, bool addNodes)
+        private CrawledTrieNode<T> Walk(string text, bool addNodes)
         {
             text = text.ToLowerInvariant();
 
@@ -155,7 +88,7 @@ namespace IssueDb.Crawling
                 var commonPrefixLength = GetCommonPrefix(previousChild?.Text, remaining);
                 if (commonPrefixLength > 0)
                 {
-                    var prefixChild = new CrawledTrieNode()
+                    var prefixChild = new CrawledTrieNode<T>()
                     {
                         Text = previousChild.Text.Substring(0, commonPrefixLength)
                     };
@@ -178,7 +111,7 @@ namespace IssueDb.Crawling
 
                     if (commonPrefixLength > 0)
                     {
-                        var prefixChild = new CrawledTrieNode()
+                        var prefixChild = new CrawledTrieNode<T>()
                         {
                             Text = nextChild.Text.Substring(0, commonPrefixLength)
                         };
@@ -193,7 +126,7 @@ namespace IssueDb.Crawling
                     }
                     else
                     {
-                        var newChild = new CrawledTrieNode
+                        var newChild = new CrawledTrieNode<T>
                         {
                             Text = remaining
                         };
@@ -224,7 +157,7 @@ namespace IssueDb.Crawling
             return prefixLength;
         }
 
-        private static int BinarySearch(CrawledTrieNode node, string text)
+        private static int BinarySearch(CrawledTrieNode<T> node, string text)
         {
             var lo = 0;
             var hi = node.Children.Count - 1;
@@ -251,6 +184,6 @@ namespace IssueDb.Crawling
             return ~lo;
         }
 
-        public CrawledTrieNode Root { get; }
+        public CrawledTrieNode<T> Root { get; }
     }
 }

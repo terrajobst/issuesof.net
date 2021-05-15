@@ -26,12 +26,12 @@ namespace IssuesOfDotNet.Pages
             if (IsDevelopment && TrieService.Index is not null)
                 Calc(TrieService.Index.Trie.Root);
 
-            void Calc(CrawledTrieNode node)
+            void Calc(CrawledTrieNode<CrawledIssue> node)
             {
                 var nodeBytes = 16;
                 var stringBytes = node.Text?.Length * 2 ?? 0;
                 var childBytes = node.Children.Count * 8;
-                var issueBytes = node.Issues.Count * 8;
+                var issueBytes = node.Values.Count * 8;
 
                 NumberOfTrieNodes++;
                 NumberOfTrieStringBytes += stringBytes;

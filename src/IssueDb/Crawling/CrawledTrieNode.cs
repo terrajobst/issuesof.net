@@ -5,62 +5,62 @@ using System.Linq;
 
 namespace IssueDb.Crawling
 {
-    public sealed class CrawledTrieNode
+    public sealed class CrawledTrieNode<T>
     {
         public CrawledTrieNode()
         {
         }
 
-        public CrawledTrieNode(string text, IEnumerable<CrawledTrieNode> children, IEnumerable<CrawledIssue> issues)
+        public CrawledTrieNode(string text, IEnumerable<CrawledTrieNode<T>> children, IEnumerable<T> values)
         {
             Text = text;
 
             if (children.Any())
                 _children = children.ToArray();
 
-            if (issues.Any())
-                _issues = issues.ToArray();
+            if (values.Any())
+                _values = values.ToArray();
         }
 
-        private IList<CrawledTrieNode> _children;
-        private IList<CrawledIssue> _issues;
+        private IList<CrawledTrieNode<T>> _children;
+        private IList<T> _values;
 
         public string Text { get; set; }
 
-        public void InsertChild(int index, CrawledTrieNode child)
+        public void InsertChild(int index, CrawledTrieNode<T> child)
         {
             if (_children is null)
-                _children = new List<CrawledTrieNode>();
+                _children = new List<CrawledTrieNode<T>>();
 
             _children.Insert(index, child);
         }
 
-        public void RemoveChild(CrawledTrieNode child)
+        public void RemoveChild(CrawledTrieNode<T> child)
         {
             _children?.Remove(child);
         }
 
-        public void ReplaceChild(int childIndex, CrawledTrieNode child)
+        public void ReplaceChild(int childIndex, CrawledTrieNode<T> child)
         {
             Debug.Assert(_children is not null);
             _children[childIndex] = child;
         }
 
-        public void AddIssue(CrawledIssue issue)
+        public void AddValue(T value)
         {
-            if (_issues is null)
-                _issues = new List<CrawledIssue>();
+            if (_values is null)
+                _values = new List<T>();
 
-            _issues.Add(issue);
+            _values.Add(value);
         }
 
-        public void RemoveIssue(CrawledIssue issue)
+        public void RemoveValue(T value)
         {
-            _issues?.Remove(issue);
+            _values?.Remove(value);
         }
 
-        public IReadOnlyList<CrawledTrieNode> Children => (IReadOnlyList<CrawledTrieNode>)_children ?? Array.Empty<CrawledTrieNode>();
+        public IReadOnlyList<CrawledTrieNode<T>> Children => (IReadOnlyList<CrawledTrieNode<T>>)_children ?? Array.Empty<CrawledTrieNode<T>>();
 
-        public IReadOnlyList<CrawledIssue> Issues => (IReadOnlyList<CrawledIssue>)_issues ?? Array.Empty<CrawledIssue>();
+        public IReadOnlyList<T> Values => (IReadOnlyList<T>)_values ?? Array.Empty<T>();
     }
 }

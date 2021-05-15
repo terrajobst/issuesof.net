@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -273,12 +271,12 @@ namespace IssuesOfDotNet.Crawler
 
             Console.WriteLine("Creating trie...");
 
-            var trie = new CrawledTrie();
+            var trie = new CrawledTrie<CrawledIssue>();
 
             foreach (var repo in repos)
             {
                 foreach (var issue in repo.Issues.Values)
-                    trie.AddIssue(issue);
+                    trie.Add(issue);
             }
 
             Console.WriteLine("Creating index...");

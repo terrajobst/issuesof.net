@@ -154,7 +154,7 @@ namespace IssueDb.Crawling
 
             return result ?? new HashSet<CrawledIssue>();
 
-            static void ApplyTerm(ref HashSet<CrawledIssue> result, CrawledTrie trie, string term)
+            static void ApplyTerm(ref HashSet<CrawledIssue> result, CrawledTrie<CrawledIssue> trie, string term)
             {
                 var issues = trie.Lookup(term);
                 if (result is null)

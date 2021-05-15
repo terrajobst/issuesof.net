@@ -16,7 +16,7 @@ namespace IssueDb.Crawling
 
         public IReadOnlyList<CrawledRepo> Repos { get; set; } = Array.Empty<CrawledRepo>();
 
-        public CrawledTrie Trie { get; set; } = new();
+        public CrawledTrie<CrawledIssue> Trie { get; set; } = new();
 
         public async Task SaveAsync(string path)
         {
@@ -173,14 +173,14 @@ namespace IssueDb.Crawling
             }
 
             static void WriteNode(BinaryWriter writer,
-                                  CrawledTrieNode node,
+                                  CrawledTrieNode<CrawledIssue> node,
                                   Func<string, int> stringIndexer,
                                   Dictionary<CrawledIssue, int> issueIndex)
             {
                 writer.Write(stringIndexer(node.Text));
 
-                writer.Write(node.Issues.Count);
-                foreach (var issue in node.Issues)
+                writer.Write(node.Values.Count);
+                foreach (var issue in node.Values)
                     writer.Write(issueIndex[issue]);
 
                 writer.Write(node.Children.Count);
@@ -343,7 +343,7 @@ namespace IssueDb.Crawling
                 return Task.FromResult(new CrawledIndex
                 {
                     Repos = repos.ToArray(),
-                    Trie = new CrawledTrie(root)
+                    Trie = new CrawledTrie<CrawledIssue>(root)
                 });
             }
 
@@ -355,9 +355,9 @@ namespace IssueDb.Crawling
                 return new DateTime(ticks);
             }
 
-            static CrawledTrieNode ReadNode(BinaryReader reader,
-                                            Dictionary<int, string> stringIndex,
-                                            Dictionary<int, CrawledIssue> issueIndex)
+            static CrawledTrieNode<CrawledIssue> ReadNode(BinaryReader reader,
+                                                          Dictionary<int, string> stringIndex,
+                                                          Dictionary<int, CrawledIssue> issueIndex)
             {
                 var text = stringIndex[reader.ReadInt32()];
 
@@ -370,14 +370,14 @@ namespace IssueDb.Crawling
                 }
 
                 var childrenCount = reader.ReadInt32();
-                var children = new List<CrawledTrieNode>(childrenCount);
+                var children = new List<CrawledTrieNode<CrawledIssue>>(childrenCount);
                 while (childrenCount-- > 0)
                 {
                     var node = ReadNode(reader, stringIndex, issueIndex);
                     children.Add(node);
                 }
 
-                return new CrawledTrieNode(text, children, issues);
+                return new CrawledTrieNode<CrawledIssue>(text, children, issues);
             }
         }
     }
