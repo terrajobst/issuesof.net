@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace IssueDb.Crawling
 {
@@ -39,6 +40,29 @@ namespace IssueDb.Crawling
         public CrawledTrie(CrawledTrieNode<T> root)
         {
             Root = root;
+        }
+
+        public IEnumerable<string> GetKeys()
+        {
+            var sb = new StringBuilder();
+            var stack = new Stack<(CrawledTrieNode<T> Node, int Offset)>();
+            stack.Push((Root, 0));
+
+            while (stack.Count > 0)
+            {
+                var (node, offset) = stack.Pop();
+
+                sb.Length = offset;
+                sb.Append(node.Text);
+
+                if (node.Values.Any())
+                    yield return sb.ToString();
+
+                foreach (var child in node.Children.Reverse())
+                {
+                    stack.Push((child, sb.Length));
+                }
+            }
         }
 
         public void Add(string text, T value)

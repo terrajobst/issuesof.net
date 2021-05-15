@@ -59,6 +59,22 @@ namespace IssueDb.Crawling
             _values?.Remove(value);
         }
 
+        public IEnumerable<CrawledTrieNode<T>> DescendantsAndSelf()
+        {
+            var stack = new Stack<CrawledTrieNode<T>>();
+            stack.Push(this);
+
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+
+                yield return node;
+
+                foreach (var child in node.Children.Reverse())
+                    stack.Push(child);
+            }
+        }
+
         public IReadOnlyList<CrawledTrieNode<T>> Children => (IReadOnlyList<CrawledTrieNode<T>>)_children ?? Array.Empty<CrawledTrieNode<T>>();
 
         public IReadOnlyList<T> Values => (IReadOnlyList<T>)_values ?? Array.Empty<T>();
