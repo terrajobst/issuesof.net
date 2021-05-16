@@ -9,16 +9,11 @@ such as [aspnet], [dotnet], and [nuget].
 
 ## Next steps
 
-* We should consider using a stop list to avoid indexing super common words,
-  such as "the".
 * Find a way to incrementally update the trie so that we can offer quasi
   real-time indexing based on web hook events.
 
 ## Features
 
-* Dark mode
-    - Would be nice to automatically respect the OS-wide setting. No idea how to
-      get this though.
 * We should support all of [GitHub's query syntax](https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests)
     - It seems some of them use `and` while some use `or` semantics. For
       example, `involves` uses `or` while `label` uses `and`.
@@ -29,7 +24,6 @@ such as [aspnet], [dotnet], and [nuget].
         - Hmm, looks like `in` is just a global modifer, for example `developer
           in:body console in:title` means "search for console and developer in
           either body or title".
-    - Do all key value pairs support commas or just `in`?
     - `in:title`
     - `in:body`
     - `in:comments` 
