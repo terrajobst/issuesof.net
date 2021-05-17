@@ -6,6 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using Terrajobst.GitHubEvents;
+using Terrajobst.GitHubEvents.AspNetCore;
+
 namespace IssuesOfDotNet
 {
     public class Startup
@@ -24,6 +27,7 @@ namespace IssuesOfDotNet
             services.AddServerSideBlazor();
             services.AddSingleton<IndexService>();
             services.AddSingleton<CompletionService>();
+            services.AddSingleton<GitHubEventProcessor, EventService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -31,6 +35,8 @@ namespace IssuesOfDotNet
             // Warm up key services
             app.ApplicationServices.GetService<IndexService>();
             app.ApplicationServices.GetService<CompletionService>();
+
+            var gitHubWebHookSecret = Configuration["GitHubWebHookSecret"];
 
             if (env.IsDevelopment())
             {
@@ -50,6 +56,7 @@ namespace IssuesOfDotNet
             {
                 endpoints.MapBlazorHub();
                 endpoints.MapDefaultControllerRoute();
+                endpoints.MapGitHubWebHook(secret: gitHubWebHookSecret);
                 endpoints.MapFallbackToPage("/_Host");
             });
         }
