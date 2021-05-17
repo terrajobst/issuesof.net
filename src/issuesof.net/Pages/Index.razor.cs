@@ -124,8 +124,10 @@ namespace IssuesOfDotNet.Pages
             var results = new CrawledIssueResults(issues);
             var elapsed = stopwatch.Elapsed;
 
-            TelemetryClient.GetMetric("Search")
-                           .TrackValue(elapsed.TotalMilliseconds);
+            Task.Run(() =>
+                TelemetryClient.GetMetric("Search")
+                               .TrackValue(elapsed.TotalMilliseconds)
+            );
 
             return results;
         }

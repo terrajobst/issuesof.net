@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using IssueDb.Querying.Syntax;
 
@@ -40,8 +41,10 @@ namespace IssuesOfDotNet.Controllers
 
             var elapsed = stopwatch.Elapsed;
 
-            _telemetryClient.GetMetric("Completion")
-                            .TrackValue(elapsed.TotalMilliseconds);
+            Task.Run(() => 
+                _telemetryClient.GetMetric("Completion")
+                                .TrackValue(elapsed.TotalMilliseconds)
+            );
 
             return response;
         }
