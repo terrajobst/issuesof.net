@@ -66,13 +66,14 @@ namespace IssuesOfDotNet.Controllers
                     _logger.LogInformation("Received subscription confirmation request with code {0}", validationCode);
                     return Ok($"{{ \"validationResponse\": \"{validationCode}\" }}");
                 }
+
+                return Ok();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Couldn't parse payload: {json}");
+                return BadRequest();
             }
-
-            return BadRequest();
         }
 
         public class Payload
