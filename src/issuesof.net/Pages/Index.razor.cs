@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using IssueDb.Crawling;
@@ -6,6 +7,7 @@ using IssueDb.Querying;
 
 using IssuesOfDotNet.Data;
 
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
@@ -32,6 +34,9 @@ namespace IssuesOfDotNet.Pages
 
         [Inject]
         public IWebHostEnvironment Environment { get; set; }
+
+        [Inject]
+        public TelemetryClient TelemetryClient { get; set; }
 
         public bool IsDevelopment => Environment.IsDevelopment();
 
@@ -113,9 +118,16 @@ namespace IssuesOfDotNet.Pages
             if (TrieService.Index is null)
                 return CrawledIssueResults.Empty;
 
+            var stopwatch = Stopwatch.StartNew();
             var query = IssueQuery.Create(searchText);
             var issues = query.Execute(TrieService.Index);
-            return new CrawledIssueResults(issues);
+            var results = new CrawledIssueResults(issues);
+            var elapsed = stopwatch.Elapsed;
+
+            TelemetryClient.GetMetric("Search")
+                           .TrackValue(elapsed.TotalMilliseconds);
+
+            return results;
         }
 
         private async void ChangeUrl()
