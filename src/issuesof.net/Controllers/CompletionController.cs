@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 
 using IssueDb.Querying.Syntax;
 
 using IssuesOfDotNet.Data;
 
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IssuesOfDotNet.Controllers
@@ -12,28 +14,36 @@ namespace IssuesOfDotNet.Controllers
     [Route("/api/[controller]")]
     public class CompletionController : Controller
     {
+        private readonly TelemetryClient _telemetryClient;
         private readonly CompletionService _completionService;
 
-        public CompletionController(CompletionService completionService)
+        public CompletionController(TelemetryClient telemetryClient, CompletionService completionService)
         {
+            _telemetryClient = telemetryClient;
             _completionService = completionService;
         }
 
         [HttpGet]
         public CompletionResponse GetCompletions(string q, int pos)
         {
+            var stopwatch = Stopwatch.StartNew();
             var syntax = QuerySyntax.Parse(q ?? string.Empty);
             var result = _completionService.Provider.Complete(syntax, pos);
+            var response = result is null
+                ? null
+                : new CompletionResponse
+                {
+                    List = result.Completions.Take(50).ToArray(),
+                    From = result.Span.Start,
+                    To = result.Span.End
+                };
 
-            if (result is null)
-                return null;
+            var elapsed = stopwatch.Elapsed;
 
-            return new CompletionResponse
-            {
-                List = result.Completions.Take(50).ToArray(),
-                From = result.Span.Start,
-                To = result.Span.End
-            };
+            _telemetryClient.GetMetric("Completion")
+                            .TrackValue(elapsed.TotalMilliseconds);
+
+            return response;
         }
 
         public sealed class CompletionResponse
