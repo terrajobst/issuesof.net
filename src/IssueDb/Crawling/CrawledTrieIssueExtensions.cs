@@ -9,13 +9,13 @@ namespace IssueDb.Crawling
     {
         public static void Add(this CrawledTrie<CrawledIssue> trie, CrawledIssue issue)
         {
-            var terms = GetTerms(issue);
+            var terms = issue.GetTrieTerms();
 
             foreach (var term in terms)
                 trie.Add(term, issue);
         }
 
-        private static IEnumerable<string> GetTerms(CrawledIssue issue)
+        public static IEnumerable<string> GetTrieTerms(this CrawledIssue issue)
         {
             var result = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
             AddTermsFromMarkdown(result, issue.Title);

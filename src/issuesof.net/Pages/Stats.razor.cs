@@ -64,8 +64,8 @@ namespace IssuesOfDotNet.Pages
             {
                 var nodeBytes = 16;
                 var stringBytes = node.Text?.Length * 2 ?? 0;
-                var childBytes = node.Children.Count * 8;
-                var issueBytes = node.Values.Count * 8;
+                var childBytes = node.Children.Length * 8;
+                var issueBytes = node.Values.Length * 8;
 
                 NumberOfTrieNodes++;
                 NumberOfTrieStringBytes += stringBytes;

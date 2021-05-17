@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace IssueDb.Crawling
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
         private static readonly short _formatVersion = 6;
 
-        public IReadOnlyList<CrawledRepo> Repos { get; set; } = Array.Empty<CrawledRepo>();
+        public ImmutableArray<CrawledRepo> Repos { get; set; } = ImmutableArray<CrawledRepo>.Empty;
 
         public CrawledTrie<CrawledIssue> Trie { get; set; } = new();
 
@@ -100,7 +101,7 @@ namespace IssueDb.Crawling
 
                     var labelIndex = new Dictionary<CrawledLabel, int>();
 
-                    writer.Write(repo.Labels.Count);
+                    writer.Write(repo.Labels.Length);
 
                     foreach (var label in repo.Labels)
                     {
@@ -116,7 +117,7 @@ namespace IssueDb.Crawling
 
                     var milestoneIndex = new Dictionary<CrawledMilestone, int>();
 
-                    writer.Write(repo.Milestones.Count);
+                    writer.Write(repo.Milestones.Length);
 
                     foreach (var milestone in repo.Milestones)
                     {
@@ -204,11 +205,11 @@ namespace IssueDb.Crawling
             {
                 writer.Write(stringIndexer(node.Text));
 
-                writer.Write(node.Values.Count);
+                writer.Write(node.Values.Length);
                 foreach (var issue in node.Values)
                     writer.Write(issueIndex[issue]);
 
-                writer.Write(node.Children.Count);
+                writer.Write(node.Children.Length);
                 foreach (var child in node.Children)
                     WriteNode(writer, child, stringIndexer, issueIndex);
             }
@@ -296,7 +297,7 @@ namespace IssueDb.Crawling
                             ColorText = stringIndex[reader.ReadInt32()]
                         };
                         labelIndex.Add(labelId, label);
-                        repo.Labels.Add(label);
+                        repo.Labels = repo.Labels.Add(label);
                     }
 
                     // Read milestones
@@ -317,7 +318,7 @@ namespace IssueDb.Crawling
                             Description = stringIndex[reader.ReadInt32()],
                         };
                         milestoneIndex.Add(milestoneId, milestone);
-                        repo.Milestones.Add(milestone);
+                        repo.Milestones = repo.Milestones.Add(milestone);
                     }
 
                     // Read issues
@@ -397,7 +398,7 @@ namespace IssueDb.Crawling
 
                 return Task.FromResult(new CrawledIndex
                 {
-                    Repos = repos.ToArray(),
+                    Repos = repos.ToImmutableArray(),
                     Trie = new CrawledTrie<CrawledIssue>(root)
                 });
             }

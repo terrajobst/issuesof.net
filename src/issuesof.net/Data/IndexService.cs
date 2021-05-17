@@ -133,9 +133,14 @@ namespace IssuesOfDotNet.Data
                 if (_progress != value)
                 {
                     _progress = value;
-                    Changed?.Invoke(this, EventArgs.Empty);
+                    NotifyIndexChanged();
                 }
             }
+        }
+
+        public void NotifyIndexChanged()
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler Changed;

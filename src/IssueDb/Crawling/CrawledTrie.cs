@@ -71,6 +71,13 @@ namespace IssueDb.Crawling
             current.AddValue(value);
         }
 
+        public void Remove(string text, T value)
+        {
+            var current = Walk(text, addNodes: false);
+            if (current is not null)
+                current.RemoveValue(value);
+        }
+
         public IEnumerable<T> Lookup(string text)
         {
             var node = Walk(text, addNodes: false);
@@ -127,7 +134,7 @@ namespace IssueDb.Crawling
                 }
                 else
                 {
-                    var nextChild = childIndex == current.Children.Count
+                    var nextChild = childIndex == current.Children.Length
                         ? null
                         : current.Children[childIndex];
 
@@ -184,7 +191,7 @@ namespace IssueDb.Crawling
         private static int BinarySearch(CrawledTrieNode<T> node, string text)
         {
             var lo = 0;
-            var hi = node.Children.Count - 1;
+            var hi = node.Children.Length - 1;
 
             while (lo <= hi)
             {

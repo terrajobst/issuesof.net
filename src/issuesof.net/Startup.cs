@@ -25,9 +25,11 @@ namespace IssuesOfDotNet
             services.AddApplicationInsightsTelemetry(Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddHostedService<GitHubEventProcessingService>();
             services.AddSingleton<IndexService>();
             services.AddSingleton<CompletionService>();
             services.AddSingleton<GitHubEventProcessor, EventService>();
+            services.AddSingleton<GitHubEventProcessingService>();
             services.AddSingleton<SearchService>();
         }
 

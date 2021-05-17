@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace IssueDb.Crawling
@@ -16,47 +16,40 @@ namespace IssueDb.Crawling
             Text = text;
 
             if (children.Any())
-                _children = children.ToArray();
+                _children = children.ToImmutableArray();
 
             if (values.Any())
-                _values = values.ToArray();
+                _values = values.ToImmutableArray();
         }
 
-        private IList<CrawledTrieNode<T>> _children;
-        private IList<T> _values;
+        private ImmutableArray<CrawledTrieNode<T>> _children = ImmutableArray<CrawledTrieNode<T>>.Empty;
+        private ImmutableArray<T> _values = ImmutableArray<T>.Empty;
 
         public string Text { get; set; }
 
         public void InsertChild(int index, CrawledTrieNode<T> child)
         {
-            if (_children is null)
-                _children = new List<CrawledTrieNode<T>>();
-
-            _children.Insert(index, child);
+            _children = _children.Insert(index, child);
         }
 
         public void RemoveChild(CrawledTrieNode<T> child)
         {
-            _children?.Remove(child);
+            _children = _children.Remove(child);
         }
 
         public void ReplaceChild(int childIndex, CrawledTrieNode<T> child)
         {
-            Debug.Assert(_children is not null);
-            _children[childIndex] = child;
+            _children = _children.SetItem(childIndex, child);
         }
 
         public void AddValue(T value)
         {
-            if (_values is null)
-                _values = new List<T>();
-
-            _values.Add(value);
+            _values = _values.Add(value);
         }
 
         public void RemoveValue(T value)
         {
-            _values?.Remove(value);
+            _values = _values.Remove(value);
         }
 
         public IEnumerable<CrawledTrieNode<T>> DescendantsAndSelf()
@@ -75,8 +68,8 @@ namespace IssueDb.Crawling
             }
         }
 
-        public IReadOnlyList<CrawledTrieNode<T>> Children => (IReadOnlyList<CrawledTrieNode<T>>)_children ?? Array.Empty<CrawledTrieNode<T>>();
+        public ImmutableArray<CrawledTrieNode<T>> Children => _children;
 
-        public IReadOnlyList<T> Values => (IReadOnlyList<T>)_values ?? Array.Empty<T>();
+        public ImmutableArray<T> Values => _values;
     }
 }
