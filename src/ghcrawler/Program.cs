@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 using Azure.Storage.Blobs;
 
+using GitHubJwt;
+
 using IssueDb.Crawling;
 
 using Microsoft.Extensions.Configuration.UserSecrets;
@@ -100,7 +102,6 @@ namespace IssuesOfDotNet.Crawler
         private static async Task RunAsync(IEnumerable<string> orgs, bool pullLatest, bool uploadToAzure, string outputPath)
         {
             var connectionString = GetAzureStorageConnectionString();
-            var token = GetGitHubToken();
 
             // TODO: We should avoid having to use a temp directory
 
@@ -125,11 +126,7 @@ namespace IssuesOfDotNet.Crawler
                 await blobClient.DownloadToAsync(localPath);
             }
 
-            var productInformation = new ProductHeaderValue("issuesof.net");
-            var client = new GitHubClient(productInformation)
-            {
-                Credentials = new Credentials(token)
-            };
+            var client = await CreateGitHubClientAsync();
 
             var jsonOptions = new JsonSerializerOptions()
             {
@@ -305,6 +302,13 @@ namespace IssuesOfDotNet.Crawler
             Console.WriteLine("Deleting temp files...");
 
             Directory.Delete(tempDirectory, recursive: true);
+        }
+
+        private static Task<GitHubClient> CreateGitHubClientAsync()
+        {
+            var (appId, privateKey) = GetGitHubAppIdAndPrivateKey();
+            var factory = new GitHubClientFactory(appId, privateKey);
+            return factory.CreateAsync();
         }
 
         private static async Task<IReadOnlyList<Repository>> RequestReposAsync(GitHubClient client, string org)
@@ -518,25 +522,32 @@ namespace IssuesOfDotNet.Crawler
             return result;
         }
 
-        private static string GetGitHubToken()
+        private static (string AppId, string PrivateKey) GetGitHubAppIdAndPrivateKey()
         {
-            var result = Environment.GetEnvironmentVariable("GitHubToken");
-            if (string.IsNullOrEmpty(result))
-            {
-                var secrets = Secrets.Load();
-                result = secrets?.GitHubToken;
-            }
+            var appId = Environment.GetEnvironmentVariable("GitHubAppId");
+            var privateKey = Environment.GetEnvironmentVariable("GitHubAppPrivateKey");
+            var secrets = Secrets.Load();
 
-            if (string.IsNullOrEmpty(result))
-                throw new Exception("Cannot retreive secrete 'GitHubToken'. You either need to define an environment variable or a user secret.");
+            if (string.IsNullOrEmpty(appId))
+                appId = secrets?.GitHubAppId;
 
-            return result;
+            if (string.IsNullOrEmpty(appId))
+                throw new Exception("Cannot retreive secrete 'GitHubAppId'. You either need to define an environment variable or a user secret.");
+
+            if (string.IsNullOrEmpty(privateKey))
+                privateKey = secrets?.GitHubAppPrivateKey;
+
+            if (string.IsNullOrEmpty(privateKey))
+                throw new Exception("Cannot retreive secrete 'GitHubAppPrivateKey'. You either need to define an environment variable or a user secret.");
+
+            return (appId, privateKey);
         }
 
         internal sealed class Secrets
         {
             public string AzureStorageConnectionString { get; set; }
-            public string GitHubToken { get; set; }
+            public string GitHubAppId { get; set; }
+            public string GitHubAppPrivateKey { get; set; }
 
             public static Secrets Load()
             {
@@ -546,6 +557,66 @@ namespace IssuesOfDotNet.Crawler
 
                 var secretsJson = File.ReadAllText(secretsPath);
                 return JsonSerializer.Deserialize<Secrets>(secretsJson)!;
+            }
+        }
+    }
+
+    public sealed class GitHubClientFactory
+    {
+        private readonly int _appId;
+        private readonly string _privateKey;
+
+        public GitHubClientFactory(string appId, string privateKey)
+        {
+            _appId = Convert.ToInt32(appId);
+            _privateKey = privateKey;
+        }
+
+        public async Task<GitHubClient> CreateAsync()
+        {
+            // See: https://octokitnet.readthedocs.io/en/latest/github-apps/ for details.
+
+            var privateKeySource = new PlainStringPrivateKeySource(_privateKey);
+            var generator = new GitHubJwtFactory(
+                privateKeySource,
+                new GitHubJwtFactoryOptions
+                {
+                    AppIntegrationId = _appId,
+                    ExpirationSeconds = 8 * 60 // 600 is apparently too high
+                });
+            var token = generator.CreateEncodedJwtToken();
+
+            var client = CreateForToken(token, AuthenticationType.Bearer);
+
+            var installations = await client.GitHubApps.GetAllInstallationsForCurrent();
+            var installation = installations.Single();
+            var installationTokenResult = await client.GitHubApps.CreateInstallationToken(installation.Id);
+
+            return CreateForToken(installationTokenResult.Token, AuthenticationType.Oauth);
+        }
+
+        private static GitHubClient CreateForToken(string token, AuthenticationType authenticationType)
+        {
+            var productInformation = new ProductHeaderValue("eventstesting");
+            var client = new GitHubClient(productInformation)
+            {
+                Credentials = new Credentials(token, authenticationType)
+            };
+            return client;
+        }
+
+        public sealed class PlainStringPrivateKeySource : IPrivateKeySource
+        {
+            private readonly string _key;
+
+            public PlainStringPrivateKeySource(string key)
+            {
+                _key = key;
+            }
+
+            public TextReader GetPrivateKeyReader()
+            {
+                return new StringReader(_key);
             }
         }
     }

@@ -17,7 +17,8 @@ jobs:
 
     - name: Crawl GitHub orgs
       env:
-        GitHubToken: ${{ secrets.CRAWLER_GITHUB_TOKEN }}
+        GitHubAppId: ${{ secrets.CRAWLER_GITHUB_APP_ID }}
+        GitHubAppPrivateKey: ${{ secrets.CRAWLER_GITHUB_APP_PRIVATE_KEY }}
         AzureStorageConnectionString: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
       run: |
         cd src/ghcrawler
