@@ -96,7 +96,7 @@ namespace IssuesOfDotNet.Pages
             if (parameters.TryGetValue("page", out var pageText) && int.TryParse(pageText, out var page))
                 _pageNumber = page;
             else
-                _pageNumber = 0;
+                _pageNumber = 1;
 
             SearchResults = Find(_searchText);
             StateHasChanged();
