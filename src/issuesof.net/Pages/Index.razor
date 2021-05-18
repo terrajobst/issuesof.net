@@ -85,7 +85,7 @@ else
                         }
                         <span class="iconify @textColor" data-icon="@icon" data-inline="false" title="@title"></span>
                     </td>
-                    <td class="w-100 p-2">
+                    <td class="w-100 p-2 text-break">
                         <div>
                             <a class="gh-issue-title" href="@issue.Url">@issue.Title.AsInlineMarkdown()</a>
                             <span>
@@ -131,7 +131,7 @@ else
                             }
                         </div>
                     </td>
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         @if (issue.Assignees.Length > 0)
                         {
                             <div class="d-flex flex-row">
@@ -142,7 +142,7 @@ else
                             </div>
                         }
                     </td>
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         @if (issue.Comments > 0)
                         {
                             <span class="text-nowrap text-muted">
@@ -157,85 +157,99 @@ else
 
     @if (SearchResults.PageCount > 1)
     {
-        <ul class="pagination justify-content-center">
-            @{
-                var previousDisabled = PageNumber > 1 ? "" : "disabled";
-                var nextDisabled = PageNumber < SearchResults.PageCount ? "" : "disabled";
-                var pageIndex = PageNumber - 1;
-                var lastPageIndex = SearchResults.PageCount - 1;
+        var previousDisabled = PageNumber > 1 ? "" : "disabled";
+        var nextDisabled = PageNumber < SearchResults.PageCount ? "" : "disabled";
+        var pageIndex = PageNumber - 1;
+        var lastPageIndex = SearchResults.PageCount - 1;
 
-                var middle = new Range(Math.Max(0, pageIndex - 2),
-                                       Math.Min(lastPageIndex, pageIndex + 3));
+        var middle = new Range(Math.Max(0, pageIndex - 2),
+                               Math.Min(lastPageIndex, pageIndex + 3));
 
-                if (middle.Start.Value < 4)
-                    middle = new Range(0, middle.End);
+        if (middle.Start.Value < 4)
+            middle = new Range(0, middle.End);
 
-                if (middle.End.Value - 1 > lastPageIndex - 4)
-                    middle = new Range(middle.Start, lastPageIndex + 1);
+        if (middle.End.Value - 1 > lastPageIndex - 4)
+            middle = new Range(middle.Start, lastPageIndex + 1);
 
-                if (middle.GetOffsetAndLength(lastPageIndex + 1).Length < 5)
-                {
-                    if (middle.Start.Value == 0)
-                        middle = new Range(0, Math.Min(4, lastPageIndex) + 1);
-                    else
-                        middle = new Range(Math.Max(lastPageIndex - 4, 0), lastPageIndex + 1);
-                }
+        if (middle.GetOffsetAndLength(lastPageIndex + 1).Length < 5)
+        {
+            if (middle.Start.Value == 0)
+                middle = new Range(0, Math.Min(4, lastPageIndex) + 1);
+            else
+                middle = new Range(Math.Max(lastPageIndex - 4, 0), lastPageIndex + 1);
+        }
 
-                var left = middle.Start.Value == 0
-                    ? new Range(0, 0)
-                    : new Range(0, 2);
+        var left = middle.Start.Value == 0
+            ? new Range(0, 0)
+            : new Range(0, 2);
 
-                var right = middle.End.Value - 1 == lastPageIndex
-                    ? new Range(lastPageIndex, 0)
-                    : new Range(lastPageIndex - 1, lastPageIndex + 1);
+        var right = middle.End.Value - 1 == lastPageIndex
+            ? new Range(lastPageIndex, 0)
+            : new Range(lastPageIndex - 1, lastPageIndex + 1);
 
-                <li class="page-item @previousDisabled">
-                    <a class="page-link" href="#" tabindex="-1" @onclick:preventDefault @onclick="() => PageNumber--"><span class="oi oi-chevron-left small"></span></a>
-                </li>
+        @* Small pagination *@
 
-                for (var i = left.Start.Value; i < left.End.Value; i++)
-                {
-                    var pageNumber = i + 1;
-                    <li class="page-item">
-                        <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
-                    </li>
-                }
+        <ul class="pagination pagination-lg justify-content-center d-md-none">
+            <li class="page-item @previousDisabled">
+                <a class="page-link" href="#" tabindex="-1" @onclick:preventDefault @onclick="() => PageNumber--"><span class="oi oi-chevron-left"></span></a>
+            </li>
+            <li class="page-item">
+                <a class="page-link disabled small">@PageNumber of @SearchResults.PageCount</a>
+            </li>
+            <li class="page-item @nextDisabled">
+                <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber++"><span class="oi oi-chevron-right"></span></a>
+            </li>
+        </ul>
 
-                if (left.End.Value < middle.Start.Value)
-                {
-                    <li class="page-item">
-                        <a class="page-link disabled">...</a>
-                    </li>
-                }
+        @* Large pagination *@
 
-                for (var i = middle.Start.Value; i < middle.End.Value; i++)
-                {
-                    var pageNumber = i + 1;
-                    var active = pageNumber == PageNumber ? "active" : "";
-                    <li class="page-item @active">
-                        <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
-                    </li>
-                }
+        <ul class="pagination justify-content-center d-none d-md-flex">
+            <li class="page-item @previousDisabled">
+                <a class="page-link" href="#" tabindex="-1" @onclick:preventDefault @onclick="() => PageNumber--"><span class="oi oi-chevron-left small"></span></a>
+            </li>
 
-                if (middle.End.Value < right.Start.Value)
-                {
-                    <li class="page-item">
-                        <a class="page-link disabled">...</a>
-                    </li>
-                }
-
-                for (var i = right.Start.Value; i < right.End.Value; i++)
-                {
-                    var pageNumber = i + 1;
-                    <li class="page-item">
-                        <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
-                    </li>
-                }
-
-                <li class="page-item @nextDisabled">
-                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber++"><span class="oi oi-chevron-right small"></span></a>
+            @for (var i = left.Start.Value; i < left.End.Value; i++)
+            {
+                var pageNumber = i + 1;
+                <li class="page-item">
+                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
                 </li>
             }
+
+            @if (left.End.Value < middle.Start.Value)
+            {
+                <li class="page-item">
+                    <a class="page-link disabled">...</a>
+                </li>
+            }
+
+            @for (var i = middle.Start.Value; i < middle.End.Value; i++)
+            {
+                var pageNumber = i + 1;
+                var active = pageNumber == PageNumber ? "active" : "";
+                <li class="page-item @active">
+                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
+                </li>
+            }
+
+            @if (middle.End.Value < right.Start.Value)
+            {
+                <li class="page-item">
+                    <a class="page-link disabled">...</a>
+                </li>
+            }
+
+            @for (var i = right.Start.Value; i < right.End.Value; i++)
+            {
+                var pageNumber = i + 1;
+                <li class="page-item">
+                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber = pageNumber">@pageNumber</a>
+                </li>
+            }
+
+            <li class="page-item @nextDisabled">
+                <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber++"><span class="oi oi-chevron-right small"></span></a>
+            </li>
         </ul>
     }
 }
