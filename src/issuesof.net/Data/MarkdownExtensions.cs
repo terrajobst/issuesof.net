@@ -9,6 +9,9 @@ namespace IssuesOfDotNet.Data
     {
         public static MarkupString AsInlineMarkdown(this string markup)
         {
+            // Escape any inline HTML first.
+            markup = markup.Replace("<", "&lt;").Replace(">", "&gt;");
+
             // We clip off the beginning and ending <p></p> tags. It's dirty,
             // but Alexandre gave it his blessing ;-)
             //
