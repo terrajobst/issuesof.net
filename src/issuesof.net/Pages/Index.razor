@@ -132,7 +132,18 @@ else
                         </div>
                     </td>
                     <td>
-                        @if (issue.Comments > 0)                     
+                        @if (issue.Assignees.Length > 0)
+                        {
+                            <div class="d-flex flex-row">
+                                @foreach (var assignee in issue.Assignees.Take(3))
+                                {
+                                    <img class="rounded-circle mx-1" src="https://github.com/@(assignee).png" width="20" height="20" title="Assigned to @assignee" />
+                                }
+                            </div>
+                        }
+                    </td>
+                    <td>
+                        @if (issue.Comments > 0)
                         {
                             <span class="text-nowrap text-muted">
                                 <span class="iconify" data-icon="octicon:comment-16" data-inline="false"></span> @issue.Comments
