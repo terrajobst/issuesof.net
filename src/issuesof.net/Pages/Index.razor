@@ -179,7 +179,7 @@ else
                     : new Range(lastPageIndex - 1, lastPageIndex + 1);
 
                 <li class="page-item @previousDisabled">
-                    <a class="page-link" href="#" tabindex="-1" @onclick:preventDefault @onclick="() => PageNumber--">Previous</a>
+                    <a class="page-link" href="#" tabindex="-1" @onclick:preventDefault @onclick="() => PageNumber--"><span class="oi oi-chevron-left small"></span></a>
                 </li>
 
                 for (var i = left.Start.Value; i < left.End.Value; i++)
@@ -222,7 +222,7 @@ else
                 }
 
                 <li class="page-item @nextDisabled">
-                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber++">Next</a>
+                    <a class="page-link" href="#" @onclick:preventDefault @onclick="() => PageNumber++"><span class="oi oi-chevron-right small"></span></a>
                 </li>
             }
         </ul>
