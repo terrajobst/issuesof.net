@@ -15,7 +15,7 @@ namespace IssuesOfDotNet.Pages
 {
     public sealed partial class Index : IDisposable
     {
-        private static readonly string _defaultSearch = "is:issue is:open";
+        private static readonly string _defaultSearch = "is:open is:issue";
 
         private string _searchText;
         private int _pageNumber;
