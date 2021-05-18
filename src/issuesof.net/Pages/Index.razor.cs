@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 using IssueDb.Crawling;
-using IssueDb.Querying;
 
 using IssuesOfDotNet.Data;
 
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
@@ -30,13 +27,13 @@ namespace IssuesOfDotNet.Pages
         public NavigationManager NavigationManager { get; set; }
 
         [Inject]
-        public IndexService TrieService { get; set; }
+        public IndexService IndexService { get; set; }
 
         [Inject]
         public IWebHostEnvironment Environment { get; set; }
 
         [Inject]
-        public TelemetryClient TelemetryClient { get; set; }
+        public SearchService SearchService { get; set; }
 
         public bool IsDevelopment => Environment.IsDevelopment();
 
@@ -57,7 +54,7 @@ namespace IssuesOfDotNet.Pages
 
         protected override void OnInitialized()
         {
-            TrieService.Changed += TrieService_Changed;
+            IndexService.Changed += TrieService_Changed;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -72,7 +69,7 @@ namespace IssuesOfDotNet.Pages
 
         public void Dispose()
         {
-            TrieService.Changed -= TrieService_Changed;
+            IndexService.Changed -= TrieService_Changed;
         }
 
         private void TrieService_Changed(object sender, EventArgs e)
@@ -115,21 +112,7 @@ namespace IssuesOfDotNet.Pages
         {
             _searchText = searchText;
 
-            if (TrieService.Index is null)
-                return CrawledIssueResults.Empty;
-
-            var stopwatch = Stopwatch.StartNew();
-            var query = IssueQuery.Create(searchText);
-            var issues = query.Execute(TrieService.Index);
-            var results = new CrawledIssueResults(issues);
-            var elapsed = stopwatch.Elapsed;
-
-            Task.Run(() =>
-                TelemetryClient.GetMetric("Search")
-                               .TrackValue(elapsed.TotalMilliseconds)
-            );
-
-            return results;
+            return SearchService.Search(searchText);
         }
 
         private async void ChangeUrl()

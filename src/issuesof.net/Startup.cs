@@ -28,6 +28,7 @@ namespace IssuesOfDotNet
             services.AddSingleton<IndexService>();
             services.AddSingleton<CompletionService>();
             services.AddSingleton<GitHubEventProcessor, EventService>();
+            services.AddSingleton<SearchService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

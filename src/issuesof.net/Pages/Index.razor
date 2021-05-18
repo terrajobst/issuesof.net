@@ -1,11 +1,11 @@
 ﻿@page "/"
 
-@if (TrieService.Exeption is not null)
+@if (IndexService.Exeption is not null)
 {
     <div class="alert alert-danger">
         @if (IsDevelopment)
         {
-            <pre>@TrieService.Exeption.ToString()</pre>
+            <pre>@IndexService.Exeption.ToString()</pre>
         }
         else
         { 
@@ -13,14 +13,14 @@
         }
     </div>
 }
-else @if (TrieService.Index is null)
+else @if (IndexService.Index is null)
 {
     <div class="alert alert-secondary">
         <div class="spinner-border text-secondary" role="status">
             <span class="sr-only">Loading...</span>
         </div>
         <div class="mt-2">
-            @TrieService.ProgressText
+            @IndexService.ProgressText
         </div>
     </div>
 }
