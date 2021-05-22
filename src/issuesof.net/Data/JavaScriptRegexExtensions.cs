@@ -13,6 +13,8 @@ namespace IssuesOfDotNet.Data
 
         private static int CompareStrings(string x, string y)
         {
+            // NOTE: We want that "comments-asc" shows up before "comments"
+
             var result = StringComparer.OrdinalIgnoreCase.Compare(x, y);
 
             if (result != 0 && x is not null && y is not null)
