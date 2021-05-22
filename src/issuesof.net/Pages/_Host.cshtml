@@ -5,6 +5,8 @@
     Layout = null;
 }
 
+@using IssuesOfDotNet.Data; 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,8 +51,8 @@
     <script src="~/lib/codemirror/addon/mode/simple.min.js"></script>
     <script>
         @{
-            var keywords = string.Join("|", IssueDb.Querying.IssueQuery.SupportedKeys);
-            var values = string.Join("|", IssueDb.Querying.IssueQuery.SupportedValues);
+            var keywords = IssueDb.Querying.IssueQuery.SupportedKeys.ToJavaScriptRegexAlternation();
+            var values = IssueDb.Querying.IssueQuery.SupportedValues.ToJavaScriptRegexAlternation();
         }
         CodeMirror.defineSimpleMode("github-query", {
             start: [
