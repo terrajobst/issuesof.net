@@ -5,13 +5,20 @@ using System.IO;
 using System.Linq;
 
 using IssueDb.Querying.Binding;
-using IssueDb.Querying.Ranges;
 using IssueDb.Querying.Syntax;
 
 namespace IssueDb.Querying
 {
-    public sealed class IssueQuery
+    public sealed partial class IssueQuery
     {
+        public static IEnumerable<string> SupportedKeys => _keyValueHandlers.Keys.Select(kv => kv.Key).Distinct();
+
+        public static IEnumerable<string> SupportedValues => _keyValueHandlers.Keys.Select(kv => kv.Value).Where(v => v is not null).Distinct();
+
+        public static IEnumerable<string> SupportedValuesFor(string key) => _keyValueHandlers.Keys.Where(kv => kv.Value is not null &&
+                                                                                                            string.Equals(kv.Key, key, StringComparison.OrdinalIgnoreCase))
+                                                                                                  .Select(kv => kv.Value);
+
         public IssueQuery(IEnumerable<IssueFilter> filters)
         {
             Filters = filters.ToArray();
@@ -66,230 +73,14 @@ namespace IssueDb.Querying
             var key = expression.Key.ToLowerInvariant();
             var value = expression.Value.ToLowerInvariant();
 
-            switch ((key, value))
+            if (_keyValueHandlers.TryGetValue((key, value), out var handler) ||
+                _keyValueHandlers.TryGetValue((key, null), out handler))
             {
-                case ("is", "open"):
-                case ("state", "open"):
-                    result.IsOpen = !expression.IsNegated;
-                    break;
-                case ("is", "closed"):
-                case ("state", "closed"):
-                    result.IsOpen = expression.IsNegated;
-                    break;
-                case ("is", "locked"):
-                    result.IsLocked = !expression.IsNegated;
-                    break;
-                case ("is", "unlocked"):
-                    result.IsLocked = expression.IsNegated;
-                    break;
-                case ("is", "pr"):
-                case ("type", "pr"):
-                    result.IsPullRequest = !expression.IsNegated;
-                    break;
-                case ("is", "issue"):
-                case ("type", "issue"):
-                    result.IsPullRequest = expression.IsNegated;
-                    break;
-                case ("is", "merged"):
-                case ("state", "merged"):
-                    result.IsMerged = !expression.IsNegated;
-                    break;
-                case ("is", "unmerged"):
-                case ("state", "unmerged"):
-                    result.IsMerged = expression.IsNegated;
-                    break;
-
-                case ("is", "draft"):
-                case ("draft", "true"):
-                    result.IsDraft = !expression.IsNegated;
-                    break;
-                case ("draft", "false"):
-                    result.IsDraft = expression.IsNegated;
-                    break;
-
-                case ("archived", "true"):
-                    result.IsArchived = !expression.IsNegated;
-                    break;
-                case ("archived", "false"):
-                    result.IsArchived = expression.IsNegated;
-                    break;
-
-                case ("no", "assignee"):
-                    result.NoAssignees = !expression.IsNegated;
-                    break;
-                case ("no", "label"):
-                    result.NoLabels = !expression.IsNegated;
-                    break;
-                case ("no", "area"):
-                    result.NoArea = !expression.IsNegated;
-                    break;
-                case ("no", "milestone"):
-                    result.NoMilestone = !expression.IsNegated;
-                    break;
-
-                case ("org", _):
-                    if (expression.IsNegated)
-                        result.ExcludedOrgs.Add(value);
-                    else
-                        result.IncludedOrgs.Add(value);
-                    break;
-
-                case ("repo", _):
-                    if (expression.IsNegated)
-                        result.ExcludedRepos.Add(value);
-                    else
-                        result.IncludedRepos.Add(value);
-                    break;
-
-                case ("author", _):
-                    if (expression.IsNegated)
-                        result.ExcludedAuthors.Add(value);
-                    else
-                        result.Author = value;
-                    break;
-
-                case ("assignee", _):
-                    if (expression.IsNegated)
-                        result.ExcludedAssignees.Add(value);
-                    else
-                        result.IncludedAssignees.Add(value);
-                    break;
-
-                case ("label", _):
-                    if (expression.IsNegated)
-                        result.ExcludedLabels.Add(value);
-                    else
-                        result.IncludedLabels.Add(value);
-                    break;
-
-                case ("milestone", _):
-                    if (expression.IsNegated)
-                        result.ExcludedMilestones.Add(value);
-                    else
-                        result.Milestone = value;
-                    break;
-
-                case ("area", _):
-                    if (expression.IsNegated)
-                        result.ExcludedLabels.Add($"area-{value}");
-                    else
-                        result.IncludedLabels.Add($"area-{value}");
-                    break;
-                case ("area-under", _):
-                    if (expression.IsNegated)
-                        result.ExcludedAreas.Add(value);
-                    else
-                        result.IncludedAreas.Add(value);
-                    break;
-                case ("area-node", _):
-                    if (expression.IsNegated)
-                        result.ExcludedAreaNodes.Add(value);
-                    else
-                        result.IncludedAreaNodes.Add(value);
-                    break;
-
-                case ("created", _) when RangeSyntax.ParseDateTimeOffset(value) is RangeSyntax<DateTimeOffset> r:
-                    result.Created = r.Negate(expression.IsNegated);
-                    break;
-                case ("updated", _) when RangeSyntax.ParseDateTimeOffset(value) is RangeSyntax<DateTimeOffset> r:
-                    result.Updated = r.Negate(expression.IsNegated);
-                    break;
-                case ("closed", _) when RangeSyntax.ParseDateTimeOffset(value) is RangeSyntax<DateTimeOffset> r:
-                    result.Closed = r.Negate(expression.IsNegated);
-                    break;
-
-                case ("comments", _) when RangeSyntax.ParseInt32(value) is RangeSyntax<int> r:
-                    result.Comments = r.Negate(expression.IsNegated);
-                    break;
-                case ("reactions", _) when RangeSyntax.ParseInt32(value) is RangeSyntax<int> r:
-                    result.Reactions = r.Negate(expression.IsNegated);
-                    break;
-                case ("interactions", _) when RangeSyntax.ParseInt32(value) is RangeSyntax<int> r:
-                    result.Interactions = r.Negate(expression.IsNegated);
-                    break;
-
-                case ("sort", "created"):
-                case ("sort", "created-asc"):
-                    result.Sort.Add(IssueSort.CreatedAscending);
-                    break;
-                case ("sort", "created-desc"):
-                    result.Sort.Add(IssueSort.CreatedDescending);
-                    break;
-                case ("sort", "updated"):
-                case ("sort", "updated-asc"):
-                    result.Sort.Add(IssueSort.UpdatedAscending);
-                    break;
-                case ("sort", "updated-desc"):
-                    result.Sort.Add(IssueSort.UpdatedDescending);
-                    break;
-                case ("sort", "comments"):
-                case ("sort", "comments-asc"):
-                    result.Sort.Add(IssueSort.CommentsAscending);
-                    break;
-                case ("sort", "comments-desc"):
-                    result.Sort.Add(IssueSort.CommentsDescending);
-                    break;
-                case ("sort", "reactions"):
-                case ("sort", "reactions-asc"):
-                    result.Sort.Add(IssueSort.ReactionsAscending);
-                    break;
-                case ("sort", "reactions-desc"):
-                    result.Sort.Add(IssueSort.ReactionsDescending);
-                    break;
-                case ("sort", "reactions-+1"):
-                case ("sort", "reactions-+1-asc"):
-                    result.Sort.Add(IssueSort.ReactionsPlus1Ascending);
-                    break;
-                case ("sort", "reactions-+1-desc"):
-                    result.Sort.Add(IssueSort.ReactionsPlus1Descending);
-                    break;
-                case ("sort", "reactions--1"):
-                case ("sort", "reactions--1-asc"):
-                    result.Sort.Add(IssueSort.ReactionsMinus1Ascending);
-                    break;
-                case ("sort", "reactions--1-desc"):
-                    result.Sort.Add(IssueSort.ReactionsMinus1Descending);
-                    break;
-                case ("sort", "reactions-smile"):
-                case ("sort", "reactions-smile-asc"):
-                    result.Sort.Add(IssueSort.ReactionsSmileAscending);
-                    break;
-                case ("sort", "reactions-smile-desc"):
-                    result.Sort.Add(IssueSort.ReactionsSmileDescending);
-                    break;
-                case ("sort", "reactions-heart"):
-                case ("sort", "reactions-heart-asc"):
-                    result.Sort.Add(IssueSort.ReactionsHeartAscending);
-                    break;
-                case ("sort", "reactions-heart-desc"):
-                    result.Sort.Add(IssueSort.ReactionsHeartDescending);
-                    break;
-                case ("sort", "reactions-tada"):
-                case ("sort", "reactions-tada-asc"):
-                    result.Sort.Add(IssueSort.ReactionsTadaAscending);
-                    break;
-                case ("sort", "reactions-tada-desc"):
-                    result.Sort.Add(IssueSort.ReactionsTadaDescending);
-                    break;
-                case ("sort", "reactions-thinking_face"):
-                case ("sort", "reactions-thinking_face-asc"):
-                    result.Sort.Add(IssueSort.ReactionsThinkingFaceAscending);
-                    break;
-                case ("sort", "reactions-thinking_face-desc"):
-                    result.Sort.Add(IssueSort.ReactionsThinkingFaceDescending);
-                    break;
-                case ("sort", "interactions"):
-                case ("sort", "interactions-asc"):
-                    result.Sort.Add(IssueSort.InteractionsAscending);
-                    break;
-                case ("sort", "interactions-desc"):
-                    result.Sort.Add(IssueSort.InteractionsDescending);
-                    break;
-
-                default:
-                    Apply(result, new BoundTextQuery(expression.IsNegated, $"{key}:{value}"));
-                    break;
+                handler(result, expression);
+                return;
             }
+
+            Apply(result, new BoundTextQuery(expression.IsNegated, $"{key}:{value}"));
         }
 
         private static void Apply(IssueFilter result, BoundTextQuery expression)
