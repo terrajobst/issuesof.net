@@ -30,6 +30,8 @@ namespace IssuesOfDotNet.Crawler
             //    "aspnet",
             //    "dotnet",
             //    "nuget",
+            //    "--filter",
+            //    "dotnet/runtime",
             //    "--no-pull-latest",
             //    "--no-upload",
             //    "--out",
@@ -38,16 +40,18 @@ namespace IssuesOfDotNet.Crawler
 
             var appName = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
             var orgs = new List<string>();
-            var help = false;
-            var activeTerms = (List<string>)null;
+            var includedRepos = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            var outputPath = "";
             var pullLatest = true;
             var uploadToAzure = true;
-            var outputPath = "";
+            var help = false;
+            var activeTerms = (ICollection<string>)null;
 
             var options = new OptionSet
             {
                 $"usage: {appName} [OPTIONS]+",
                 { "org", "The names of the GitHub orgs to index", v => activeTerms = orgs },
+                { "filter", "The list of repos to include", v => activeTerms = includedRepos },
                 { "out=", "The output path the index should be written to", v => outputPath = v },
                 { "no-pull-latest", null, v => pullLatest = false, true },
                 { "no-upload", null, v => uploadToAzure = false, true },
@@ -89,7 +93,7 @@ namespace IssuesOfDotNet.Crawler
 
             try
             {
-                await RunAsync(orgs, pullLatest, uploadToAzure, outputPath);
+                await RunAsync(orgs, includedRepos, pullLatest, uploadToAzure, outputPath);
                 return 0;
             }
             catch (Exception ex) when (!Debugger.IsAttached)
@@ -99,7 +103,7 @@ namespace IssuesOfDotNet.Crawler
             }
         }
 
-        private static async Task RunAsync(IEnumerable<string> orgs, bool pullLatest, bool uploadToAzure, string outputPath)
+        private static async Task RunAsync(IEnumerable<string> orgs, SortedSet<string> includedRepos, bool pullLatest, bool uploadToAzure, string outputPath)
         {
             var connectionString = GetAzureStorageConnectionString();
 
@@ -116,6 +120,9 @@ namespace IssuesOfDotNet.Crawler
 
             await foreach (var blob in cacheContainerClient.GetBlobsAsync())
             {
+                if (includedRepos.Count > 0 && !includedRepos.Contains(blob.Name.Replace(".crcache", "")))
+                    continue;
+
                 Console.WriteLine($"Downloading {blob.Name}...");
 
                 var localPath = Path.Combine(tempDirectory, blob.Name);
@@ -173,6 +180,9 @@ namespace IssuesOfDotNet.Crawler
 
                     foreach (var repo in availableRepos)
                     {
+                        if (includedRepos.Count > 0 && !includedRepos.Contains($"{org}/{repo.Name}"))
+                            continue;
+
                         var blobName = $"{org}/{repo.Name}.crcache";
                         var repoPath = Path.Join(tempDirectory, blobName);
 
