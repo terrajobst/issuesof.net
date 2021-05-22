@@ -41,7 +41,7 @@ namespace IssuesOfDotNet.Controllers
 
             var elapsed = stopwatch.Elapsed;
 
-            Task.Run(() => 
+            Task.Run(() =>
                 _telemetryClient.GetMetric("Completion")
                                 .TrackValue(elapsed.TotalMilliseconds)
             );

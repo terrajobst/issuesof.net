@@ -100,6 +100,49 @@ html, body {
     background: var(--light);
 }
 
+.gh-table-group-header {
+    padding: 4px;
+    background-color: rgb(234 234 234);
+}
+
+    .gh-table-group-header td {
+        vertical-align: middle;
+    }
+
+.gh-group-key-list {
+}
+
+.gh-group-key {
+    color: var(--secondary);
+}
+
+    .gh-group-key:after {
+        content: "/";
+        margin-left: 10px;
+        margin-right: 10px;
+        font-weight: 700;
+    }
+
+    .gh-group-key:last-child {
+        font-weight: bold;
+        color: unset;
+    }
+
+        .gh-group-key:last-child::after {
+            content: "";
+        }
+
+.gh-table-group-toggle {
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+    .gh-table-group-toggle:hover {
+        margin: -4px -4px -4px 0px;
+        padding: 4px;
+        background-color: lightgray;
+    }
+
 .text-merged {
     color: #a371f7;
 }
@@ -132,6 +175,15 @@ pre {
 
     .gh-table-header {
         background: var(--dark);
+    }
+
+    .gh-table-group-header {
+        background: rgb(37 42 48);
+        align-content: center;
+    }
+
+    .gh-table-group-toggle:hover {
+        background-color: var(--secondary);
     }
 
     pre {

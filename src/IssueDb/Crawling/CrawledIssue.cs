@@ -52,6 +52,10 @@ namespace IssueDb.Crawling
         [JsonIgnore]
         public IEnumerable<string> AreaNodes => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name, segmentsOnly: true));
 
+
+        [JsonIgnore]
+        public IEnumerable<string> DirectAreaNodes => Labels.Where(l => l.Name.StartsWith("area-")).Select(l => l.Name.Substring(5));
+
         [JsonIgnore]
         public int Reactions => ReactionsPlus1
                                 + ReactionsMinus1

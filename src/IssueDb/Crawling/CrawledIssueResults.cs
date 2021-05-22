@@ -2,30 +2,132 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using IssueDb.Querying;
+
 namespace IssueDb.Crawling
 {
-    public readonly struct CrawledIssueResults
+    public abstract partial class CrawledIssueResults
     {
-        public static CrawledIssueResults Empty => new(Array.Empty<CrawledIssue>());
+        protected const int ItemsPerPage = 25;
 
-        private const int ItemsPerPage = 25;
-        private readonly IReadOnlyCollection<CrawledIssue> _issues;
+        public int PageCount => (int)Math.Ceiling(ItemCount / (float)ItemsPerPage);
 
-        public CrawledIssueResults(IEnumerable<CrawledIssue> issues)
+        public abstract int ItemCount { get; }
+
+        public abstract int IssueCount { get; }
+
+        public virtual bool IsGrouped => false;
+
+        public virtual bool IsExpanded(CrawledIssueGroup group) => false;
+
+        public virtual void ExpandAll()
         {
-            _issues = issues.ToArray();
         }
 
-        public bool IsEmpty => _issues.Count == 0;
-
-        public int PageCount => (int)Math.Ceiling(_issues.Count / (float)ItemsPerPage);
-
-        public int TotalCount => _issues.Count;
-
-        public IEnumerable<CrawledIssue> GetPage(int pageNumber)
+        public virtual void CollapseAll()
         {
-            return _issues.Skip((pageNumber - 1) * ItemsPerPage)
-                          .Take(ItemsPerPage);
+        }
+
+        public virtual void Expand(CrawledIssueGroup group)
+        {
+        }
+
+        public virtual void Collapse(CrawledIssueGroup group)
+        {
+        }
+
+        public abstract IEnumerable<CrawledIssueOrGroup> GetPage(int pageNumber);
+
+        public static CrawledIssueResults Empty => new ArrayIssueResults(Array.Empty<CrawledIssue>());
+
+        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues)
+        {
+            return new ArrayIssueResults(issues.ToArray());
+        }
+
+        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] fields, IEnumerable<IssueGroupSort> sorts)
+        {
+            if (fields is null || fields.Length == 0)
+                throw new ArgumentException("Must pass in non-empty groups", nameof(fields));
+
+            var topLevelGroups = Group(issues, fields)
+                                    .Select(r => r.ToGroup())
+                                    .ToArray();
+
+            SortGroups(topLevelGroups, sorts);
+
+            return new GroupedIssueResults(topLevelGroups);
+
+            static CrawledIssueOrGroup[] Group(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] fields)
+            {
+                var field = fields[0];
+                var topLevel = GroupFirst(null, issues, field);
+
+                GroupNext(topLevel, fields, 1);
+
+                return topLevel;
+            }
+
+            static CrawledIssueOrGroup[] GroupFirst(CrawledIssueGroup parent, IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey field)
+            {
+                return field.Group(issues)
+                            .Select(g => (CrawledIssueOrGroup)new CrawledIssueGroup(CombineKeys(parent, g.Key), g.Select(i => (CrawledIssueOrGroup)i).ToArray()))
+                            .ToArray();
+            }
+
+            static void GroupNext(CrawledIssueOrGroup[] current, CrawledIssueGroupKey[] fields, int fieldIndex)
+            {
+                if (fieldIndex >= fields.Length)
+                    return;
+
+                var field = fields[fieldIndex];
+
+                for (var i = 0; i < current.Length; i++)
+                {
+                    var oldGroup = current[i].ToGroup();
+                    var oldChildren = oldGroup.Children.Select(c => c.ToIssue());
+                    var newChildren = GroupFirst(oldGroup, oldChildren, field);
+                    var newGroup = new CrawledIssueGroup(oldGroup.Keys, newChildren);
+                    current[i] = newGroup;
+
+                    GroupNext(newGroup.Children, fields, fieldIndex + 1);
+                }
+            }
+
+            static string[] CombineKeys(CrawledIssueGroup parent, string key)
+            {
+                if (parent is null)
+                    return new[] { key };
+
+                var result = new string[parent.Keys.Length + 1];
+                Array.Copy(parent.Keys, result, parent.Keys.Length);
+                result[parent.Keys.Length] = key;
+                return result;
+            }
+
+            static void SortGroup(CrawledIssueGroup group, IEnumerable<IssueGroupSort> sorts)
+            {
+                var childrenAsGroups = group.Children.Where(c => c.IsGroup)
+                                                     .Select(c => c.ToGroup())
+                                                     .Sort(sorts)
+                                                     .ToArray();
+
+                for (var i = 0; i < childrenAsGroups.Length; i++)
+                {
+                    group.Children[i] = childrenAsGroups[i];
+                    SortGroup(childrenAsGroups[i], sorts);
+                }
+            }
+
+            static void SortGroups(CrawledIssueGroup[] groups, IEnumerable<IssueGroupSort> sorts)
+            {
+                var sortedGroups = groups.Sort(sorts).ToArray();
+                for (var i = 0; i < sortedGroups.Length; i++)
+                {
+                    groups[i] = sortedGroups[i];
+                    SortGroup(groups[i], sorts);
+                }
+            }
         }
     }
 }

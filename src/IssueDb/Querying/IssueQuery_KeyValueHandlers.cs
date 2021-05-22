@@ -461,6 +461,84 @@ namespace IssueDb.Querying
             filter.Sort.Add(IssueSort.InteractionsDescending);
         }
 
+        [KeyValueHandler("group:org")]
+        private static void ApplyGroupOrg(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Org);
+        }
+
+        [KeyValueHandler("group:repo")]
+        private static void ApplyGroupRepo(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Repo);
+        }
+
+        [KeyValueHandler("group:creator")]
+        private static void ApplyGroupCreator(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Creator);
+        }
+
+        [KeyValueHandler("group:assignee")]
+        private static void ApplyGroupAssignee(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Assignee);
+        }
+
+        [KeyValueHandler("group:label")]
+        private static void ApplyGroupLabel(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Label);
+        }
+
+        [KeyValueHandler("group:milestone")]
+        private static void ApplyGroupMilestone(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Milestone);
+        }
+
+        [KeyValueHandler("group:area")]
+        private static void ApplyGroupArea(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.Area);
+        }
+
+        [KeyValueHandler("group:area-node")]
+        private static void ApplyGroupAreaNode(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.AreaNode);
+        }
+
+        [KeyValueHandler("group:area-under")]
+        private static void ApplyGroupAreaUnder(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.AreaUnder);
+        }
+
+        [KeyValueHandler("group-sort:key", "group-sort:key-asc")]
+        private static void ApplyGroupSortKey(IssueFilter filter)
+        {
+            filter.GroupSort.Add(IssueGroupSort.KeyAscending);
+        }
+
+        [KeyValueHandler("group-sort:key-desc")]
+        private static void ApplyGroupSortKeyDesc(IssueFilter filter)
+        {
+            filter.GroupSort.Add(IssueGroupSort.KeyDescending);
+        }
+
+        [KeyValueHandler("group-sort:count", "group-sort:count-asc")]
+        private static void ApplyGroupSortCount(IssueFilter filter)
+        {
+            filter.GroupSort.Add(IssueGroupSort.CountAscending);
+        }
+
+        [KeyValueHandler("group-sort:count-desc")]
+        private static void ApplyGroupSortCountDesc(IssueFilter filter)
+        {
+            filter.GroupSort.Add(IssueGroupSort.CountDescending);
+        }
+
 #pragma warning restore IDE0051 // Remove unused private members
 
         [AttributeUsage(AttributeTargets.Method)]

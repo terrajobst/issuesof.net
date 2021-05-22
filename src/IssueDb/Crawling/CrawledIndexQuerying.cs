@@ -6,11 +6,12 @@ using IssueDb.Querying;
 
 namespace IssueDb.Crawling
 {
-    public static class CrawledIndexQuerying
+    public static partial class CrawledIndexQuerying
     {
         private static readonly IEnumerable<IssueSort> _defaultSort = new[] { IssueSort.UpdatedDescending };
+        private static readonly IEnumerable<IssueGroupSort> _defaultGroupSort = new[] { IssueGroupSort.KeyAscending };
 
-        public static IEnumerable<CrawledIssue> Execute(this IssueQuery query, CrawledIndex index)
+        public static CrawledIssueResults Execute(this IssueQuery query, CrawledIndex index)
         {
             var result = (HashSet<CrawledIssue>)null;
 
@@ -24,13 +25,30 @@ namespace IssueDb.Crawling
             }
 
             if (result is null)
-                return Array.Empty<CrawledIssue>();
+                return CrawledIssueResults.Empty;
 
-            var sorts = query.Filters.SelectMany(f => f.Sort);
+            var sorts = query.Filters.SelectMany(f => f.Sort)
+                                     .Distinct();
             if (!sorts.Any())
                 sorts = _defaultSort;
 
-            return Sort(result, sorts);
+            var sorted = result.Sort(sorts);
+
+            var groups = query.Filters.SelectMany(f => f.Groups)
+                                      .Distinct()
+                                      .Select(CrawledIssueGroupKey.Get)
+                                      .ToArray();
+
+            if (!groups.Any())
+                return CrawledIssueResults.Create(sorted);
+
+            var groupSorts = query.Filters.SelectMany(f => f.GroupSort)
+                                          .Distinct();
+
+            if (!groupSorts.Any())
+                groupSorts = _defaultGroupSort;
+
+            return CrawledIssueResults.Create(sorted, groups, groupSorts);
         }
 
         private static HashSet<CrawledIssue> Execute(CrawledIndex index, IssueFilter filter)
@@ -181,7 +199,7 @@ namespace IssueDb.Crawling
             }
         }
 
-        private static IEnumerable<CrawledIssue> Sort(IEnumerable<CrawledIssue> result, IEnumerable<IssueSort> sorts)
+        private static IEnumerable<CrawledIssue> Sort(this IEnumerable<CrawledIssue> result, IEnumerable<IssueSort> sorts)
         {
             foreach (var sort in sorts)
             {
@@ -320,6 +338,45 @@ namespace IssueDb.Crawling
                             result = result.OrderByDescending(i => i.Interactions);
                         else
                             result = orderedEnumerable.ThenByDescending(i => i.Interactions);
+                        break;
+                }
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<CrawledIssueGroup> Sort(this IEnumerable<CrawledIssueGroup> result, IEnumerable<IssueGroupSort> sorts)
+        {
+            foreach (var sort in sorts)
+            {
+                var orderedEnumerable = result as IOrderedEnumerable<CrawledIssueGroup>;
+
+                switch (sort)
+                {
+                    case IssueGroupSort.KeyAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.Keys.Last());
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.Keys.Last());
+                        break;
+                    case IssueGroupSort.KeyDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.Keys.Last());
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.Keys.Last());
+                        break;
+
+                    case IssueGroupSort.CountAscending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderBy(i => i.Children.Length);
+                        else
+                            result = orderedEnumerable.ThenBy(i => i.Children.Length);
+                        break;
+                    case IssueGroupSort.CountDescending:
+                        if (orderedEnumerable is null)
+                            result = result.OrderByDescending(i => i.Children.Length);
+                        else
+                            result = orderedEnumerable.ThenByDescending(i => i.Children.Length);
                         break;
                 }
             }

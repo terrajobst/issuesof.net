@@ -39,6 +39,24 @@
     </p>
 <pre class="ml-5"><code>is:open is:pr -is:draft repo:dotnet/runtime <span class="text-primary">created:&lt;@@today-30 updated:&lt;@@today-10</span> sort:updated-asc</code></pre>
 
+    <h4>Grouping</h4>
+
+    <p>
+        You can group issues by various fields, such as <code>assignee</code>. For example,
+        the following query will produce a list of all open non-draft PRs grouped by assignee,
+        starting with the person that has the most open PRs. In the result query, you can expand
+        each group to drill into the issues.
+    </p>
+<pre class="ml-5"><code>is:open is:pr repo:runtime -no:assignee -is:draft <span class="text-primary">group:assignee group-sort:count-desc</span> </code></pre>
+    <p>
+        You can also group by multiple fields.
+    </p>
+    <p>
+        When you group by fields that have multiple values per issue, the resulting issue might
+        show up multiple times. For example, when you group by assignee, an issue that is assigned
+        to two people will show up under each person.
+    </p>
+
     <h4>Area Paths</h4>
 
     <p>

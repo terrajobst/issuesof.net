@@ -144,5 +144,17 @@ namespace IssuesOfDotNet.Pages
                                             /* forceLoad */ false,
                                             /* replace */ true);
         }
+
+        private void CollapseAll()
+        {
+            SearchResults.CollapseAll();
+            PageNumber = 1;
+        }
+
+        private void ExpandAll()
+        {
+            SearchResults.ExpandAll();
+            PageNumber = 1;
+        }
     }
 }

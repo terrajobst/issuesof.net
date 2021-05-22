@@ -14,7 +14,7 @@ namespace IssuesOfDotNet.Data
         private readonly TelemetryClient _telemetryClient;
         private readonly IndexService _indexService;
 
-        private CrawledIssueResults? _openIssuesResults;
+        private CrawledIssueResults _openIssuesResults;
 
         public SearchService(TelemetryClient telemetryClient, IndexService indexService)
         {
@@ -35,12 +35,11 @@ namespace IssuesOfDotNet.Data
 
             var isOpenIssuesQuery = searchText == "is:open is:issue";
             if (isOpenIssuesQuery && _openIssuesResults != null)
-                return _openIssuesResults.Value;
+                return _openIssuesResults;
 
             var stopwatch = Stopwatch.StartNew();
             var query = IssueQuery.Create(searchText);
-            var issues = query.Execute(_indexService.Index);
-            var results = new CrawledIssueResults(issues);
+            var results = query.Execute(_indexService.Index);
             var elapsed = stopwatch.Elapsed;
 
             Task.Run(() =>

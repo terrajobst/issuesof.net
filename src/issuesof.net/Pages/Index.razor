@@ -43,13 +43,53 @@ else
     </form>
 
     <div class="gh-table-header">
-        @($"{SearchResults.TotalCount:N0} issues")
+        @if (SearchResults.IsGrouped)
+        {
+        <div class="mr-3 btn-group btn-group-sm" role="group" aria-label="Basic example">
+            <button class="btn btn-secondary" @onclick="ExpandAll" title="Expand All"><span class="oi oi-plus"></span></button>
+            <button class="btn btn-secondary" @onclick="CollapseAll" title="Collapse All"><span class="oi oi-minus"></span></button>
+        </div>
+        }
+
+        @($"{SearchResults.IssueCount:N0} issues")
     </div>
 
     <table class="table table-hover">
         <tbody>
-            @foreach (var issue in SearchResults.GetPage(PageNumber))
+            @foreach (var issueOrGroup in SearchResults.GetPage(PageNumber))
             {
+                if (issueOrGroup.IsGroup)
+                {
+                    var group = issueOrGroup.ToGroup();
+                <tr class="gh-table-group-header">
+                    <td>
+                        @if (SearchResults.IsExpanded(group))
+                        {
+                            <span class="oi oi-minus gh-table-group-toggle" title="Collapse" @onclick="_ => SearchResults.Collapse(group)"></span>
+                        }
+                        else
+                        {
+                            <span class="oi oi-plus gh-table-group-toggle" title="Expand" @onclick="_ => SearchResults.Expand(group)"></span>
+                        }
+                    </td>
+                    <td class="w-100 p-2 text-break">
+                        <div class="gh-group-key-list">
+                            @foreach (var key in group.Keys)
+                            {
+                                <span class="gh-group-key">@key</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                        @group.Children.Length.ToString("N0")
+                    </td>
+                </tr>
+                }
+                else if (issueOrGroup.IsIssue)
+                {
+                    var issue = issueOrGroup.ToIssue();
                 <tr>
                     <td>
                         @{
@@ -151,6 +191,7 @@ else
                         }
                     </td>
                 </tr>
+                }
             }
         </tbody>
     </table>

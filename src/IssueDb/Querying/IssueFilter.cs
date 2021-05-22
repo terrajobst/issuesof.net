@@ -50,6 +50,8 @@ namespace IssueDb.Querying
         public RangeSyntax<int> Interactions { get; set; }
 
         public List<IssueSort> Sort { get; } = new List<IssueSort>();
+        public List<IssueGroup> Groups { get; } = new List<IssueGroup>();
+        public List<IssueGroupSort> GroupSort { get; } = new List<IssueGroupSort>();
 
         public void WriteTo(TextWriter writer)
         {
@@ -129,6 +131,24 @@ namespace IssueDb.Querying
                 writer.WriteLine("ORDER BY");
                 writer.Indent++;
                 foreach (var sort in Sort)
+                    writer.WriteLine(sort);
+                writer.Indent--;
+            }
+
+            if (Groups.Count > 0)
+            {
+                writer.WriteLine("GROUP BY");
+                writer.Indent++;
+                foreach (var group in Groups)
+                    writer.WriteLine(group);
+                writer.Indent--;
+            }
+
+            if (GroupSort.Count > 0)
+            {
+                writer.WriteLine("ORDER GROUPS BY");
+                writer.Indent++;
+                foreach (var sort in GroupSort)
                     writer.WriteLine(sort);
                 writer.Indent--;
             }
