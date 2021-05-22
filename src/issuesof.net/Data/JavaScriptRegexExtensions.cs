@@ -13,7 +13,9 @@ namespace IssuesOfDotNet.Data
 
         private static int CompareStrings(string x, string y)
         {
-            if (x is not null && y is not null)
+            var result = StringComparer.OrdinalIgnoreCase.Compare(x, y);
+
+            if (result != 0 && x is not null && y is not null)
             {
                 if (x.StartsWith(y, StringComparison.OrdinalIgnoreCase) && x.Length > y.Length)
                     return -1;
@@ -22,7 +24,7 @@ namespace IssuesOfDotNet.Data
                     return 1;
             }
 
-            return StringComparer.OrdinalIgnoreCase.Compare(x, y);
+            return result;
         }
     }
 }

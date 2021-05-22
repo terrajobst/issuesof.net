@@ -61,11 +61,11 @@
                     token: "string"
                 },
                 {
-                    regex: /(?:@keywords)\b/,
+                    regex: /\b(@keywords)(?=:)/,
                     token: "keyword"
                 },
                 {
-                    regex: /(?:@values)\b/,
+                    regex: /\b(@values)\b/,
                     token: "atom"
                 },
                 {
@@ -73,15 +73,15 @@
                     token: "atom"
                 },
                 {
-                    regex: /(?:\:|or|not|-)\b/,
+                    regex: /(?:\:|<=|>=|<|>|-)|(or|not)\b/,
                     token: "operator"
                 },
                 {
-                    regex: /[0-9$][\w$]*/,
+                    regex: /[0-9$][\w$]*(?!.)/,
                     token: "number"
                 },
                 {
-                    regex: /[_a-zA-Z0-9$][\w$]*/,
+                    regex: /[_a-zA-Z0-9.$][\w$]*/,
                     token: "string"
                 },
             ]
