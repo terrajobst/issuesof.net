@@ -174,6 +174,9 @@ namespace IssueDb.Crawling
             foreach (var assignee in filter.ExcludedAssignees)
                 ApplyNegatedTerm(ref result, index, $"assignee:{assignee}");
 
+            foreach (var author in filter.ExcludedAuthors)
+                ApplyNegatedTerm(ref result, index, $"author:{author}");
+
             foreach (var label in filter.ExcludedLabels)
                 ApplyNegatedTerm(ref result, index, $"label:{label}");
 
