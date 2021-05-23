@@ -87,15 +87,6 @@
             ]
         });
 
-        window.setCodeMirrorText = function (text) {
-            var codeMirror = document.querySelector('.CodeMirror');
-            if (codeMirror) {
-                window.updateFromCodeMirror = true;
-                codeMirror.CodeMirror.setValue(text);
-                window.updateFromCodeMirror = false;
-            }
-        };
-
         function getCodeMirrorTheme() {
             var theme = "default";
 
@@ -177,7 +168,7 @@
                 });
                 editor.setValue(q);
                 editor.on("change", function (cm, changeObj) {
-                    if (!window.updateFromCodeMirror && typeof invokeSearch == 'function')
+                    if (typeof invokeSearch == 'function')
                         invokeSearch(cm.getValue());
                 });
                 editor.on("beforeChange", function (cm, changeObj) {

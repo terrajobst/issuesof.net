@@ -6,7 +6,6 @@ using IssueDb.Crawling;
 using IssuesOfDotNet.Data;
 
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
@@ -56,7 +55,6 @@ namespace IssuesOfDotNet.Pages
         protected override void OnInitialized()
         {
             IndexService.Changed += TrieService_Changed;
-            NavigationManager.LocationChanged += NavigationManager_LocationChanged;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -71,7 +69,6 @@ namespace IssuesOfDotNet.Pages
 
         public void Dispose()
         {
-            NavigationManager.LocationChanged -= NavigationManager_LocationChanged;
             IndexService.Changed -= TrieService_Changed;
         }
 
@@ -81,11 +78,6 @@ namespace IssuesOfDotNet.Pages
             {
                 ApplyQueryParameters();
             });
-        }
-
-        private void NavigationManager_LocationChanged(object sender, LocationChangedEventArgs e)
-        {
-            ApplyQueryParameters();
         }
 
         private void ApplyQueryParameters()
@@ -105,7 +97,6 @@ namespace IssuesOfDotNet.Pages
 
             SearchResults = Find(_searchText);
             StateHasChanged();
-            JSRuntime.InvokeVoidAsync("setCodeMirrorText", _searchText);
         }
 
         [JSInvokable]
@@ -148,14 +139,10 @@ namespace IssuesOfDotNet.Pages
             // NOTE: We want to replace the history state because this is done on every
             //       keystroke in the search box.
 
-            NavigationManager.LocationChanged -= NavigationManager_LocationChanged;
-
             await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",
                                             uri.ToString(),
                                             /* forceLoad */ false,
                                             /* replace */ true);
-
-            NavigationManager.LocationChanged += NavigationManager_LocationChanged;
         }
     }
 }
