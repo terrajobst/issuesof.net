@@ -109,11 +109,13 @@ namespace IssueDb.Crawling
                 foreach (var group in _groups)
                     Walk(result, _expandedGroups, null, group, ref itemsToSkip);
 
-                // If the last item is a group, we remove it for aestetic reasons.
+                // If the last item is a group (and we have more than this one item),
+                // we remove it for aestetic reasons.
+                //
                 // Note that this won't remove the group because we ensure that
                 // each page starts with a group header.
 
-                if (result.Count > 0 && result[result.Count - 1].IsGroup)
+                if (result.Count > 1 && result[result.Count - 1].IsGroup)
                     result.RemoveAt(result.Count - 1);
 
                 return result;
