@@ -132,4 +132,19 @@
             </tr>
         </tbody>
     </table>
+
+    <h4>Area Owners</h4>
+
+    <p>
+        If a repo has an <code>area-owners.md</code> file (like <a href="https://github.com/dotnet/runtime/blob/main/docs/area-owners.md">dotnet/runtime</a>)
+        you can also use <code>area-owner</code> and <code>area-lead</code>.
+    </p>
+    <p>
+        For example, this shows all PRs in areas where jeffhandley is the lead:
+    </p>
+<pre class="ml-5"><code>is:open is:pr <span class="text-primary">area-lead:jeffhandley</span></code></pre>
+    <p>
+        This shows all PRs for areas where <code>bartonjs</code> is an area owner for:
+    </p>
+<pre class="ml-5"><code>is:open is:pr <span class="text-primary">area-owner:bartonjs</span></code></pre>
 </div>

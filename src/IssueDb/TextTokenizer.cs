@@ -114,5 +114,19 @@ namespace IssueDb
             result.Add(remainder[start..]);
             return result;
         }
+
+        public static bool TryParseArea(string label, out string area)
+        {
+            const string AreaPrefix = "area-";
+
+            if (label is not null && label.StartsWith(AreaPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                area = label[AreaPrefix.Length..];
+                return true;
+            }
+
+            area = null;
+            return false;
+        }
     }
 }

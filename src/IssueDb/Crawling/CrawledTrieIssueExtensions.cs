@@ -39,6 +39,12 @@ namespace IssueDb.Crawling
             foreach (var areaNode in issue.AreaNodes)
                 result.Add($"area-node:{areaNode}");
 
+            foreach (var areaLead in issue.AreaLeads)
+                result.Add($"area-lead:{areaLead}");
+
+            foreach (var areaOwner in issue.AreaOwners)
+                result.Add($"area-owner:{areaOwner}");
+
             if (issue.Milestone is not null)
                 result.Add($"milestone:{issue.Milestone.Title}");
 

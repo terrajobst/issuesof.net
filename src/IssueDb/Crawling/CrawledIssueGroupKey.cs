@@ -50,6 +50,8 @@ namespace IssueDb.Crawling
                 IssueGroup.Area => Area,
                 IssueGroup.AreaNode => AreaNode,
                 IssueGroup.AreaUnder => AreaUnder,
+                IssueGroup.AreaLead => AreaLead,
+                IssueGroup.AreaOwner => AreaOwner,
                 _ => throw new Exception($"Unexpected group {group}"),
             };
         }
@@ -71,5 +73,10 @@ namespace IssueDb.Crawling
         public static CrawledIssueGroupKey AreaNode => new(i => i.AreaNodes.Distinct(StringComparer.OrdinalIgnoreCase));
 
         public static CrawledIssueGroupKey AreaUnder => new(i => i.Areas.Distinct(StringComparer.OrdinalIgnoreCase));
+
+        public static CrawledIssueGroupKey AreaLead => new(i => i.AreaLeads);
+
+        public static CrawledIssueGroupKey AreaOwner => new(i => i.AreaOwners);
+
     }
 }

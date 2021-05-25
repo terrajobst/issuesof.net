@@ -10,6 +10,8 @@
         Milestone,
         Area,
         AreaNode,
-        AreaUnder
+        AreaUnder,
+        AreaLead,
+        AreaOwner
     }
 }

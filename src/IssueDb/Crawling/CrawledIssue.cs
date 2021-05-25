@@ -57,6 +57,16 @@ namespace IssueDb.Crawling
         public IEnumerable<string> DirectAreaNodes => Labels.Where(l => l.Name.StartsWith("area-")).Select(l => l.Name.Substring(5));
 
         [JsonIgnore]
+        public IEnumerable<string> AreaLeads => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
+                                                               .Select(r => Repo.AreaOwners[r].Lead)
+                                                               .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        [JsonIgnore]
+        public IEnumerable<string> AreaOwners => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
+                                                                .SelectMany(r => Repo.AreaOwners[r].Owners)
+                                                                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        [JsonIgnore]
         public int Reactions => ReactionsPlus1
                                 + ReactionsMinus1
                                 + ReactionsSmile

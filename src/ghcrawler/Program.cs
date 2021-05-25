@@ -10,6 +10,7 @@ using Azure.Storage.Blobs;
 
 using GitHubJwt;
 
+using IssueDb;
 using IssueDb.Crawling;
 
 using Microsoft.Extensions.Configuration.UserSecrets;
@@ -219,6 +220,7 @@ namespace IssuesOfDotNet.Crawler
                             Console.WriteLine($"Crawling {org}/{repo.Name} since {since}...");
 
                         crawledRepo.IsArchived = repo.Archived;
+                        crawledRepo.AreaOwners = await GetAreaOwnersAsync(org, repo.Name);
 
                         var labels = new Dictionary<string, CrawledLabel>();
 
@@ -312,6 +314,15 @@ namespace IssuesOfDotNet.Crawler
             Console.WriteLine("Deleting temp files...");
 
             Directory.Delete(tempDirectory, recursive: true);
+        }
+
+        private static async Task<Dictionary<string, CrawledAreaOwnerEntry>> GetAreaOwnersAsync(string org, string name)
+        {
+            var file = await CrawledAreaOwnerFile.GetAsync(org, name);
+            if (file is null)
+                return null;
+
+            return file.Entries.ToDictionary(e => e.Key, e => e.Value);
         }
 
         private static Task<GitHubClient> CreateGitHubClientAsync()

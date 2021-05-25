@@ -293,6 +293,24 @@ namespace IssueDb.Querying
                 filter.IncludedAreaNodes.Add(query.Value);
         }
 
+        [KeyValueHandler("area-lead")]
+        private static void ApplyAreaLead(IssueFilter filter, BoundKevValueQuery query)
+        {
+            if (query.IsNegated)
+                filter.ExcludedAreaLeads.Add(query.Value);
+            else
+                filter.IncludedAreaLeads.Add(query.Value);
+        }
+
+        [KeyValueHandler("area-owner")]
+        private static void ApplyAreaOwner(IssueFilter filter, BoundKevValueQuery query)
+        {
+            if (query.IsNegated)
+                filter.ExcludedAreaOwners.Add(query.Value);
+            else
+                filter.IncludedAreaOwners.Add(query.Value);
+        }
+
         [KeyValueHandler("created")]
         private static void ApplyCreated(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<DateTimeOffset> range)
         {
@@ -513,6 +531,18 @@ namespace IssueDb.Querying
         private static void ApplyGroupAreaUnder(IssueFilter filter)
         {
             filter.Groups.Add(IssueGroup.AreaUnder);
+        }
+
+        [KeyValueHandler("group:area-lead")]
+        private static void ApplyGroupAreaLead(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.AreaLead);
+        }
+
+        [KeyValueHandler("group:area-owner")]
+        private static void ApplyGroupAreaOwner(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.AreaOwner);
         }
 
         [KeyValueHandler("group-sort:key", "group-sort:key-asc")]

@@ -66,7 +66,7 @@ namespace IssueDb.Crawling
             {
                 "org" => _orgs,
                 "repo" => _repos,
-                "author" => _users,
+                "author" or "area-lead" or "area-owner" => _users,
                 "assignee" => _users,
                 "label" => _labels,
                 "milestone" => _milestones,

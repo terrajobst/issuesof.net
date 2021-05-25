@@ -76,6 +76,12 @@ namespace IssueDb.Crawling
             foreach (var areaNode in filter.IncludedAreaNodes)
                 ApplyTerm(ref result, index.Trie, $"area-node:{areaNode}");
 
+            foreach (var areaLead in filter.IncludedAreaLeads)
+                ApplyTerm(ref result, index.Trie, $"area-lead:{areaLead}");
+
+            foreach (var areaOwner in filter.IncludedAreaOwners)
+                ApplyTerm(ref result, index.Trie, $"area-owner:{areaOwner}");
+
             if (filter.Author != null)
                 ApplyTerm(ref result, index.Trie, $"author:{filter.Author}");
 
@@ -166,6 +172,12 @@ namespace IssueDb.Crawling
 
             foreach (var areaNode in filter.ExcludedAreaNodes)
                 ApplyNegatedTerm(ref result, index, $"area-node:{areaNode}");
+
+            foreach (var areaLead in filter.ExcludedAreaLeads)
+                ApplyNegatedTerm(ref result, index, $"area-lead:{areaLead}");
+
+            foreach (var areaOwner in filter.ExcludedAreaOwners)
+                ApplyNegatedTerm(ref result, index, $"area-owner:{areaOwner}");
 
             foreach (var milestone in filter.ExcludedMilestones)
                 ApplyNegatedTerm(ref result, index, $"milestone:{milestone}");

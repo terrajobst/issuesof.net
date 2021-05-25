@@ -23,6 +23,7 @@ namespace IssueDb.Crawling
         public Dictionary<int, CrawledIssue> Issues { get; set; } = new Dictionary<int, CrawledIssue>();
         public List<CrawledLabel> Labels { get; set; } = new();
         public List<CrawledMilestone> Milestones { get; set; } = new();
+        public Dictionary<string, CrawledAreaOwnerEntry> AreaOwners { get; set; }
 
         [JsonIgnore]
         public string FullName => $"{Org}/{Name}";
