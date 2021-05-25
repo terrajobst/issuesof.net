@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -18,18 +20,32 @@ namespace IssueDb
 
         public static async Task<CrawledAreaOwnerFile> GetAsync(string org, string repo)
         {
+            var maxTries = 3;
             var url = $"https://raw.githubusercontent.com/{org}/{repo}/main/docs/area-owners.md";
 
-            var client = new HttpClient();
-            try
+            while (maxTries-- > 0)
             {
-                var contents = await client.GetStringAsync(url);
-                return Parse(contents);
+                var client = new HttpClient();
+                try
+                {
+                    var contents = await client.GetStringAsync(url);
+                    return Parse(contents);
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+                {
+                    // In this case we know that the file doesn't exist.
+                    return null;
+                }
+                catch (HttpRequestException ex)
+                {
+                    // This might be a transient error.
+                    Debug.WriteLine(ex);
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(5));
             }
-            catch (HttpRequestException)
-            {
-                return null;
-            }
+
+            return null;
         }
 
         private static CrawledAreaOwnerFile Parse(string contents)
