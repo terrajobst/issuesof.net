@@ -5,11 +5,11 @@ namespace IssueDb
 {
     public sealed class CrawledAreaOwnerEntry
     {
-        public CrawledAreaOwnerEntry(string area, string lead, IEnumerable<string> owners)
+        public CrawledAreaOwnerEntry(string area, string lead, IReadOnlyList<string> owners)
         {
             Area = area;
             Lead = lead;
-            Owners = owners.ToArray();
+            Owners = owners;
         }
 
         public string Area { get; }

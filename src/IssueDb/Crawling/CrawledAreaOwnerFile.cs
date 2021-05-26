@@ -63,7 +63,8 @@ namespace IssueDb
                 var lead = GetUntaggedUserName(parts[2].Trim());
                 var ownerText = parts[3].Trim();
                 var owners = ownerText.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                      .Select(o => GetUntaggedUserName(o.Trim()));
+                                      .Select(o => GetUntaggedUserName(o.Trim()))
+                                      .ToArray();
 
                 if (!TextTokenizer.TryParseArea(areaText, out var area))
                     continue;
