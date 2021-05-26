@@ -12,17 +12,21 @@ namespace IssueDb.Crawling
         private readonly Func<CrawledIssue, string> _singleGrouper;
         private readonly Func<CrawledIssue, IEnumerable<string>> _multiGrouper;
 
-        public CrawledIssueGroupKey(Func<CrawledIssue, string> grouper)
+        public CrawledIssueGroupKey(IssueGroup group, Func<CrawledIssue, string> grouper)
         {
+            Group = group;
             _singleGrouper = grouper;
         }
 
-        public CrawledIssueGroupKey(Func<CrawledIssue, IEnumerable<string>> grouper)
+        public CrawledIssueGroupKey(IssueGroup group, Func<CrawledIssue, IEnumerable<string>> grouper)
         {
+            Group = group;
             _multiGrouper = grouper;
         }
 
-        public IEnumerable<IGrouping<string, CrawledIssue>> Group(IEnumerable<CrawledIssue> issues)
+        public IssueGroup Group { get; }
+
+        public IEnumerable<IGrouping<string, CrawledIssue>> Apply(IEnumerable<CrawledIssue> issues)
         {
             if (_singleGrouper is not null)
             {
@@ -56,27 +60,26 @@ namespace IssueDb.Crawling
             };
         }
 
-        public static CrawledIssueGroupKey Org => new(i => i.Repo.Org);
+        public static CrawledIssueGroupKey Org => new(IssueGroup.Org, i => i.Repo.Org);
 
-        public static CrawledIssueGroupKey Repo => new(i => i.Repo.FullName);
+        public static CrawledIssueGroupKey Repo => new(IssueGroup.Repo, i => i.Repo.FullName);
 
-        public static CrawledIssueGroupKey Creator => new(i => i.CreatedBy);
+        public static CrawledIssueGroupKey Creator => new(IssueGroup.Creator, i => i.CreatedBy);
 
-        public static CrawledIssueGroupKey Assignee => new(i => i.Assignees);
+        public static CrawledIssueGroupKey Assignee => new(IssueGroup.Assignee, i => i.Assignees);
 
-        public static CrawledIssueGroupKey Label => new(i => i.Labels.Select(l => l.Name));
+        public static CrawledIssueGroupKey Label => new(IssueGroup.Label, i => i.Labels.Select(l => l.Name));
 
-        public static CrawledIssueGroupKey Milestone => new(i => i.Milestone?.Title);
+        public static CrawledIssueGroupKey Milestone => new(IssueGroup.Milestone, i => i.Milestone?.Title);
 
-        public static CrawledIssueGroupKey Area => new(i => i.DirectAreaNodes.Distinct(StringComparer.OrdinalIgnoreCase));
+        public static CrawledIssueGroupKey Area => new(IssueGroup.Area, i => i.DirectAreaNodes.Distinct(StringComparer.OrdinalIgnoreCase));
 
-        public static CrawledIssueGroupKey AreaNode => new(i => i.AreaNodes.Distinct(StringComparer.OrdinalIgnoreCase));
+        public static CrawledIssueGroupKey AreaNode => new(IssueGroup.AreaNode, i => i.AreaNodes.Distinct(StringComparer.OrdinalIgnoreCase));
 
-        public static CrawledIssueGroupKey AreaUnder => new(i => i.Areas.Distinct(StringComparer.OrdinalIgnoreCase));
+        public static CrawledIssueGroupKey AreaUnder => new(IssueGroup.AreaUnder, i => i.Areas.Distinct(StringComparer.OrdinalIgnoreCase));
 
-        public static CrawledIssueGroupKey AreaLead => new(i => i.AreaLeads);
+        public static CrawledIssueGroupKey AreaLead => new(IssueGroup.AreaLead, i => i.AreaLeads);
 
-        public static CrawledIssueGroupKey AreaOwner => new(i => i.AreaOwners);
-
+        public static CrawledIssueGroupKey AreaOwner => new(IssueGroup.AreaOwner, i => i.AreaOwners);
     }
 }

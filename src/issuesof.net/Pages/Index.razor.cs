@@ -156,5 +156,10 @@ namespace IssuesOfDotNet.Pages
             SearchResults.ExpandAll();
             PageNumber = 1;
         }
+
+        private string GetDownloadLink()
+        {
+            return $"download/?q={Uri.EscapeDataString(_searchText ?? _defaultSearch)}";
+        }
     }
 }

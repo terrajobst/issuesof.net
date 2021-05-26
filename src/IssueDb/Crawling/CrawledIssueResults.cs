@@ -12,11 +12,15 @@ namespace IssueDb.Crawling
 
         public int PageCount => (int)Math.Ceiling(ItemCount / (float)ItemsPerPage);
 
+        public virtual IReadOnlyCollection<CrawledIssueGroupKey> GroupKeys => Array.Empty<CrawledIssueGroupKey>();
+
         public abstract int ItemCount { get; }
 
         public abstract int IssueCount { get; }
 
-        public virtual bool IsGrouped => false;
+        public bool IsGrouped => GroupKeys.Count == 0;
+
+        public abstract IEnumerable<CrawledIssueOrGroup> Roots { get; }
 
         public virtual bool IsExpanded(CrawledIssueGroup group) => false;
 
@@ -45,18 +49,18 @@ namespace IssueDb.Crawling
             return new ArrayIssueResults(issues.ToArray());
         }
 
-        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] fields, IEnumerable<IssueGroupSort> sorts)
+        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] keys, IEnumerable<IssueGroupSort> sorts)
         {
-            if (fields is null || fields.Length == 0)
-                throw new ArgumentException("Must pass in non-empty groups", nameof(fields));
+            if (keys is null || keys.Length == 0)
+                throw new ArgumentException("Must pass in non-empty keys", nameof(keys));
 
-            var topLevelGroups = Group(issues, fields)
+            var topLevelGroups = Group(issues, keys)
                                     .Select(r => r.ToGroup())
                                     .ToArray();
 
             SortGroups(topLevelGroups, sorts);
 
-            return new GroupedIssueResults(topLevelGroups);
+            return new GroupedIssueResults(keys, topLevelGroups);
 
             static CrawledIssueOrGroup[] Group(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] fields)
             {
@@ -68,11 +72,11 @@ namespace IssueDb.Crawling
                 return topLevel;
             }
 
-            static CrawledIssueOrGroup[] GroupFirst(CrawledIssueGroup parent, IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey field)
+            static CrawledIssueOrGroup[] GroupFirst(CrawledIssueGroup parent, IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey key)
             {
-                return field.Group(issues)
-                            .Select(g => (CrawledIssueOrGroup)new CrawledIssueGroup(CombineKeys(parent, g.Key), g.Select(i => (CrawledIssueOrGroup)i).ToArray()))
-                            .ToArray();
+                return key.Apply(issues)
+                          .Select(g => (CrawledIssueOrGroup)new CrawledIssueGroup(CombineKeys(parent, g.Key), g.Select(i => (CrawledIssueOrGroup)i).ToArray()))
+                          .ToArray();
             }
 
             static void GroupNext(CrawledIssueOrGroup[] current, CrawledIssueGroupKey[] fields, int fieldIndex)

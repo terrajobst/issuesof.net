@@ -18,6 +18,8 @@ namespace IssueDb.Crawling
 
             public override int IssueCount => _issues.Length;
 
+            public override IEnumerable<CrawledIssueOrGroup> Roots => _issues.Select(i => (CrawledIssueOrGroup)i);
+
             public override IEnumerable<CrawledIssueOrGroup> GetPage(int pageNumber)
             {
                 return _issues.Skip((pageNumber - 1) * ItemsPerPage)

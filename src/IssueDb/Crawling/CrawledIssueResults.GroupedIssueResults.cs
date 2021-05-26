@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace IssueDb.Crawling
 {
@@ -6,22 +7,26 @@ namespace IssueDb.Crawling
     {
         private sealed class GroupedIssueResults : CrawledIssueResults
         {
+            private readonly CrawledIssueGroupKey[] _keys;
             private readonly CrawledIssueGroup[] _groups;
             private readonly HashSet<CrawledIssueGroup> _expandedGroups = new HashSet<CrawledIssueGroup>();
             private int _itemCount;
             private int _issueCount;
 
-            public GroupedIssueResults(CrawledIssueGroup[] groups)
+            public GroupedIssueResults(CrawledIssueGroupKey[] keys, CrawledIssueGroup[] groups)
             {
+                _keys = keys;
                 _groups = groups;
                 UpdateCounts();
             }
+
+            public override IReadOnlyCollection<CrawledIssueGroupKey> GroupKeys => _keys;
 
             public override int ItemCount => _itemCount;
 
             public override int IssueCount => _issueCount;
 
-            public override bool IsGrouped => true;
+            public override IEnumerable<CrawledIssueOrGroup> Roots => _groups.Select(g => (CrawledIssueOrGroup)g);
 
             public override bool IsExpanded(CrawledIssueGroup group) => _expandedGroups.Contains(group);
 

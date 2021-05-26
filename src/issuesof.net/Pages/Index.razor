@@ -42,16 +42,22 @@ else
         </div>
     </form>
 
-    <div class="gh-table-header">
-        @if (SearchResults.IsGrouped)
-        {
-        <div class="mr-3 btn-group btn-group-sm" role="group" aria-label="Basic example">
-            <button class="btn btn-secondary" @onclick="ExpandAll" title="Expand All"><span class="oi oi-plus"></span></button>
-            <button class="btn btn-secondary" @onclick="CollapseAll" title="Collapse All"><span class="oi oi-minus"></span></button>
-        </div>
-        }
+    <div class="gh-table-header d-flex justify-content-between">
 
-        @($"{SearchResults.IssueCount:N0} issues")
+        <div>
+            @if (SearchResults.IsGrouped)
+            {
+                <div class="mr-3 btn-group btn-group-sm" role="group" aria-label="Basic example">
+                    <button class="btn btn-secondary" @onclick="ExpandAll" title="Expand All"><span class="oi oi-plus"></span></button>
+                    <button class="btn btn-secondary" @onclick="CollapseAll" title="Collapse All"><span class="oi oi-minus"></span></button>
+                </div>
+            }
+            @($"{SearchResults.IssueCount:N0} issues")
+        </div>
+
+        <div class="float-right">
+            <a class="btn btn-sm btn-secondary" href="@GetDownloadLink()">Download</a>
+        </div>
     </div>
 
     <table class="table table-hover">
