@@ -491,10 +491,10 @@ namespace IssueDb.Querying
             filter.Groups.Add(IssueGroup.Repo);
         }
 
-        [KeyValueHandler("group:creator")]
-        private static void ApplyGroupCreator(IssueFilter filter)
+        [KeyValueHandler("group:author")]
+        private static void ApplyGroupAuthor(IssueFilter filter)
         {
-            filter.Groups.Add(IssueGroup.Creator);
+            filter.Groups.Add(IssueGroup.Author);
         }
 
         [KeyValueHandler("group:assignee")]

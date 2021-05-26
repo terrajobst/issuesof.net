@@ -47,7 +47,7 @@ namespace IssueDb.Crawling
             {
                 IssueGroup.Org => Org,
                 IssueGroup.Repo => Repo,
-                IssueGroup.Creator => Creator,
+                IssueGroup.Author => Author,
                 IssueGroup.Assignee => Assignee,
                 IssueGroup.Label => Label,
                 IssueGroup.Milestone => Milestone,
@@ -64,7 +64,7 @@ namespace IssueDb.Crawling
 
         public static CrawledIssueGroupKey Repo => new(IssueGroup.Repo, i => i.Repo.FullName);
 
-        public static CrawledIssueGroupKey Creator => new(IssueGroup.Creator, i => i.CreatedBy);
+        public static CrawledIssueGroupKey Author => new(IssueGroup.Author, i => i.CreatedBy);
 
         public static CrawledIssueGroupKey Assignee => new(IssueGroup.Assignee, i => i.Assignees);
 

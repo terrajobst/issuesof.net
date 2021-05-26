@@ -4,7 +4,7 @@
     {
         Org,
         Repo,
-        Creator,
+        Author,
         Assignee,
         Label,
         Milestone,
