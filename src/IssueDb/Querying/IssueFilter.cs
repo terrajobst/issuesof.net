@@ -18,6 +18,8 @@ namespace IssueDb.Querying
         public bool? NoAssignees { get; set; }
         public bool? NoLabels { get; set; }
         public bool? NoArea { get; set; }
+        public bool? NoAreaLead { get; set; }
+        public bool? NoAreaOwner { get; set; }
         public bool? NoMilestone { get; set; }
 
         public string Author { get; set; }
@@ -83,6 +85,8 @@ namespace IssueDb.Querying
             AddBooleanFilter(lines, NoAssignees, nameof(NoAssignees));
             AddBooleanFilter(lines, NoLabels, nameof(NoLabels));
             AddBooleanFilter(lines, NoArea, nameof(NoArea));
+            AddBooleanFilter(lines, NoAreaLead, nameof(NoAreaLead));
+            AddBooleanFilter(lines, NoAreaOwner, nameof(NoAreaOwner));
             AddBooleanFilter(lines, NoMilestone, nameof(NoMilestone));
 
             AddStringFilter(lines, Author, nameof(Author));

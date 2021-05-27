@@ -206,6 +206,18 @@ namespace IssueDb.Querying
             filter.NoArea = !query.IsNegated;
         }
 
+        [KeyValueHandler("no:area-lead")]
+        private static void ApplyNoAreaLead(IssueFilter filter, BoundKevValueQuery query)
+        {
+            filter.NoAreaLead = !query.IsNegated;
+        }
+
+        [KeyValueHandler("no:area-owner")]
+        private static void ApplyNoAreaOwner(IssueFilter filter, BoundKevValueQuery query)
+        {
+            filter.NoAreaOwner = !query.IsNegated;
+        }
+
         [KeyValueHandler("no:milestone")]
         private static void ApplyNoMilestone(IssueFilter filter, BoundKevValueQuery query)
         {

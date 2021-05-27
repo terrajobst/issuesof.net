@@ -133,6 +133,16 @@ namespace IssueDb.Crawling
             else if (filter.NoArea == false)
                 ApplyPredicate(ref result, index, i => i.Areas.Any());
 
+            if (filter.NoAreaLead == true)
+                ApplyPredicate(ref result, index, i => !i.AreaLeads.Any());
+            else if (filter.NoAreaLead == false)
+                ApplyPredicate(ref result, index, i => i.AreaLeads.Any());
+
+            if (filter.NoAreaOwner == true)
+                ApplyPredicate(ref result, index, i => !i.AreaOwners.Any());
+            else if (filter.NoAreaOwner == false)
+                ApplyPredicate(ref result, index, i => i.AreaOwners.Any());
+
             if (filter.NoMilestone == true)
                 ApplyPredicate(ref result, index, i => i.Milestone is null);
             else if (filter.NoMilestone == false)
