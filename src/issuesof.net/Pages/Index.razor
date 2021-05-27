@@ -169,6 +169,11 @@ else
                             else
                             {
                                 <text>@issue.Repo.Org/@issue.Repo.Name#@issue.Number opened by @issue.CreatedBy @issue.CreatedAt.Humanize()</text>
+
+                                @if (issue.UpdatedAt != null)
+                                {
+                                    <text>&nbsp;|&nbsp;updated @issue.UpdatedAt.Value.Humanize()</text>
+                                }
                             }
 
                             @if (issue.Milestone != null)
