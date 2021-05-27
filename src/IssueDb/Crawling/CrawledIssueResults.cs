@@ -18,7 +18,7 @@ namespace IssueDb.Crawling
 
         public abstract int IssueCount { get; }
 
-        public bool IsGrouped => GroupKeys.Count == 0;
+        public bool IsGrouped => GroupKeys.Count > 0;
 
         public abstract IEnumerable<CrawledIssueOrGroup> Roots { get; }
 
