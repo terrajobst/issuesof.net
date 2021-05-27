@@ -13,7 +13,7 @@ namespace IssueDb
     {
         public CrawledAreaOwnerFile(IEnumerable<CrawledAreaOwnerEntry> entries)
         {
-            Entries = entries.ToDictionary(e => e.Area);
+            Entries = entries.ToDictionary(e => e.Area, StringComparer.OrdinalIgnoreCase);
         }
 
         public IReadOnlyDictionary<string, CrawledAreaOwnerEntry> Entries { get; }

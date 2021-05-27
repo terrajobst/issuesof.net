@@ -363,7 +363,7 @@ namespace IssueDb.Crawling
 
                     var areaEntryCount = reader.ReadInt32();
 
-                    repo.AreaOwners = new Dictionary<string, CrawledAreaOwnerEntry>();
+                    repo.AreaOwners = new Dictionary<string, CrawledAreaOwnerEntry>(StringComparer.OrdinalIgnoreCase);
 
                     while (areaEntryCount-- > 0)
                     {

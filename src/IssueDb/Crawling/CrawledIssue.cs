@@ -54,7 +54,8 @@ namespace IssueDb.Crawling
 
 
         [JsonIgnore]
-        public IEnumerable<string> DirectAreaNodes => Labels.Where(l => l.Name.StartsWith("area-")).Select(l => l.Name.Substring(5));
+        public IEnumerable<string> DirectAreaNodes => Labels.Where(l => l.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
+                                                            .Select(l => l.Name.Substring(5));
 
         [JsonIgnore]
         public IEnumerable<string> AreaLeads => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)

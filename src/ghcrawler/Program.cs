@@ -322,7 +322,7 @@ namespace IssuesOfDotNet.Crawler
             if (file is null)
                 return null;
 
-            return file.Entries.ToDictionary(e => e.Key, e => e.Value);
+            return file.Entries.ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
         }
 
         private static Task<GitHubClient> CreateGitHubClientAsync()
