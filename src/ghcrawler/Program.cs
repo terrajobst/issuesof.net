@@ -33,6 +33,7 @@ namespace IssuesOfDotNet.Crawler
             //    "nuget",
             //    "--filter",
             //    "dotnet/runtime",
+            //    //"--reindex",
             //    "--no-pull-latest",
             //    "--no-upload",
             //    "--out",
@@ -43,6 +44,7 @@ namespace IssuesOfDotNet.Crawler
             var orgs = new List<string>();
             var includedRepos = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
             var outputPath = "";
+            var reindex = false;
             var pullLatest = true;
             var uploadToAzure = true;
             var help = false;
@@ -54,6 +56,7 @@ namespace IssuesOfDotNet.Crawler
                 { "org", "The names of the GitHub orgs to index", v => activeTerms = orgs },
                 { "filter", "The list of repos to include", v => activeTerms = includedRepos },
                 { "out=", "The output path the index should be written to", v => outputPath = v },
+                { "reindex", "Specifies that the repo should be reindexed", v => reindex = true },
                 { "no-pull-latest", null, v => pullLatest = false, true },
                 { "no-upload", null, v => uploadToAzure = false, true },
                 { "h|?|help", null, v => help = true, true },
@@ -92,9 +95,15 @@ namespace IssuesOfDotNet.Crawler
                 return 1;
             }
 
+            if (reindex && !pullLatest)
+            {
+                Console.Error.WriteLine($"error: --reindex can't be combined with --no-pull-latest");
+                return 1;
+            }
+
             try
             {
-                await RunAsync(orgs, includedRepos, pullLatest, uploadToAzure, outputPath);
+                await RunAsync(orgs, includedRepos, reindex, pullLatest, uploadToAzure, outputPath);
                 return 0;
             }
             catch (Exception ex) when (!Debugger.IsAttached)
@@ -104,7 +113,7 @@ namespace IssuesOfDotNet.Crawler
             }
         }
 
-        private static async Task RunAsync(IEnumerable<string> orgs, SortedSet<string> includedRepos, bool pullLatest, bool uploadToAzure, string outputPath)
+        private static async Task RunAsync(IEnumerable<string> orgs, SortedSet<string> includedRepos, bool reindex, bool pullLatest, bool uploadToAzure, string outputPath)
         {
             var connectionString = GetAzureStorageConnectionString();
 
@@ -119,19 +128,22 @@ namespace IssuesOfDotNet.Crawler
             var cacheContainerName = "cache";
             var cacheContainerClient = new BlobContainerClient(connectionString, cacheContainerName);
 
-            await foreach (var blob in cacheContainerClient.GetBlobsAsync())
+            if (!reindex)
             {
-                if (includedRepos.Count > 0 && !includedRepos.Contains(blob.Name.Replace(".crcache", "")))
-                    continue;
+                await foreach (var blob in cacheContainerClient.GetBlobsAsync())
+                {
+                    if (includedRepos.Count > 0 && !includedRepos.Contains(blob.Name.Replace(".crcache", "")))
+                        continue;
 
-                Console.WriteLine($"Downloading {blob.Name}...");
+                    Console.WriteLine($"Downloading {blob.Name}...");
 
-                var localPath = Path.Combine(tempDirectory, blob.Name);
-                var localDirectory = Path.GetDirectoryName(localPath);
-                Directory.CreateDirectory(localDirectory);
+                    var localPath = Path.Combine(tempDirectory, blob.Name);
+                    var localDirectory = Path.GetDirectoryName(localPath);
+                    Directory.CreateDirectory(localDirectory);
 
-                var blobClient = new BlobClient(connectionString, cacheContainerName, blob.Name);
-                await blobClient.DownloadToAsync(localPath);
+                    var blobClient = new BlobClient(connectionString, cacheContainerName, blob.Name);
+                    await blobClient.DownloadToAsync(localPath);
+                }
             }
 
             var client = await CreateGitHubClientAsync();
@@ -164,6 +176,7 @@ namespace IssuesOfDotNet.Crawler
                 }
                 else
                 {
+                    Console.WriteLine($"Requesting repos for {org}...");
                     var availableRepos = await RequestReposAsync(client, org);
 
                     var deletedRepos = existingRepos.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -210,7 +223,7 @@ namespace IssuesOfDotNet.Crawler
                         repos.Add(crawledRepo);
 
                         var existingIssues = crawledRepo.Issues.Values;
-                        var since = existingIssues.Any()
+                        var since = !reindex && existingIssues.Any()
                                         ? existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt)
                                         : (DateTimeOffset?)null;
 
