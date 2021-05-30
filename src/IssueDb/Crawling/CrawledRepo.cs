@@ -17,6 +17,7 @@ namespace IssueDb.Crawling
 
     public sealed class CrawledRepo
     {
+        public long Id { get; set; }
         public string Org { get; set; }
         public string Name { get; set; }
         public bool IsArchived { get; set; }

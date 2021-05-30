@@ -215,6 +215,7 @@ namespace IssuesOfDotNet.Crawler
                         {
                             crawledRepo = new CrawledRepo
                             {
+                                Id = repo.Id,
                                 Org = org,
                                 Name = repo.Name
                             };
@@ -449,6 +450,7 @@ namespace IssuesOfDotNet.Crawler
         {
             return new CrawledLabel
             {
+                Id = label.Id,
                 Name = label.Name,
                 Description = label.Description,
                 ColorText = label.Color
@@ -459,6 +461,7 @@ namespace IssuesOfDotNet.Crawler
         {
             return new CrawledMilestone
             {
+                Id = milestone.Id,
                 Number = milestone.Number,
                 Title = milestone.Title,
                 Description = milestone.Description
@@ -469,6 +472,7 @@ namespace IssuesOfDotNet.Crawler
         {
             return new CrawledIssue
             {
+                Id = issue.Id,
                 Repo = repo,
                 Number = issue.Number,
                 IsOpen = ConvertIssueState(issue.State),

@@ -8,6 +8,7 @@ namespace IssueDb.Crawling
     {
         private Color? _color;
 
+        public long Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 

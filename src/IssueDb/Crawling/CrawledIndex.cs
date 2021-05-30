@@ -12,7 +12,7 @@ namespace IssueDb.Crawling
     public sealed class CrawledIndex
     {
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-        private static readonly short _formatVersion = 4;
+        private static readonly short _formatVersion = 5;
 
         public IReadOnlyList<CrawledRepo> Repos { get; set; } = Array.Empty<CrawledRepo>();
 
@@ -90,6 +90,7 @@ namespace IssueDb.Crawling
 
                 foreach (var repo in repos)
                 {
+                    writer.Write(repo.Id);
                     writer.Write(stringIndexer(repo.Org));
                     writer.Write(stringIndexer(repo.Name));
                     writer.Write(repo.IsArchived);
@@ -104,6 +105,7 @@ namespace IssueDb.Crawling
                     {
                         labelIndex.Add(label, labelIndex.Count);
 
+                        writer.Write(label.Id);
                         writer.Write(stringIndexer(label.Name));
                         writer.Write(stringIndexer(label.Description));
                         writer.Write(stringIndexer(label.ColorText));
@@ -119,6 +121,7 @@ namespace IssueDb.Crawling
                     {
                         milestoneIndex.Add(milestone, milestoneIndex.Count);
 
+                        writer.Write(milestone.Id);
                         writer.Write(milestone.Number);
                         writer.Write(stringIndexer(milestone.Title));
                         writer.Write(stringIndexer(milestone.Description));
@@ -136,6 +139,7 @@ namespace IssueDb.Crawling
                         writer.Write(issueId);
                         // Org  : Ignored, because it's implied by the containing repo.
                         // Repo : Ignored, because it's implied by the containing repo.
+                        writer.Write(issue.Id);
                         writer.Write(issue.Number);
                         writer.Write(issue.IsOpen);
                         writer.Write(issue.IsPullRequest);
@@ -260,12 +264,14 @@ namespace IssueDb.Crawling
 
                 for (var i = 0; i < repoCount; i++)
                 {
+                    var repoId = reader.ReadInt64();
                     var org = stringIndex[reader.ReadInt32()];
                     var name = stringIndex[reader.ReadInt32()];
                     var isArchived = reader.ReadBoolean();
 
                     var repo = new CrawledRepo()
                     {
+                        Id = repoId,
                         Org = org,
                         Name = name,
                         IsArchived = isArchived,
@@ -281,6 +287,7 @@ namespace IssueDb.Crawling
                     {
                         var label = new CrawledLabel
                         {
+                            Id = reader.ReadInt64(),
                             Name = stringIndex[reader.ReadInt32()],
                             Description = stringIndex[reader.ReadInt32()],
                             ColorText = stringIndex[reader.ReadInt32()]
@@ -301,6 +308,7 @@ namespace IssueDb.Crawling
                     {
                         var milestone = new CrawledMilestone
                         {
+                            Id = reader.ReadInt64(),
                             Number = reader.ReadInt32(),
                             Title = stringIndex[reader.ReadInt32()],
                             Description = stringIndex[reader.ReadInt32()],
@@ -320,6 +328,7 @@ namespace IssueDb.Crawling
                         var issue = new CrawledIssue
                         {
                             Repo = repo,
+                            Id = reader.ReadInt64(),
                             Number = reader.ReadInt32(),
                             IsOpen = reader.ReadBoolean(),
                             IsPullRequest = reader.ReadBoolean(),
