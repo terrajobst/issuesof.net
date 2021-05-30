@@ -8,5 +8,5 @@
     <PackageReference Include="Humanizer.Core" Version="2.9.9" />
     <PackageReference Include="Markdig" Version="0.24.0" />
   </ItemGroup>
-  
+
 </Project>

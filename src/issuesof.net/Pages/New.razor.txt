@@ -1,5 +1,5 @@
 ﻿.NET Framework
-    
+
     Dev Community                       Report isssues to .NET Framework Developer Community
     microsoft/dotnet-framework-docker   .NET Framework Docker images
 

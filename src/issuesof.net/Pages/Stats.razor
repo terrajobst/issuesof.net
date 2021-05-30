@@ -1,5 +1,5 @@
 ﻿@page "/stats"
-@using Humanizer.Bytes 
+@using Humanizer.Bytes
 
 @if (IsDevelopment)
 {
@@ -13,7 +13,7 @@
 
             <dt>#Bytes in trie</dt>
             <dd>@(new ByteSize(NumberOfTrieBytes).ToString("G"))</dd>
-        </dl>    
+        </dl>
     </div>
 }
 
