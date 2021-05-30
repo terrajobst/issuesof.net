@@ -623,7 +623,7 @@ namespace IssuesOfDotNet.Crawler
             var client = CreateForToken(token, AuthenticationType.Bearer);
 
             var installations = await client.GitHubApps.GetAllInstallationsForCurrent();
-            var installation = installations.Single();
+            var installation = installations.First();
             var installationTokenResult = await client.GitHubApps.CreateInstallationToken(installation.Id);
 
             return CreateForToken(installationTokenResult.Token, AuthenticationType.Oauth);
