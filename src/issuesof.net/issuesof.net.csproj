@@ -10,7 +10,7 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.8.3" />
     <PackageReference Include="Humanizer.Core" Version="2.9.9" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
-    <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" Version="0.1.1" />
+    <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" Version="0.1.9" />
   </ItemGroup>
 
   <ItemGroup>
