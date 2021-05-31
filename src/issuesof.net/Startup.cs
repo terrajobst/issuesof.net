@@ -25,7 +25,7 @@ namespace IssuesOfDotNet
             services.AddApplicationInsightsTelemetry(Configuration["APPINSIGHTS_INSTRUMENTATIONKEY"]);
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddHostedService<GitHubEventProcessingService>();
+            services.AddHostedService(p => p.GetRequiredService<GitHubEventProcessingService>());
             services.AddSingleton<IndexService>();
             services.AddSingleton<CompletionService>();
             services.AddSingleton<GitHubEventProcessor, EventService>();
@@ -38,6 +38,7 @@ namespace IssuesOfDotNet
             // Warm up key services
             app.ApplicationServices.GetService<IndexService>();
             app.ApplicationServices.GetService<CompletionService>();
+            app.ApplicationServices.GetService<GitHubEventProcessingService>();
 
             var gitHubWebHookSecret = Configuration["GitHubWebHookSecret"];
 
