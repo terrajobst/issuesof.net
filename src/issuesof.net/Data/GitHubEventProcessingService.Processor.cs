@@ -409,6 +409,9 @@ namespace IssuesOfDotNet.Data
 
             private CrawledMilestone GetOrCreateMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
             {
+                if (milestone is null)
+                    return null;
+
                 var index = _indexService.Index;
                 Debug.Assert(index is not null);
 
