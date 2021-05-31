@@ -472,6 +472,11 @@ namespace IssuesOfDotNet.Crawler
                     Console.WriteLine($"Authorization error: {ex.Message}. Refreshing token...");
                     await factory.RefreshTokenAsync(client);
                 }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine($"Operation canceled. Assuming this means a token refresh is needed...");
+                    await factory.RefreshTokenAsync(client);
+                }
             }
         }
 
