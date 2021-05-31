@@ -34,6 +34,8 @@ namespace IssuesOfDotNet.Crawler
             //    "--filter",
             //    "dotnet/runtime",
             //    //"--reindex",
+            //    //"--starting-repo",
+            //    //"dotnet/docfx",
             //    "--no-pull-latest",
             //    "--no-upload",
             //    "--out",
@@ -47,6 +49,7 @@ namespace IssuesOfDotNet.Crawler
             var reindex = false;
             var pullLatest = true;
             var uploadToAzure = true;
+            var startingRepoName = (string)null;
             var help = false;
             var activeTerms = (ICollection<string>)null;
 
@@ -55,8 +58,9 @@ namespace IssuesOfDotNet.Crawler
                 $"usage: {appName} [OPTIONS]+",
                 { "org", "The names of the GitHub orgs to index", v => activeTerms = orgs },
                 { "filter", "The list of repos to include", v => activeTerms = includedRepos },
-                { "out=", "The output path the index should be written to", v => outputPath = v },
+                { "out=", "The output {path} the index should be written to", v => outputPath = v },
                 { "reindex", "Specifies that the repo should be reindexed", v => reindex = true },
+                { "starting-repo=", "The starting {repo} to re-index", v => startingRepoName = v },
                 { "no-pull-latest", null, v => pullLatest = false, true },
                 { "no-upload", null, v => uploadToAzure = false, true },
                 { "h|?|help", null, v => help = true, true },
@@ -101,9 +105,15 @@ namespace IssuesOfDotNet.Crawler
                 return 1;
             }
 
+            if (startingRepoName is not null && !reindex)
+            {
+                Console.Error.WriteLine($"error: --starting-repo can't be used unless --reindex is specified");
+                return 1;
+            }
+
             try
             {
-                await RunAsync(orgs, includedRepos, reindex, pullLatest, uploadToAzure, outputPath);
+                await RunAsync(orgs, includedRepos, reindex, pullLatest, uploadToAzure, startingRepoName, outputPath);
                 return 0;
             }
             catch (Exception ex) when (!Debugger.IsAttached)
@@ -113,7 +123,7 @@ namespace IssuesOfDotNet.Crawler
             }
         }
 
-        private static async Task RunAsync(IEnumerable<string> orgs, SortedSet<string> includedRepos, bool reindex, bool pullLatest, bool uploadToAzure, string outputPath)
+        private static async Task RunAsync(IEnumerable<string> orgs, SortedSet<string> includedRepos, bool reindex, bool pullLatest, bool uploadToAzure, string startingRepoName, string outputPath)
         {
             var connectionString = GetAzureStorageConnectionString();
 
@@ -128,11 +138,20 @@ namespace IssuesOfDotNet.Crawler
             var cacheContainerName = "cache";
             var cacheContainerClient = new BlobContainerClient(connectionString, cacheContainerName);
 
-            if (!reindex)
+            if (!reindex || startingRepoName is not null)
             {
+                var startingBlobName = $"{startingRepoName}.crcache";
+                var reachedStartingBlob = false;
+
                 await foreach (var blob in cacheContainerClient.GetBlobsAsync())
                 {
                     if (includedRepos.Count > 0 && !includedRepos.Contains(blob.Name.Replace(".crcache", "")))
+                        continue;
+
+                    if (blob.Name == startingBlobName)
+                        reachedStartingBlob = true;
+
+                    if (reachedStartingBlob)
                         continue;
 
                     Console.WriteLine($"Downloading {blob.Name}...");
@@ -154,6 +173,8 @@ namespace IssuesOfDotNet.Crawler
             };
 
             var repos = new List<CrawledRepo>();
+
+            var reachedStartingRepo = false;
 
             foreach (var org in orgs)
             {
@@ -200,6 +221,9 @@ namespace IssuesOfDotNet.Crawler
                         var blobName = $"{org}/{repo.Name}.crcache";
                         var repoPath = Path.Join(tempDirectory, blobName);
 
+                        if (string.Equals($"{org}/{repo.Name}", startingRepoName, StringComparison.OrdinalIgnoreCase))
+                            reachedStartingRepo = true;
+
                         CrawledRepo crawledRepo;
                         try
                         {
@@ -224,7 +248,7 @@ namespace IssuesOfDotNet.Crawler
                         repos.Add(crawledRepo);
 
                         var existingIssues = crawledRepo.Issues.Values;
-                        var since = !reindex && existingIssues.Any()
+                        var since = (!reindex || !reachedStartingRepo) && existingIssues.Any()
                                         ? existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt)
                                         : (DateTimeOffset?)null;
 
