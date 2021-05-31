@@ -17,7 +17,7 @@
     </div>
 }
 
-<div class="gh-table-header">
+<div class="gh-table-header d-flex flex-row align-items-center">
     @{
         var stats = TrieService.IndexStats;
         var orgCount = stats.Select(r => r.Org).Distinct().Count();
@@ -25,7 +25,20 @@
         var issueCount = stats.Select(s => s.NumberOfIssues).DefaultIfEmpty().Sum();
         var lastUpdated = stats.Select(s => s.LastUpdatedAt).Where(d => d != null).DefaultIfEmpty().Max();
     }
-    @($"{issueCount:N0} issues across {orgCount} orgs and {repoCount} repos, updated {lastUpdated.Humanize()}")
+    <div>
+        @($"{issueCount:N0} issues across {orgCount} orgs and {repoCount} repos, updated {lastUpdated.Humanize()}")
+    </div>
+    <div class="ml-auto dropdown small">
+        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="sortDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Sort
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="sortDropdownMenuButton">
+            @foreach (var sort in Sort.All)
+            {
+                <button class="dropdown-item" @onclick="() => SortBy = sort">@sort.DisplayName</button>
+            }
+        </div>
+    </div>
 </div>
 
 <table class="table table-hover">
@@ -39,7 +52,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in TrieService.IndexStats)
+        @foreach (var item in Rows)
         {
             <tr>
                 <td><a href="https://github.com/@item.Org">@item.Org</a></td>
