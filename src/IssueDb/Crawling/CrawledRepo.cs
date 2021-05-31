@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
@@ -24,8 +23,8 @@ namespace IssueDb.Crawling
         public bool IsArchived { get; set; }
         public long Size { get; set; }
         public Dictionary<int, CrawledIssue> Issues { get; set; } = new();
-        public ImmutableArray<CrawledLabel> Labels { get; set; } = ImmutableArray<CrawledLabel>.Empty;
-        public ImmutableArray<CrawledMilestone> Milestones { get; set; } = ImmutableArray<CrawledMilestone>.Empty;
+        public List<CrawledLabel> Labels { get; set; } = new();
+        public List<CrawledMilestone> Milestones { get; set; } = new();
 
         [JsonIgnore]
         public Dictionary<string, CrawledAreaOwnerEntry> AreaOwners { get; set; } = new();

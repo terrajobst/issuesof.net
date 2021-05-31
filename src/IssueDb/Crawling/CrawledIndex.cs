@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace IssueDb.Crawling
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
         private static readonly short _formatVersion = 6;
 
-        public ImmutableArray<CrawledRepo> Repos { get; set; } = ImmutableArray<CrawledRepo>.Empty;
+        public List<CrawledRepo> Repos { get; set; } = new();
 
         public CrawledTrie<CrawledIssue> Trie { get; set; } = new();
 
@@ -101,7 +100,7 @@ namespace IssueDb.Crawling
 
                     var labelIndex = new Dictionary<CrawledLabel, int>();
 
-                    writer.Write(repo.Labels.Length);
+                    writer.Write(repo.Labels.Count);
 
                     foreach (var label in repo.Labels)
                     {
@@ -117,7 +116,7 @@ namespace IssueDb.Crawling
 
                     var milestoneIndex = new Dictionary<CrawledMilestone, int>();
 
-                    writer.Write(repo.Milestones.Length);
+                    writer.Write(repo.Milestones.Count);
 
                     foreach (var milestone in repo.Milestones)
                     {
@@ -297,7 +296,7 @@ namespace IssueDb.Crawling
                             ColorText = stringIndex[reader.ReadInt32()]
                         };
                         labelIndex.Add(labelId, label);
-                        repo.Labels = repo.Labels.Add(label);
+                        repo.Labels = repo.Labels.CopyAndAdd(label);
                     }
 
                     // Read milestones
@@ -318,7 +317,7 @@ namespace IssueDb.Crawling
                             Description = stringIndex[reader.ReadInt32()],
                         };
                         milestoneIndex.Add(milestoneId, milestone);
-                        repo.Milestones = repo.Milestones.Add(milestone);
+                        repo.Milestones = repo.Milestones.CopyAndAdd(milestone);
                     }
 
                     // Read issues
@@ -398,7 +397,7 @@ namespace IssueDb.Crawling
 
                 return Task.FromResult(new CrawledIndex
                 {
-                    Repos = repos.ToImmutableArray(),
+                    Repos = repos.ToList(),
                     Trie = new CrawledTrie<CrawledIssue>(root)
                 });
             }

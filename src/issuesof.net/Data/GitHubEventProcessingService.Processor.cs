@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+using IssueDb;
 using IssueDb.Crawling;
 
 using Microsoft.Extensions.Logging;
@@ -162,7 +163,7 @@ namespace IssuesOfDotNet.Data
 
                 UpdateRepo(repository, crawledRepo);
 
-                index.Repos = index.Repos.Add(crawledRepo);
+                index.Repos = index.Repos.CopyAndAdd(crawledRepo);
 
                 _indexService.NotifyIndexChanged();
             }
@@ -208,7 +209,7 @@ namespace IssuesOfDotNet.Data
                 foreach (var issue in crawledRepo.Issues.Values)
                     RemoveIssue(crawledRepo, issue);
 
-                index.Repos = index.Repos.Remove(crawledRepo);
+                index.Repos = index.Repos.CopyAndRemove(crawledRepo);
 
                 _indexService.NotifyIndexChanged();
             }
@@ -233,7 +234,7 @@ namespace IssuesOfDotNet.Data
                 var crawledLabel = new CrawledLabel();
                 UpdateLabel(label, crawledLabel);
 
-                crawledRepo.Labels = crawledRepo.Labels.Add(crawledLabel);
+                crawledRepo.Labels = crawledRepo.Labels.CopyAndAdd(crawledLabel);
 
                 return crawledLabel;
             }
@@ -294,7 +295,7 @@ namespace IssuesOfDotNet.Data
                 if (crawledLabel is null)
                     return;
 
-                crawledRepo.Labels = crawledRepo.Labels.Remove(crawledLabel);
+                crawledRepo.Labels = crawledRepo.Labels.CopyAndRemove(crawledLabel);
 
                 var removedTrieTerms = new[] { $"label:{crawledLabel.Name}" };
 
@@ -336,7 +337,7 @@ namespace IssuesOfDotNet.Data
                 var crawledMilestone = new CrawledMilestone();
                 UpdateMilestone(milestone, crawledMilestone);
 
-                crawledRepo.Milestones = crawledRepo.Milestones.Add(crawledMilestone);
+                crawledRepo.Milestones = crawledRepo.Milestones.CopyAndAdd(crawledMilestone);
 
                 return crawledMilestone;
             }
@@ -396,7 +397,7 @@ namespace IssuesOfDotNet.Data
                 if (crawledMilestone is null)
                     return;
 
-                crawledRepo.Milestones = crawledRepo.Milestones.Remove(crawledMilestone);
+                crawledRepo.Milestones = crawledRepo.Milestones.CopyAndRemove(crawledMilestone);
 
                 var removedTrieTerms = new[] { $"milestone:{crawledMilestone.Title}" };
 

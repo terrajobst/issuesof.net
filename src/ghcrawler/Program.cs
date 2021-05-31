@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -269,7 +268,7 @@ namespace IssuesOfDotNet.Crawler
                         {
                             var crawledLabel = ConvertLabel(label);
                             labels[label.Name] = crawledLabel;
-                            crawledRepo.Labels = crawledRepo.Labels.Add(crawledLabel);
+                            crawledRepo.Labels = crawledRepo.Labels.CopyAndAdd(crawledLabel);
                         }
 
                         var milestones = new Dictionary<int, CrawledMilestone>();
@@ -278,7 +277,7 @@ namespace IssuesOfDotNet.Crawler
                         {
                             var crawledMilestone = ConvertMilestone(milestone);
                             milestones[milestone.Number] = crawledMilestone;
-                            crawledRepo.Milestones = crawledRepo.Milestones.Add(crawledMilestone);
+                            crawledRepo.Milestones = crawledRepo.Milestones.CopyAndAdd(crawledMilestone);
                         }
 
                         // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
@@ -333,7 +332,7 @@ namespace IssuesOfDotNet.Crawler
 
             var index = new CrawledIndex()
             {
-                Repos = repos.ToImmutableArray(),
+                Repos = repos.ToList(),
                 Trie = trie
             };
 
