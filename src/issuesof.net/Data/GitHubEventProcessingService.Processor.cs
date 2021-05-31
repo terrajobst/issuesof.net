@@ -32,7 +32,7 @@ namespace IssuesOfDotNet.Data
 
             public override void ProcessMessage(GitHubEventMessage message)
             {
-                _logger.LogInformation($"Processing message {message.Headers.Event}", message);
+                _logger.LogInformation($"Processing message {message}");
 
                 try
                 {
@@ -40,7 +40,7 @@ namespace IssuesOfDotNet.Data
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error processing GitHub event");
+                    _logger.LogError(ex, $"Error processing message {message}");
                 }
             }
 

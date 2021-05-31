@@ -27,7 +27,7 @@ namespace IssuesOfDotNet.Data
 
         public void Enqueue(GitHubEventMessage message)
         {
-            _logger.LogInformation($"Enqueuing message {message.Headers.Event}", message);
+            _logger.LogInformation($"Enqueuing message {message}");
 
             _messages.Enqueue(message);
             _dataAvailable.Set();
@@ -70,11 +70,9 @@ namespace IssuesOfDotNet.Data
 
             while (true)
             {
-                _logger.LogInformation("Waiting for messsages...");
                 WaitHandle.WaitAny(waitHandles);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _logger.LogInformation("Dequeuing messsages...");
                 while (_messages.TryDequeue(out var message))
                 {
                     _processor.ProcessMessage(message);
