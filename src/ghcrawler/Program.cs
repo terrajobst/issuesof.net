@@ -209,9 +209,14 @@ namespace IssuesOfDotNet.Crawler
                         var blobName = $"{org}/{deletedRepo}.crcache";
                         var repoPath = Path.Join(tempDirectory, blobName);
 
-                        Console.WriteLine($"Deleting {blobName}...");
+                        Console.WriteLine($"Deleting local file {blobName}...");
                         File.Delete(repoPath);
-                        await cacheContainerClient.DeleteBlobAsync(blobName);
+
+                        if (uploadToAzure)
+                        {
+                            Console.WriteLine($"Deleting Azure blob {blobName}...");
+                            await cacheContainerClient.DeleteBlobAsync(blobName);
+                        }
                     }
 
                     foreach (var repo in availableRepos)
