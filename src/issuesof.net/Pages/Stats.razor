@@ -46,7 +46,7 @@
                 <td><a href="https://github.com/@item.Org/@item.Repo">@item.Repo</a></td>
                 <td>@item.LastUpdatedAt.Humanize()</td>
                 <td class="text-right">@item.NumberOfIssues.ToString("N0")</td>
-                <td class="text-right">@(new ByteSize(item.Size).ToString("G"))</td>
+                <td class="text-right">@(ByteSize.FromKilobytes(item.Size).ToString("G"))</td>
             </tr>
         }
     </tbody>
