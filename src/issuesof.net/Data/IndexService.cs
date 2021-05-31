@@ -76,7 +76,6 @@ namespace IssuesOfDotNet.Data
                     }
 
                     Exeption = null;
-                    IndexStats = CreateIndexStats(Index);
                     ProgressText = null;
                 }
                 catch (Exception ex) when (!Debugger.IsAttached)
@@ -84,39 +83,46 @@ namespace IssuesOfDotNet.Data
                     _logger.LogError(ex, "Error during index loading");
                     Exeption = ex;
                     Index = new CrawledIndex();
-                    IndexStats = CreateIndexStats(Index);
                     ProgressText = string.Empty;
                 }
             });
+        }
+
+        private void UpdateIndex()
+        {
+            IndexStats = CreateIndexStats(Index);
 
             static IReadOnlyList<RepoStats> CreateIndexStats(CrawledIndex index)
             {
                 var indexStats = new List<RepoStats>();
 
-                foreach (var repo in index.Repos)
+                if (index is not null)
                 {
-                    var repoStats = new RepoStats
+                    foreach (var repo in index.Repos)
                     {
-                        Org = repo.Org,
-                        Repo = repo.Name,
-                        Size = repo.Size,
-                        LastUpdatedAt = GetLastUpdatedAt(repo),
-                        NumberOfIssues = repo.Issues.Count
-                    };
+                        var repoStats = new RepoStats
+                        {
+                            Org = repo.Org,
+                            Repo = repo.Name,
+                            Size = repo.Size,
+                            LastUpdatedAt = GetLastUpdatedAt(repo),
+                            NumberOfIssues = repo.Issues.Count
+                        };
 
-                    indexStats.Add(repoStats);
+                        indexStats.Add(repoStats);
+                    }
                 }
 
                 return indexStats.ToArray();
             }
-        }
 
-        private static DateTimeOffset? GetLastUpdatedAt(CrawledRepo repo)
-        {
-            if (!repo.Issues.Any())
-                return null;
+            static DateTimeOffset? GetLastUpdatedAt(CrawledRepo repo)
+            {
+                if (!repo.Issues.Any())
+                    return null;
 
-            return repo.Issues.Values.Max(i => i.UpdatedAt ?? i.CreatedAt);
+                return repo.Issues.Values.Max(i => i.UpdatedAt ?? i.CreatedAt);
+            }
         }
 
         public Exception Exeption { get; private set; }
@@ -140,6 +146,7 @@ namespace IssuesOfDotNet.Data
 
         public void NotifyIndexChanged()
         {
+            UpdateIndex();
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
