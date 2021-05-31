@@ -443,6 +443,13 @@ namespace IssuesOfDotNet.Crawler
                     await Task.Delay(delay);
                     Console.WriteLine("Trying again...");
                 }
+                catch (AuthorizationException ex)
+                {
+                    var delay = TimeSpan.FromMinutes(30);
+                    var time = DateTimeOffset.Now + delay;
+                    Console.WriteLine($"Authorization error: {ex.Message}. Waiting {delay.TotalMinutes:N0} minutes until {time.ToLocalTime():M/d/yyyy h:mm tt}...");
+                    await Task.Delay(delay);
+                }
             }
         }
 
