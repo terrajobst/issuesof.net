@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Logging;
 
 using Terrajobst.GitHubEvents;
 
@@ -8,11 +9,13 @@ namespace IssuesOfDotNet.Data
 {
     public sealed class EventService : GitHubEventProcessor
     {
+        private readonly ILogger<EventService> _logger;
         private readonly TelemetryClient _telemetryClient;
         private readonly GitHubEventProcessingService _processingService;
 
-        public EventService(TelemetryClient telemetryClient, GitHubEventProcessingService processingService)
+        public EventService(ILogger<EventService> logger, TelemetryClient telemetryClient, GitHubEventProcessingService processingService)
         {
+            _logger = logger;
             _telemetryClient = telemetryClient;
             _processingService = processingService;
         }
@@ -21,7 +24,10 @@ namespace IssuesOfDotNet.Data
         {
             // We're only answering to installations in orgs we care about.
             if (message.Body.Organization is null || !IsKnownOrg(message.Body.Organization.Login))
+            {
+                _logger.LogWarning($"Rejected message for org '{message.Body.Organization?.Login}'", message);
                 return;
+            }
 
             _telemetryClient.GetMetric("github_" + message.Headers.Event)
                             .TrackValue(1.0);

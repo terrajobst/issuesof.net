@@ -32,6 +32,8 @@ namespace IssuesOfDotNet.Data
 
             public override void ProcessMessage(GitHubEventMessage message)
             {
+                _logger.LogInformation($"Processing message {message.Headers.Event}", message);
+
                 try
                 {
                     base.ProcessMessage(message);

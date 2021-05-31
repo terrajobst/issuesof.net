@@ -27,6 +27,8 @@ namespace IssuesOfDotNet.Data
 
         public void Enqueue(GitHubEventMessage message)
         {
+            _logger.LogInformation($"Enqueuing message {message.Headers.Event}", message);
+
             _messages.Enqueue(message);
             _dataAvailable.Set();
         }
