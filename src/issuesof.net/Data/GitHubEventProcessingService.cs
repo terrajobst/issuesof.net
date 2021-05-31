@@ -43,7 +43,7 @@ namespace IssuesOfDotNet.Data
                 }
                 catch (OperationCanceledException)
                 {
-                    // ingore
+                    _logger.LogInformation("GitHub event processing was cancelled");
                 }
                 catch (Exception ex)
                 {
@@ -70,9 +70,11 @@ namespace IssuesOfDotNet.Data
 
             while (true)
             {
+                _logger.LogInformation("Waiting for messsages...");
                 WaitHandle.WaitAny(waitHandles);
                 cancellationToken.ThrowIfCancellationRequested();
 
+                _logger.LogInformation("Dequeuing messsages...");
                 while (_messages.TryDequeue(out var message))
                 {
                     _processor.ProcessMessage(message);
