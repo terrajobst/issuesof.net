@@ -260,6 +260,7 @@ namespace IssuesOfDotNet.Crawler
 
                         crawledRepo.IsArchived = repo.Archived;
                         crawledRepo.AreaOwners = await GetAreaOwnersAsync(org, repo.Name);
+                        crawledRepo.Size = repo.Size;
 
                         var labels = new Dictionary<string, CrawledLabel>();
 

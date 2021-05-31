@@ -21,6 +21,7 @@ namespace IssueDb.Crawling
         public string Org { get; set; }
         public string Name { get; set; }
         public bool IsArchived { get; set; }
+        public long Size { get; set; }
         public Dictionary<int, CrawledIssue> Issues { get; set; } = new Dictionary<int, CrawledIssue>();
         public List<CrawledLabel> Labels { get; set; } = new();
         public List<CrawledMilestone> Milestones { get; set; } = new();

@@ -8,5 +8,6 @@ namespace IssuesOfDotNet.net.Data
         public string Repo { get; set; }
         public DateTimeOffset? LastUpdatedAt { get; set; }
         public int NumberOfIssues { get; set; }
+        public long Size { get; set; }
     }
 }

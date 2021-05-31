@@ -99,6 +99,7 @@ namespace IssuesOfDotNet.Data
                     {
                         Org = repo.Org,
                         Repo = repo.Name,
+                        Size = repo.Size,
                         LastUpdatedAt = GetLastUpdatedAt(repo),
                         NumberOfIssues = repo.Issues.Count
                     };

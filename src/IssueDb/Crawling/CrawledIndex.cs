@@ -12,7 +12,7 @@ namespace IssueDb.Crawling
     public sealed class CrawledIndex
     {
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-        private static readonly short _formatVersion = 5;
+        private static readonly short _formatVersion = 6;
 
         public IReadOnlyList<CrawledRepo> Repos { get; set; } = Array.Empty<CrawledRepo>();
 
@@ -94,6 +94,7 @@ namespace IssueDb.Crawling
                     writer.Write(stringIndexer(repo.Org));
                     writer.Write(stringIndexer(repo.Name));
                     writer.Write(repo.IsArchived);
+                    writer.Write(repo.Size);
 
                     // Write labels
 
@@ -268,6 +269,7 @@ namespace IssueDb.Crawling
                     var org = stringIndex[reader.ReadInt32()];
                     var name = stringIndex[reader.ReadInt32()];
                     var isArchived = reader.ReadBoolean();
+                    var size = reader.ReadInt64();
 
                     var repo = new CrawledRepo()
                     {
@@ -275,6 +277,7 @@ namespace IssueDb.Crawling
                         Org = org,
                         Name = name,
                         IsArchived = isArchived,
+                        Size = size,
                     };
                     repos.Add(repo);
 
