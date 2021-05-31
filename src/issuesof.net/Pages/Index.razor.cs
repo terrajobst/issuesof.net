@@ -54,7 +54,7 @@ namespace IssuesOfDotNet.Pages
 
         protected override void OnInitialized()
         {
-            IndexService.Changed += TrieService_Changed;
+            IndexService.Changed += IndexService_Changed;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -69,10 +69,10 @@ namespace IssuesOfDotNet.Pages
 
         public void Dispose()
         {
-            IndexService.Changed -= TrieService_Changed;
+            IndexService.Changed -= IndexService_Changed;
         }
 
-        private void TrieService_Changed(object sender, EventArgs e)
+        private void IndexService_Changed(object sender, EventArgs e)
         {
             InvokeAsync(() =>
             {
