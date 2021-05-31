@@ -165,7 +165,8 @@ namespace IssuesOfDotNet.Crawler
                 }
             }
 
-            var client = await CreateGitHubClientAsync();
+            var factory = CreateGitHubClientFactory();
+            var client = await factory.CreateAsync();
 
             var jsonOptions = new JsonSerializerOptions()
             {
@@ -198,7 +199,7 @@ namespace IssuesOfDotNet.Crawler
                 else
                 {
                     Console.WriteLine($"Requesting repos for {org}...");
-                    var availableRepos = await RequestReposAsync(client, org);
+                    var availableRepos = await RequestReposAsync(factory, client, org);
 
                     var deletedRepos = existingRepos.ToHashSet(StringComparer.OrdinalIgnoreCase);
                     deletedRepos.ExceptWith(availableRepos.Select(r => r.Name));
@@ -262,7 +263,7 @@ namespace IssuesOfDotNet.Crawler
 
                         var labels = new Dictionary<string, CrawledLabel>();
 
-                        foreach (var label in await RequestLabelsAsync(client, org, repo.Name))
+                        foreach (var label in await RequestLabelsAsync(factory, client, org, repo.Name))
                         {
                             var crawledLabel = ConvertLabel(label);
                             labels[label.Name] = crawledLabel;
@@ -271,7 +272,7 @@ namespace IssuesOfDotNet.Crawler
 
                         var milestones = new Dictionary<int, CrawledMilestone>();
 
-                        foreach (var milestone in await RequestMilestonesAsync(client, org, repo.Name))
+                        foreach (var milestone in await RequestMilestonesAsync(factory, client, org, repo.Name))
                         {
                             var crawledMilestone = ConvertMilestone(milestone);
                             milestones[milestone.Number] = crawledMilestone;
@@ -288,13 +289,13 @@ namespace IssuesOfDotNet.Crawler
                         // We probably have to accept that we need to re-index everything every
                         // once in a while to get rid of transferred issues.
 
-                        foreach (var issue in await RequestIssuesAsync(client, org, repo.Name, since))
+                        foreach (var issue in await RequestIssuesAsync(factory, client, org, repo.Name, since))
                         {
                             var crawledIssue = ConvertIssue(crawledRepo, issue, labels, milestones);
                             crawledRepo.Issues[issue.Number] = crawledIssue;
                         }
 
-                        foreach (var pullRequest in await RequestPullRequestsAsync(client, org, repo.Name, since))
+                        foreach (var pullRequest in await RequestPullRequestsAsync(factory, client, org, repo.Name, since))
                         {
                             if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
                                 UpdateIssue(issue, pullRequest);
@@ -363,32 +364,31 @@ namespace IssuesOfDotNet.Crawler
             return file.Entries.ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static Task<GitHubClient> CreateGitHubClientAsync()
+        private static GitHubClientFactory CreateGitHubClientFactory()
         {
             var (appId, privateKey) = GetGitHubAppIdAndPrivateKey();
-            var factory = new GitHubClientFactory(appId, privateKey);
-            return factory.CreateAsync();
+            return new GitHubClientFactory(appId, privateKey);
         }
 
-        private static async Task<IReadOnlyList<Repository>> RequestReposAsync(GitHubClient client, string org)
+        private static async Task<IReadOnlyList<Repository>> RequestReposAsync(GitHubClientFactory factory, GitHubClient client, string org)
         {
-            var repos = await RetryOnRateLimiting(() => client.Repository.GetAllForOrg(org));
+            var repos = await RetryOnRateLimiting(factory, client, () => client.Repository.GetAllForOrg(org));
             return repos.OrderBy(r => r.Name)
                         .Where(r => r.Visibility == RepositoryVisibility.Public)
                         .ToArray();
         }
 
-        private static Task<IReadOnlyList<Label>> RequestLabelsAsync(GitHubClient client, string org, string repo)
+        private static Task<IReadOnlyList<Label>> RequestLabelsAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo)
         {
-            return RetryOnRateLimiting(() => client.Issue.Labels.GetAllForRepository(org, repo));
+            return RetryOnRateLimiting(factory, client, () => client.Issue.Labels.GetAllForRepository(org, repo));
         }
 
-        private static Task<IReadOnlyList<Milestone>> RequestMilestonesAsync(GitHubClient client, string org, string repo)
+        private static Task<IReadOnlyList<Milestone>> RequestMilestonesAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo)
         {
-            return RetryOnRateLimiting(() => client.Issue.Milestone.GetAllForRepository(org, repo));
+            return RetryOnRateLimiting(factory, client, () => client.Issue.Milestone.GetAllForRepository(org, repo));
         }
 
-        private static Task<IReadOnlyList<Issue>> RequestIssuesAsync(GitHubClient client, string org, string repo, DateTimeOffset? since)
+        private static Task<IReadOnlyList<Issue>> RequestIssuesAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo, DateTimeOffset? since)
         {
             var issueRequest = new RepositoryIssueRequest()
             {
@@ -398,10 +398,10 @@ namespace IssuesOfDotNet.Crawler
                 Since = since,
             };
 
-            return RetryOnRateLimiting(() => client.Issue.GetAllForRepository(org, repo, issueRequest));
+            return RetryOnRateLimiting(factory, client, () => client.Issue.GetAllForRepository(org, repo, issueRequest));
         }
 
-        private static async Task<IReadOnlyList<PullRequest>> RequestPullRequestsAsync(GitHubClient client, string org, string repo, DateTimeOffset? since)
+        private static async Task<IReadOnlyList<PullRequest>> RequestPullRequestsAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo, DateTimeOffset? since)
         {
             var pullRequestRequest = new PullRequestRequest()
             {
@@ -422,7 +422,7 @@ namespace IssuesOfDotNet.Crawler
                     PageCount = 1
                 };
 
-                var batch = await RetryOnRateLimiting(() => client.PullRequest.GetAllForRepository(org, repo, pullRequestRequest, options));
+                var batch = await RetryOnRateLimiting(factory, client, () => client.PullRequest.GetAllForRepository(org, repo, pullRequestRequest, options));
                 if (batch.Count == 0)
                     break;
 
@@ -449,7 +449,7 @@ namespace IssuesOfDotNet.Crawler
             return result.ToArray();
         }
 
-        private static async Task<T> RetryOnRateLimiting<T>(Func<Task<T>> func)
+        private static async Task<T> RetryOnRateLimiting<T>(GitHubClientFactory factory, GitHubClient client, Func<Task<T>> func)
         {
             while (true)
             {
@@ -469,10 +469,8 @@ namespace IssuesOfDotNet.Crawler
                 }
                 catch (AuthorizationException ex)
                 {
-                    var delay = TimeSpan.FromMinutes(30);
-                    var time = DateTimeOffset.Now + delay;
-                    Console.WriteLine($"Authorization error: {ex.Message}. Waiting {delay.TotalMinutes:N0} minutes until {time.ToLocalTime():M/d/yyyy h:mm tt}...");
-                    await Task.Delay(delay);
+                    Console.WriteLine($"Authorization error: {ex.Message}. Refreshing token...");
+                    await factory.RefreshTokenAsync(client);
                 }
             }
         }
@@ -643,6 +641,12 @@ namespace IssuesOfDotNet.Crawler
 
         public async Task<GitHubClient> CreateAsync()
         {
+            var token = await GenerateInstallationTokenAsync();
+            return CreateForToken(token, AuthenticationType.Oauth);
+        }
+
+        private async Task<string> GenerateInstallationTokenAsync()
+        {
             // See: https://octokitnet.readthedocs.io/en/latest/github-apps/ for details.
 
             var privateKeySource = new PlainStringPrivateKeySource(_privateKey);
@@ -660,8 +664,7 @@ namespace IssuesOfDotNet.Crawler
             var installations = await client.GitHubApps.GetAllInstallationsForCurrent();
             var installation = installations.First();
             var installationTokenResult = await client.GitHubApps.CreateInstallationToken(installation.Id);
-
-            return CreateForToken(installationTokenResult.Token, AuthenticationType.Oauth);
+            return installationTokenResult.Token;
         }
 
         private static GitHubClient CreateForToken(string token, AuthenticationType authenticationType)
@@ -672,6 +675,12 @@ namespace IssuesOfDotNet.Crawler
                 Credentials = new Credentials(token, authenticationType)
             };
             return client;
+        }
+
+        public async Task RefreshTokenAsync(GitHubClient client)
+        {
+            var token = await GenerateInstallationTokenAsync();
+            client.Credentials = new Credentials(token, AuthenticationType.Oauth);
         }
 
         public sealed class PlainStringPrivateKeySource : IPrivateKeySource
