@@ -148,9 +148,9 @@ namespace IssueDb.Crawling
                         writer.Write(issue.IsMerged);
                         writer.Write(stringIndexer(issue.Title));
                         // Body : Ignored because we don't need anymore.
-                        writer.Write(issue.CreatedAt.Ticks);
-                        writer.Write(issue.UpdatedAt?.Ticks ?? -1);
-                        writer.Write(issue.ClosedAt?.Ticks ?? -1);
+                        writer.Write(issue.CreatedAt.UtcTicks);
+                        writer.Write(issue.UpdatedAt?.UtcTicks ?? -1);
+                        writer.Write(issue.ClosedAt?.UtcTicks ?? -1);
                         writer.Write(stringIndexer(issue.CreatedBy));
                         writer.Write(issue.IsLocked);
                         writer.Write(issue.Comments);
@@ -402,12 +402,12 @@ namespace IssueDb.Crawling
                 });
             }
 
-            static DateTime? ToNullableDateTime(long ticks)
+            static DateTimeOffset? ToNullableDateTime(long ticks)
             {
                 if (ticks == -1)
                     return null;
 
-                return new DateTime(ticks);
+                return new DateTimeOffset(new DateTime(ticks, DateTimeKind.Utc)).ToLocalTime();
             }
 
             static CrawledTrieNode<CrawledIssue> ReadNode(BinaryReader reader,
