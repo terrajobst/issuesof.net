@@ -47,7 +47,8 @@
             <th>Org</th>
             <th>Repo</th>
             <th>Last Updated</th>
-            <th class="text-right">#Issues</th>
+            <th class="text-right">#Open</th>
+            <th class="text-right">#Total</th>
             <th class="text-right">Size</th>
         </tr>
     </thead>
@@ -58,6 +59,7 @@
                 <td><a href="https://github.com/@item.Org">@item.Org</a></td>
                 <td><a href="https://github.com/@item.Org/@item.Repo">@item.Repo</a></td>
                 <td>@item.LastUpdatedAt.Humanize()</td>
+                <td class="text-right">@item.NumberOfOpenIssues.ToString("N0")</td>
                 <td class="text-right">@item.NumberOfIssues.ToString("N0")</td>
                 <td class="text-right">@(ByteSize.FromKilobytes(item.Size).ToString("G"))</td>
             </tr>

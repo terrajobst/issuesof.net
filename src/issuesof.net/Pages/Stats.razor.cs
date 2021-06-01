@@ -116,8 +116,11 @@ namespace IssuesOfDotNet.Pages
             public static Sort UpdatedAscending { get; } = new Sort("Last Updated", "updated-asc", CompareAsc(r => r.LastUpdatedAt));
             public static Sort UpdatedDescending { get; } = new Sort("Last Updated (descending)", "updated-desc", CompareDesc(r => r.LastUpdatedAt));
 
-            public static Sort IssueCountAscending { get; } = new Sort("#Issues", "issues-asc", CompareAsc(r => r.NumberOfIssues));
-            public static Sort IssueCountDescending { get; } = new Sort("#Issues (descending)", "issues-desc", CompareDesc(r => r.NumberOfIssues));
+            public static Sort OpenCountAscending { get; } = new Sort("#Open", "open-asc", CompareAsc(r => r.NumberOfOpenIssues));
+            public static Sort OpenCountDescending { get; } = new Sort("#Open (descending)", "open-desc", CompareDesc(r => r.NumberOfOpenIssues));
+
+            public static Sort TotalCountAscending { get; } = new Sort("#Total", "total-asc", CompareAsc(r => r.NumberOfIssues));
+            public static Sort TotalCountDescending { get; } = new Sort("#Total (descending)", "total-desc", CompareDesc(r => r.NumberOfIssues));
 
             public static Sort SizeAscending { get; } = new Sort("Size", "size-asc", CompareAsc(r => r.Size));
             public static Sort SizeDescending { get; } = new Sort("Size (descending)", "size-desc", CompareDesc(r => r.Size));
@@ -125,10 +128,10 @@ namespace IssuesOfDotNet.Pages
             public static Sort Default => NameAscending;
 
             public static IReadOnlyCollection<Sort> All { get; } = typeof(Sort).GetProperties(BindingFlags.Public | BindingFlags.Static)
-                                                                                             .Select(p => p.GetValue(null))
-                                                                                             .OfType<Sort>()
-                                                                                             .Distinct()
-                                                                                             .ToArray();
+                                                                               .Select(p => p.GetValue(null))
+                                                                               .OfType<Sort>()
+                                                                               .Distinct()
+                                                                               .ToArray();
 
             public static Sort Parse(string text)
             {

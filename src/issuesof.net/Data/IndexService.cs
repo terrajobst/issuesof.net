@@ -106,6 +106,7 @@ namespace IssuesOfDotNet.Data
                             Repo = repo.Name,
                             Size = repo.Size,
                             LastUpdatedAt = GetLastUpdatedAt(repo),
+                            NumberOfOpenIssues = repo.Issues.Values.Count(i => i.IsOpen),
                             NumberOfIssues = repo.Issues.Count
                         };
 
