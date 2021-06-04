@@ -1,5 +1,7 @@
 ﻿@page "/"
 
+@using IssueDb.Querying;
+
 @if (IndexService.Exeption is not null)
 {
     <div class="alert alert-danger">
@@ -62,6 +64,10 @@ else
 
     <table class="table table-hover">
         <tbody>
+            @{ 
+                var includeUpdatedAt = SearchResults.Sorts.Any(s => s == IssueSort.UpdatedAscending ||
+                                                                    s == IssueSort.UpdatedDescending);
+            }
             @foreach (var issueOrGroup in SearchResults.GetPage(PageNumber))
             {
                 if (issueOrGroup.IsGroup)
@@ -170,9 +176,9 @@ else
                             {
                                 <text>@issue.Repo.Org/@issue.Repo.Name#@issue.Number opened by @issue.CreatedBy @issue.CreatedAt.Humanize()</text>
 
-                                @if (issue.UpdatedAt != null)
+                                @if (includeUpdatedAt && issue.UpdatedAt != null)
                                 {
-                                    <text>&nbsp;|&nbsp;updated @issue.UpdatedAt.Value.Humanize()</text>
+                                    <span class="ml-2 mr-1 oi oi-clock text-muted" aria-hidden="true"></span><text>updated @issue.UpdatedAt.Value.Humanize()</text>
                                 }
                             }
 
