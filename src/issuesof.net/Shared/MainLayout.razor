@@ -1,24 +1,32 @@
 ﻿@inherits LayoutComponentBase
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dotnet">
+<nav class="navbar navbar-dark navbar-expand-sm bg-dotnet">
     <a class="navbar-brand" href="/">Issues of .NET</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarText">
-        <ul class="navbar-nav mr-auto">
-            <NavLink class="nav-link" href="help">
-                <span class="oi oi-question-mark pr-1"></span> Help
-            </NavLink>
-            <NavLink class="nav-link" href="new">
-                <span class="oi oi-plus pr-1"></span> New
-            </NavLink>
-            <NavLink class="nav-link" href="stats">
-                <span class="oi oi-dashboard pr-1"></span> Stats
-            </NavLink>
-            <NavLink class="nav-link" href="https://github.com/terrajobst/issuesof.net">
-                <span class="oi oi-code pr-1"></span> Source
-            </NavLink>
+    <div class="navbar-collapse @NavMenuCssClass" id="navbarText">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <NavLink class="nav-link" href="help">
+                    <span class="oi oi-question-mark pr-1"></span> Help
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink class="nav-link" href="new">
+                    <span class="oi oi-plus pr-1"></span> New
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink class="nav-link" href="stats">
+                    <span class="oi oi-dashboard pr-1"></span> Stats
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink class="nav-link" href="https://github.com/terrajobst/issuesof.net">
+                    <span class="oi oi-code pr-1"></span> Source
+                </NavLink>
+            </li>
         </ul>
     </div>
 </nav>
@@ -26,3 +34,14 @@
 <main class="container-fluid mt-3">
     @Body
 </main>
+
+@code {
+    private bool _collapseNavMenu = true;
+    
+    private string NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        _collapseNavMenu = !_collapseNavMenu;
+    }
+}
