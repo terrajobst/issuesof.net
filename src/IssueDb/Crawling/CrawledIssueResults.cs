@@ -12,6 +12,8 @@ namespace IssueDb.Crawling
 
         public int PageCount => (int)Math.Ceiling(ItemCount / (float)ItemsPerPage);
 
+        public abstract IReadOnlyCollection<IssueSort> Sorts { get; }
+
         public virtual IReadOnlyCollection<CrawledIssueGroupKey> GroupKeys => Array.Empty<CrawledIssueGroupKey>();
 
         public abstract int ItemCount { get; }
@@ -42,25 +44,25 @@ namespace IssueDb.Crawling
 
         public abstract IEnumerable<CrawledIssueOrGroup> GetPage(int pageNumber);
 
-        public static CrawledIssueResults Empty => new ArrayIssueResults(Array.Empty<CrawledIssue>());
+        public static CrawledIssueResults Empty => new ArrayIssueResults(Array.Empty<CrawledIssue>(), Array.Empty<IssueSort>());
 
-        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues)
+        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues, IReadOnlyCollection<IssueSort> sorts)
         {
-            return new ArrayIssueResults(issues.ToArray());
+            return new ArrayIssueResults(issues.Sort(sorts).ToArray(), sorts);
         }
 
-        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] keys, IEnumerable<IssueGroupSort> sorts)
+        public static CrawledIssueResults Create(IEnumerable<CrawledIssue> issues, IReadOnlyCollection<IssueSort> sorts, CrawledIssueGroupKey[] keys, IReadOnlyCollection<IssueGroupSort> groupSorts)
         {
             if (keys is null || keys.Length == 0)
                 throw new ArgumentException("Must pass in non-empty keys", nameof(keys));
 
-            var topLevelGroups = Group(issues, keys)
+            var topLevelGroups = Group(issues.Sort(sorts), keys)
                                     .Select(r => r.ToGroup())
                                     .ToArray();
 
-            SortGroups(topLevelGroups, sorts);
+            SortGroups(topLevelGroups, groupSorts);
 
-            return new GroupedIssueResults(keys, topLevelGroups);
+            return new GroupedIssueResults(keys, topLevelGroups, sorts);
 
             static CrawledIssueOrGroup[] Group(IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey[] fields)
             {

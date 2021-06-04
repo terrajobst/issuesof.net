@@ -1,24 +1,30 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using IssueDb.Querying;
+
 namespace IssueDb.Crawling
 {
     public abstract partial class CrawledIssueResults
     {
         private sealed class GroupedIssueResults : CrawledIssueResults
         {
+            private readonly IReadOnlyCollection<IssueSort> _sorts;
             private readonly CrawledIssueGroupKey[] _keys;
             private readonly CrawledIssueGroup[] _groups;
             private readonly HashSet<CrawledIssueGroup> _expandedGroups = new HashSet<CrawledIssueGroup>();
             private int _itemCount;
             private int _issueCount;
 
-            public GroupedIssueResults(CrawledIssueGroupKey[] keys, CrawledIssueGroup[] groups)
+            public GroupedIssueResults(CrawledIssueGroupKey[] keys, CrawledIssueGroup[] groups, IReadOnlyCollection<IssueSort> sorts)
             {
                 _keys = keys;
                 _groups = groups;
+                _sorts = sorts;
                 UpdateCounts();
             }
+
+            public override IReadOnlyCollection<IssueSort> Sorts => _sorts;
 
             public override IReadOnlyCollection<CrawledIssueGroupKey> GroupKeys => _keys;
 
