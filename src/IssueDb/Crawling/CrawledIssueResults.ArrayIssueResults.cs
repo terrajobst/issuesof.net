@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using IssueDb.Querying;
+
 namespace IssueDb.Crawling
 {
     public abstract partial class CrawledIssueResults
@@ -8,11 +10,15 @@ namespace IssueDb.Crawling
         private sealed class ArrayIssueResults : CrawledIssueResults
         {
             private readonly CrawledIssue[] _issues;
+            private readonly IReadOnlyCollection<IssueSort> _sorts;
 
-            public ArrayIssueResults(CrawledIssue[] issues)
+            public ArrayIssueResults(CrawledIssue[] issues, IReadOnlyCollection<IssueSort> sorts)
             {
                 _issues = issues;
+                _sorts = sorts;
             }
+
+            public override IReadOnlyCollection<IssueSort> Sorts => _sorts;
 
             public override int ItemCount => _issues.Length;
 

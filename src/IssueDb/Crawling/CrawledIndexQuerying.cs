@@ -8,8 +8,8 @@ namespace IssueDb.Crawling
 {
     public static partial class CrawledIndexQuerying
     {
-        private static readonly IEnumerable<IssueSort> _defaultSort = new[] { IssueSort.UpdatedDescending };
-        private static readonly IEnumerable<IssueGroupSort> _defaultGroupSort = new[] { IssueGroupSort.KeyAscending };
+        private static readonly IssueSort[] _defaultSort = new[] { IssueSort.UpdatedDescending };
+        private static readonly IssueGroupSort[] _defaultGroupSort = new[] { IssueGroupSort.KeyAscending };
 
         public static CrawledIssueResults Execute(this IssueQuery query, CrawledIndex index)
         {
@@ -28,11 +28,11 @@ namespace IssueDb.Crawling
                 return CrawledIssueResults.Empty;
 
             var sorts = query.Filters.SelectMany(f => f.Sort)
-                                     .Distinct();
+                                     .Distinct()
+                                     .ToArray();
+
             if (!sorts.Any())
                 sorts = _defaultSort;
-
-            var sorted = result.Sort(sorts);
 
             var groups = query.Filters.SelectMany(f => f.Groups)
                                       .Distinct()
@@ -40,15 +40,16 @@ namespace IssueDb.Crawling
                                       .ToArray();
 
             if (!groups.Any())
-                return CrawledIssueResults.Create(sorted);
+                return CrawledIssueResults.Create(result, sorts);
 
             var groupSorts = query.Filters.SelectMany(f => f.GroupSort)
-                                          .Distinct();
+                                          .Distinct()
+                                          .ToArray();
 
             if (!groupSorts.Any())
                 groupSorts = _defaultGroupSort;
 
-            return CrawledIssueResults.Create(sorted, groups, groupSorts);
+            return CrawledIssueResults.Create(result, sorts, groups, groupSorts);
         }
 
         private static HashSet<CrawledIssue> Execute(CrawledIndex index, IssueFilter filter)
@@ -221,7 +222,7 @@ namespace IssueDb.Crawling
             }
         }
 
-        private static IEnumerable<CrawledIssue> Sort(this IEnumerable<CrawledIssue> result, IEnumerable<IssueSort> sorts)
+        public static IEnumerable<CrawledIssue> Sort(this IEnumerable<CrawledIssue> result, IEnumerable<IssueSort> sorts)
         {
             foreach (var sort in sorts)
             {
