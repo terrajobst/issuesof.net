@@ -56,3 +56,15 @@ such as [aspnet], [dotnet], and [nuget].
   because the JavaScript ones don't work well with Blazor (basically, it works
   on initial render but when the page gets updated, for example, due to paging,
   the icons aren't updated while hitting Ctrl+R fixes the problem).
+
+## Onboarding
+
+The tool currently works at the org level and will index all public repos. It
+will not, however, index internal or private repos.
+
+In order to add a new org, you need to:
+
+1. Install the [GitHub App](https://github.com/apps/issues-of-net/installations/new)
+   into the org
+2. Add the org to the [workflow indexing](.github/workflows/schedule.yml#L25)
+3. Add the org to the [IsKnownOrg() method](src/issuesof.net/Data/EventService.cs)
