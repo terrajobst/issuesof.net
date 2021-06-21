@@ -39,7 +39,8 @@ namespace IssuesOfDotNet.Data
         {
             return string.Equals(orgName, "aspnet", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(orgName, "dotnet", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(orgName, "nuget", StringComparison.OrdinalIgnoreCase);
+                   string.Equals(orgName, "nuget", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(orgName, "xamarin", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
