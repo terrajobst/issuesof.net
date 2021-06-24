@@ -58,7 +58,7 @@ namespace IssueDb.Crawling
 
         public bool Contains(string org, string repo)
         {
-            return _orgRepos.TryGetValue(org, out var repos) && repos.Contains(repo);
+            return _orgRepos.TryGetValue(org, out var repos) && (repos.Count == 0 || repos.Contains(repo));
         }
 
         public IEnumerable<string> Orgs => _orgRepos.Keys;
