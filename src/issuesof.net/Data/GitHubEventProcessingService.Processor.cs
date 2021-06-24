@@ -33,24 +33,19 @@ namespace IssuesOfDotNet.Data
                 _indexService = indexService;
             }
 
-            public override void Process(IDictionary<string, StringValues> headers, string body)
-            {
-                var sb = new StringBuilder();
-                foreach (var (key, value) in headers)
-                {
-                    sb.AppendLine($"{key} = {value}");
-                }
-
-                sb.AppendLine();
-                sb.Append(body);
-
-                _logger.LogInformation("Processing {Message}", sb.ToString());
-
-                base.Process(headers, body);
-            }
-
             public override void ProcessMessage(GitHubEventMessage message)
             {
+                {
+                    var sb = new StringBuilder();
+                    var args = new List<object>();
+
+                    sb.Append("Processing message");
+
+                    FormatMessage(message, sb, args);
+
+                    _logger.LogInformation(sb.ToString(), args.ToArray());
+                }
+
                 try
                 {
                     base.ProcessMessage(message);
@@ -62,6 +57,13 @@ namespace IssuesOfDotNet.Data
 
                     sb.Append("Error processing message");
 
+                    FormatMessage(message, sb, args);
+
+                    _logger.LogError(ex, sb.ToString(), args.ToArray());
+                }
+
+                static void FormatMessage(GitHubEventMessage message, StringBuilder sb, List<object> args)
+                {
                     sb.Append(", Delivery={Delivery}");
                     args.Add(message.Headers.Delivery);
 
@@ -160,8 +162,6 @@ namespace IssuesOfDotNet.Data
                         sb.Append(", Installation={Installation}");
                         args.Add(message.Body.Installation.Id);
                     }
-
-                    _logger.LogError(ex, sb.ToString(), args.ToArray());
                 }
             }
 
