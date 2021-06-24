@@ -241,7 +241,7 @@ namespace IssuesOfDotNet.Data
                         RemoveIssue(repository, issue);
                         break;
                     case GitHubEventIssueAction.Transferred:
-                        TransferIssue(repository, issue, message.Body.Changes.NewRepository, message.Body.Changes.NewIssue);
+                        TransferIssue(repository, issue);
                         break;
                 }
             }
@@ -612,8 +612,20 @@ namespace IssuesOfDotNet.Data
                 }
             }
 
-            private void TransferIssue(GitHubEventRepository repository, GitHubEventIssue issue, GitHubEventRepository newRepository, GitHubEventIssue newIssue)
+            private void TransferIssue(GitHubEventRepository repository, GitHubEventIssue issue)
             {
+                // When an issue is being transferred, GitHub sends two events:
+                //
+                // 1. Issue transferred (existing repo, existing issue, new repo, new issue)
+                // 2. Issue opened (new repo, new issue)
+                //
+                // The existing issue in event (1) isn't marked as closed yet, but we also don't get
+                // a dedicated "issue closed" event either.
+                //
+                // Hence, handling a transfer only requires us to remove the existing issue. We can
+                // ignore the new repo and new issue because we'll get a dedicated "isse opened"
+                // event anyways.
+
                 var index = _indexService.Index;
                 if (index is null)
                     return;
@@ -625,20 +637,7 @@ namespace IssuesOfDotNet.Data
                 if (!crawledRepo.Issues.TryGetValue(issue.Number, out var crawledIssue))
                     return;
 
-                var newCrawledRepo = index.Repos.SingleOrDefault(r => r.Id == newRepository.Id);
-                if (newCrawledRepo is null)
-                    return;
-
-                var oldTrieTerms = crawledIssue.GetTrieTerms();
-
-                crawledRepo.Issues.Remove(crawledIssue.Number);
-                crawledIssue.Id = newIssue.Id;
-                crawledIssue.Number = newIssue.Number;
-                crawledIssue.Repo = newCrawledRepo;
-                newCrawledRepo.Issues[crawledIssue.Number] = crawledIssue;
-
-                UpdateIssueOrPullRequest(newRepository, newIssue, crawledIssue);
-                UpdateTrie(crawledIssue, oldTrieTerms);
+                RemoveIssue(crawledRepo, crawledIssue);
 
                 _indexService.NotifyIndexChanged();
             }
