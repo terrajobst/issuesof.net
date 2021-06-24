@@ -20,7 +20,13 @@
     {
         "org": "microsoft",
         "repos": [
-            "CsWinRT"
+            "clrmd",
+            "CsWinRT",
+            "dotnet-apiport-ui",
+            "dotnet-apiport",
+            "dotnet-framework-docker",
+            "perfview",
+            "setup-msbuild",
         ]
     }
 ]
