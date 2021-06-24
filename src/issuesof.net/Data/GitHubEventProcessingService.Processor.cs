@@ -8,7 +8,6 @@ using IssueDb;
 using IssueDb.Crawling;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 
 using Terrajobst.GitHubEvents;
 
