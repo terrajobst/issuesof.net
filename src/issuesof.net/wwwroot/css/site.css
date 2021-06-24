@@ -153,6 +153,13 @@ pre {
     background-color: var(--light);
 }
 
+.alert pre {
+    margin: 0;
+    padding: 0;
+    background: unset;
+    color: var(--dark);
+}
+
 @media (prefers-color-scheme: dark) {
 
     a:hover {
