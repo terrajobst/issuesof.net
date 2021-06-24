@@ -160,6 +160,8 @@ namespace IssuesOfDotNet.Data
                     return;
 
                 var crawledRepo = new CrawledRepo();
+                crawledRepo.Id = repository.Id;
+                crawledRepo.Size = repository.Size;
 
                 UpdateRepo(repository, crawledRepo);
 
@@ -232,6 +234,7 @@ namespace IssuesOfDotNet.Data
             private static CrawledLabel CreateLabel(CrawledRepo crawledRepo, GitHubEventLabel label)
             {
                 var crawledLabel = new CrawledLabel();
+                crawledLabel.Id = label.Id;
                 UpdateLabel(label, crawledLabel);
 
                 crawledRepo.Labels = crawledRepo.Labels.CopyAndAdd(crawledLabel);
@@ -335,6 +338,8 @@ namespace IssuesOfDotNet.Data
             private static CrawledMilestone CreateMilestone(CrawledRepo crawledRepo, GitHubEventMilestone milestone)
             {
                 var crawledMilestone = new CrawledMilestone();
+                crawledMilestone.Id = milestone.Id;
+                crawledMilestone.Number = milestone.Number;
                 UpdateMilestone(milestone, crawledMilestone);
 
                 crawledRepo.Milestones = crawledRepo.Milestones.CopyAndAdd(crawledMilestone);
@@ -433,6 +438,7 @@ namespace IssuesOfDotNet.Data
                     return;
 
                 var crawledIssue = new CrawledIssue();
+                crawledIssue.Id = issueOrPullRequest.Id;
                 crawledIssue.Repo = crawledRepo;
                 crawledIssue.Number = issueOrPullRequest.Number;
                 crawledIssue.CreatedAt = issueOrPullRequest.CreatedAt;
