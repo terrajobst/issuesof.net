@@ -625,13 +625,14 @@ namespace IssuesOfDotNet.Data
                 if (!crawledRepo.Issues.TryGetValue(issue.Number, out var crawledIssue))
                     return;
 
-                var newCrawledRepo = index.Repos.SingleOrDefault(r => r.Id == repository.Id);
+                var newCrawledRepo = index.Repos.SingleOrDefault(r => r.Id == newRepository.Id);
                 if (newCrawledRepo is null)
                     return;
 
                 var oldTrieTerms = crawledIssue.GetTrieTerms();
 
                 crawledRepo.Issues.Remove(crawledIssue.Number);
+                crawledIssue.Id = newIssue.Id;
                 crawledIssue.Number = newIssue.Number;
                 crawledIssue.Repo = newCrawledRepo;
                 newCrawledRepo.Issues[crawledIssue.Number] = crawledIssue;
