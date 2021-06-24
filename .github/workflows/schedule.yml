@@ -22,4 +22,4 @@ jobs:
         AzureStorageConnectionString: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
       run: |
         cd src/ghcrawler
-        dotnet run -- --org aspnet dotnet nuget xamarin
+        dotnet run -- --subscriptions

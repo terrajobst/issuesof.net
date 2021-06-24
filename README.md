@@ -66,5 +66,4 @@ In order to add a new org, you need to:
 
 1. Install the [GitHub App](https://github.com/apps/issues-of-net/installations/new)
    into the org
-2. Add the org to the [workflow indexing](.github/workflows/schedule.yml#L25)
-3. Add the org to the [IsKnownOrg() method](src/issuesof.net/Data/EventService.cs)
+2. Add the org/repo to [subscriptions.json](subscriptions.json)

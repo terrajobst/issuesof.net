@@ -27,12 +27,8 @@ namespace IssuesOfDotNet.Crawler
         {
             //args = new[]
             //{
-            //    "--org",
-            //    "aspnet",
-            //    "dotnet",
-            //    "nuget",
-            //    "--filter",
-            //    "dotnet/runtime",
+            //    "--subscriptions"
+            //    //"dotnet/runtime",
             //    //"--reindex",
             //    //"--starting-repo",
             //    //"dotnet/docfx",
@@ -43,28 +39,41 @@ namespace IssuesOfDotNet.Crawler
             //};
 
             var appName = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
-            var orgs = new List<string>();
-            var includedRepos = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            var repoSpecs = new List<string>();
             var outputPath = "";
             var reindex = false;
             var pullLatest = true;
             var uploadToAzure = true;
             var startingRepoName = (string)null;
-            var help = false;
-            var activeTerms = (ICollection<string>)null;
+            var help = args.Length == 0;
+            var useSubscriptions = false;
 
             var options = new OptionSet
             {
-                $"usage: {appName} [OPTIONS]+",
-                { "org", "The names of the GitHub orgs to index", v => activeTerms = orgs },
-                { "filter", "The list of repos to include", v => activeTerms = includedRepos },
+                $"usage: {appName} <repo-spec>... [OPTIONS]+",
+                $"",
+                $"Examples:",
+                $"      {appName} dotnet aspnet",
+                $"",
+                $"             Indexes all public repos in the dotnet and aspnet orgs",
+                $"",
+                $"      {appName} dotnet microsoft/CsWinRT microsoft/MSBuild",
+                $"",
+                $"             Indexes all public repos in the dotnet orgs and the CsWinRT",
+                $"             and MSBuild repos in the Microsoft org.",
+                $"",
+                $"<repo-spec> can be of the following forms:",
+                $"      owner                  Indexes all public repos of the owner",
+                $"      owner/repo             Indexes only the one repo, if it is public",
+                $"",
+                $"Options:",
+                { "subscriptions", "Indicates whether to use the built-in subscriptions or not", v => useSubscriptions = true },
                 { "out=", "The output {path} the index should be written to", v => outputPath = v },
                 { "reindex", "Specifies that the repo should be reindexed", v => reindex = true },
                 { "starting-repo=", "The starting {repo} to re-index", v => startingRepoName = v },
                 { "no-pull-latest", null, v => pullLatest = false, true },
                 { "no-upload", null, v => uploadToAzure = false, true },
                 { "h|?|help", null, v => help = true, true },
-                { "<>", v => activeTerms?.Add(v) },
                 new ResponseFileSource()
             };
 
@@ -77,8 +86,16 @@ namespace IssuesOfDotNet.Crawler
                     options.WriteOptionDescriptions(Console.Error);
                     return 0;
                 }
+                
+                var unprocessed = new List<string>();
 
-                var unprocessed = parameters;
+                foreach (var parameter in parameters)
+                {
+                    if (!char.IsLetter(parameter[0]))
+                        unprocessed.Add(parameter);
+                    else
+                        repoSpecs.Add(parameter);
+                }
 
                 if (unprocessed.Any())
                 {
@@ -93,11 +110,12 @@ namespace IssuesOfDotNet.Crawler
                 return 1;
             }
 
-            if (orgs.Count == 0)
-            {
-                Console.Error.WriteLine($"error: must specify --org");
-                return 1;
-            }
+            var subscriptionList = useSubscriptions
+                ? CrawledSubscriptionList.CreateDefault()        
+                : new CrawledSubscriptionList();
+
+            foreach (var repoSpec in repoSpecs)
+                subscriptionList.Add(repoSpec);
 
             if (reindex && !pullLatest)
             {
@@ -113,7 +131,7 @@ namespace IssuesOfDotNet.Crawler
 
             try
             {
-                await RunAsync(orgs, includedRepos, reindex, pullLatest, uploadToAzure, startingRepoName, outputPath);
+                await RunAsync(subscriptionList, reindex, pullLatest, uploadToAzure, startingRepoName, outputPath);
                 return 0;
             }
             catch (Exception ex) when (!Debugger.IsAttached)
@@ -123,7 +141,7 @@ namespace IssuesOfDotNet.Crawler
             }
         }
 
-        private static async Task RunAsync(IEnumerable<string> orgs, SortedSet<string> includedRepos, bool reindex, bool pullLatest, bool uploadToAzure, string startingRepoName, string outputPath)
+        private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool uploadToAzure, string startingRepoName, string outputPath)
         {
             var connectionString = GetAzureStorageConnectionString();
 
@@ -145,7 +163,7 @@ namespace IssuesOfDotNet.Crawler
 
                 await foreach (var blob in cacheContainerClient.GetBlobsAsync())
                 {
-                    if (includedRepos.Count > 0 && !includedRepos.Contains(blob.Name.Replace(".crcache", "")))
+                    if (subscriptionList.Contains(blob.Name.Replace(".crcache", "")))
                         continue;
 
                     if (blob.Name == startingBlobName)
@@ -177,7 +195,7 @@ namespace IssuesOfDotNet.Crawler
 
             var reachedStartingRepo = false;
 
-            foreach (var org in orgs)
+            foreach (var org in subscriptionList.Orgs)
             {
                 var orgDirectory = Path.Join(tempDirectory, org);
                 Directory.CreateDirectory(orgDirectory);
@@ -221,7 +239,7 @@ namespace IssuesOfDotNet.Crawler
 
                     foreach (var repo in availableRepos)
                     {
-                        if (includedRepos.Count > 0 && !includedRepos.Contains($"{org}/{repo.Name}"))
+                        if (!subscriptionList.Contains(org, repo.Name))
                             continue;
 
                         var blobName = $"{org}/{repo.Name}.crcache";

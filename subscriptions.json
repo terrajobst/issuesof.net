@@ -1,0 +1,26 @@
+/*
+    This file stores the orgs/repos that are being indexed by issuesof.net.
+
+    If you don't specify a list of repos, it will index the entire list of public repos.
+    Internal or private repos are ignored, even if specified explicitly.
+*/
+[
+    {
+        "org": "aspnet"
+    },
+    {
+        "org": "dotnet"
+    },
+    {
+        "org": "nuget"
+    },
+    {
+        "org": "xamarin"
+    },
+    {
+        "org": "microsoft",
+        "repos": [
+            "CsWinRT"
+        ]
+    }
+]

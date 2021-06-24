@@ -9,4 +9,8 @@
     <PackageReference Include="Markdig" Version="0.24.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="../../subscriptions.json" />
+  </ItemGroup>
+
 </Project>
