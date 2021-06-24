@@ -44,8 +44,8 @@ namespace IssueDb.Crawling
 
         [JsonIgnore]
         public string Url => IsPullRequest
-                                ? $"https://github.com/{Repo.Org}/{Repo.Name}/issues/{Number}"
-                                : $"https://github.com/{Repo.Org}/{Repo.Name}/pull/{Number}";
+                                ? $"https://github.com/{Repo.Org}/{Repo.Name}/pull/{Number}"
+                                : $"https://github.com/{Repo.Org}/{Repo.Name}/issues/{Number}";
 
         [JsonIgnore]
         public IEnumerable<string> Areas => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name));
