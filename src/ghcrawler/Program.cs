@@ -27,7 +27,7 @@ namespace IssuesOfDotNet.Crawler
         {
             //args = new[]
             //{
-            //    "--subscriptions"
+            //    "--subscriptions",
             //    //"dotnet/runtime",
             //    //"--reindex",
             //    //"--starting-repo",

@@ -86,10 +86,10 @@ namespace IssueDb.Crawling
             }
         }
 
-        internal sealed class SubscriptionEntry
+        private sealed class SubscriptionEntry
         {
-            public string Org { get; }
-            public string[] Repos { get; }
+            public string Org { get; set; }
+            public string[] Repos { get; set; }
 
             public static SubscriptionEntry[] Load()
             {
