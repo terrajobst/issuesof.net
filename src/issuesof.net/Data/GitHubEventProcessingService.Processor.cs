@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 using IssueDb;
 using IssueDb.Crawling;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 using Terrajobst.GitHubEvents;
 
@@ -31,17 +33,135 @@ namespace IssuesOfDotNet.Data
                 _indexService = indexService;
             }
 
+            public override void Process(IDictionary<string, StringValues> headers, string body)
+            {
+                var sb = new StringBuilder();
+                foreach (var (key, value) in headers)
+                {
+                    sb.AppendLine($"{key} = {value}");
+                }
+
+                sb.AppendLine();
+                sb.Append(body);
+
+                _logger.LogInformation("Processing {Message}", sb.ToString());
+
+                base.Process(headers, body);
+            }
+
             public override void ProcessMessage(GitHubEventMessage message)
             {
-                _logger.LogInformation($"Processing message {message}");
-
                 try
                 {
                     base.ProcessMessage(message);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error processing message {message}");
+                    var sb = new StringBuilder();
+                    var args = new List<object>();
+
+                    sb.Append("Error processing message");
+
+                    sb.Append(", Delivery={Delivery}");
+                    args.Add(message.Headers.Delivery);
+
+                    if (message.Headers.Event is not null)
+                    {
+                        sb.Append(", Event={Event}");
+                        args.Add(message.Headers.Event);
+                    }
+
+                    if (message.Body.Action is not null)
+                    {
+                        sb.Append(", Action={Action}");
+                        args.Add(message.Body.Action);
+                    }
+
+                    if (message.Body.Organization is not null)
+                    {
+                        sb.Append(", Org={Org}");
+                        args.Add(message.Body.Organization.Login);
+
+                        sb.Append(", OrgId={OrgId}");
+                        args.Add(message.Body.Organization.Id);
+                    }
+
+                    if (message.Body.Repository is not null)
+                    {
+                        sb.Append(", Repo={Repo}");
+                        args.Add(message.Body.Repository.Name);
+
+                        sb.Append(", RepoId={RepoId}");
+                        args.Add(message.Body.Repository.Id);
+                    }
+
+                    if (message.Body.Issue is not null)
+                    {
+                        sb.Append(", Issue={Issue}");
+                        args.Add(message.Body.Issue.Number);
+
+                        sb.Append(", IssueId={IssueId}");
+                        args.Add(message.Body.Issue.Id);
+                    }
+
+                    if (message.Body.PullRequest is not null)
+                    {
+                        sb.Append(", PullRequest={PullRequest}");
+                        args.Add(message.Body.PullRequest.Number);
+
+                        sb.Append(", PullRequestId={PullRequestId}");
+                        args.Add(message.Body.PullRequest.Id);
+                    }
+
+                    if (message.Body.Label is not null)
+                    {
+                        sb.Append(", Label={Label}");
+                        args.Add(message.Body.Label.Name);
+
+                        sb.Append(", LabelId={LabelId}");
+                        args.Add(message.Body.Label.Id);
+                    }
+
+                    if (message.Body.Milestone is not null)
+                    {
+                        sb.Append(", Milestone={Milestone}");
+                        args.Add(message.Body.Milestone.Title);
+
+                        sb.Append(", MilestoneId={MilestoneId}");
+                        args.Add(message.Body.Milestone.Id);
+                    }
+
+                    if (message.Body.Assignee is not null)
+                    {
+                        sb.Append(", Assignee={Assignee}");
+                        args.Add(message.Body.Assignee.Login);
+
+                        sb.Append(", AssigneeId={AssigneeId}");
+                        args.Add(message.Body.Assignee.Id);
+                    }
+
+                    if (message.Body.Comment is not null)
+                    {
+                        sb.Append(", Comment={Comment}");
+                        args.Add(message.Body.Comment.Id);
+                    }
+
+                    if (message.Body.Sender is not null)
+                    {
+                        sb.Append(", Sender={Sender}");
+                        args.Add(message.Body.Sender.Login);
+
+                        sb.Append(", SenderId={SenderId}");
+                        args.Add(message.Body.Sender.Id);
+                    }
+
+                    if (message.Body.Installation is not null)
+                    {
+                        sb.Append(", Installation={Installation}");
+                        args.Add(message.Body.Installation.Id);
+                    }
+
+                    _logger.LogError(ex, sb.ToString(), args.ToArray());
                 }
             }
 
