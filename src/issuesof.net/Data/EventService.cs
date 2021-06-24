@@ -1,5 +1,4 @@
-﻿using System;
-using IssueDb.Crawling;
+﻿using IssueDb.Crawling;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 
