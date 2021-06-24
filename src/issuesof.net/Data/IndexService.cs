@@ -37,7 +37,7 @@ namespace IssuesOfDotNet.Data
 
         public void Reload()
         {
-            Exeption = null;
+            Exception = null;
             Index = null;
             IndexStats = Array.Empty<RepoStats>();
 
@@ -75,13 +75,13 @@ namespace IssuesOfDotNet.Data
                         Index = await CrawledIndex.LoadAsync(indexFile);
                     }
 
-                    Exeption = null;
+                    Exception = null;
                     ProgressText = null;
                 }
                 catch (Exception ex) when (!Debugger.IsAttached)
                 {
                     _logger.LogError(ex, "Error during index loading");
-                    Exeption = ex;
+                    Exception = ex;
                     Index = new CrawledIndex();
                     ProgressText = string.Empty;
                 }
@@ -126,7 +126,7 @@ namespace IssuesOfDotNet.Data
             }
         }
 
-        public Exception Exeption { get; private set; }
+        public Exception Exception { get; private set; }
 
         public CrawledIndex Index { get; private set; }
 

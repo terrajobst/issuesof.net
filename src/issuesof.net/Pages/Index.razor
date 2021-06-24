@@ -2,16 +2,14 @@
 
 @using IssueDb.Querying;
 
-@if (IndexService.Exeption is not null)
+@if (IndexService.Exception is not null)
 {
     <div class="alert alert-danger">
+        <p>An error during loading occured.</p>
+
         @if (IsDevelopment)
         {
-            <pre>@IndexService.Exeption.ToString()</pre>
-        }
-        else
-        {
-            <text>An error during loading occured.</text>
+            <pre>@IndexService.Exception.ToString()</pre>
         }
     </div>
 }
