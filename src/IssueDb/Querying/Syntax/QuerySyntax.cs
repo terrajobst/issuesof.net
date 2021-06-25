@@ -7,6 +7,16 @@ namespace IssueDb.Querying.Syntax
 {
     public abstract partial class QuerySyntax : QueryNodeOrToken
     {
+        public static string EscapeValue(string text)
+        {
+            // TODO: Do we need to escape anything else?
+
+            if (!text.Contains(" "))
+                return text;
+
+            return $"\"{text}\"";
+        }
+
         public static QuerySyntax Parse(string text)
         {
             var tokens = Lexer.Tokenize(text)

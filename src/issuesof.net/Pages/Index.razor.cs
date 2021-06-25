@@ -2,10 +2,12 @@
 using System.Threading.Tasks;
 
 using IssueDb.Crawling;
+using IssueDb.Querying.Syntax;
 
 using IssuesOfDotNet.Data;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
@@ -55,6 +57,7 @@ namespace IssuesOfDotNet.Pages
         protected override void OnInitialized()
         {
             IndexService.Changed += IndexService_Changed;
+            NavigationManager.LocationChanged += NavigationManager_LocationChanged;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -70,6 +73,7 @@ namespace IssuesOfDotNet.Pages
         public void Dispose()
         {
             IndexService.Changed -= IndexService_Changed;
+            NavigationManager.LocationChanged -= NavigationManager_LocationChanged;
         }
 
         private void IndexService_Changed(object sender, EventArgs e)
@@ -78,6 +82,14 @@ namespace IssuesOfDotNet.Pages
             {
                 ApplyQueryParameters();
             });
+        }
+
+        private async void NavigationManager_LocationChanged(object sender, LocationChangedEventArgs e)
+        {
+            var beforeSearchText = _searchText;
+            ApplyQueryParameters();
+            if (_searchText != beforeSearchText)
+                await JSRuntime.InvokeVoidAsync("setCodeMirrorText", _searchText);
         }
 
         private void ApplyQueryParameters()
@@ -115,7 +127,7 @@ namespace IssuesOfDotNet.Pages
             return SearchService.Search(searchText);
         }
 
-        private async void ChangeUrl()
+        private async void ChangeUrl(bool recordHistory = false)
         {
             var isDefaultQuery = (string.IsNullOrEmpty(_searchText) ||
                                   _searchText.Trim() == _defaultSearch) &&
@@ -142,7 +154,7 @@ namespace IssuesOfDotNet.Pages
             await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",
                                             uri.ToString(),
                                             /* forceLoad */ false,
-                                            /* replace */ true);
+                                            /* replace */ !recordHistory);
         }
 
         private void CollapseAll()
@@ -160,6 +172,18 @@ namespace IssuesOfDotNet.Pages
         private string GetDownloadLink()
         {
             return $"download/?q={Uri.EscapeDataString(_searchText ?? _defaultSearch)}";
+        }
+
+        private async void GoToLabel(string labelName)
+        {
+            var labelQuery = "label:" + QuerySyntax.EscapeValue(labelName);
+            if (!_searchText.Contains(labelQuery))
+            {
+                SearchResults = Find(_searchText + " " + labelQuery);
+                PageNumber = 1;
+                ChangeUrl(recordHistory: true);
+                await JSRuntime.InvokeVoidAsync("setCodeMirrorText", _searchText);
+            }
         }
     }
 }

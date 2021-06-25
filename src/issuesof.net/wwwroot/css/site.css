@@ -93,6 +93,10 @@ html, body {
     border-color: hsla(var(--label-h),calc(var(--label-s)*1%),calc((var(--label-l) - 25)*1%),var(--border-alpha));
 }
 
+.gh-label:hover {
+    cursor: pointer;
+}
+
 .gh-table-header {
     padding: 8px;
     border-top-left-radius: 4px;

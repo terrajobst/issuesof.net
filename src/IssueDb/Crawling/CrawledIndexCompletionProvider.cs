@@ -4,6 +4,7 @@ using System.Linq;
 
 using IssueDb.Querying;
 using IssueDb.Querying.Completion;
+using IssueDb.Querying.Syntax;
 
 namespace IssueDb.Crawling
 {
@@ -87,7 +88,7 @@ namespace IssueDb.Crawling
                 if (!c.StartsWith(value, StringComparison.OrdinalIgnoreCase))
                     yield break;
 
-                yield return Escape(c);
+                yield return QuerySyntax.EscapeValue(c);
             }
         }
 
@@ -109,15 +110,6 @@ namespace IssueDb.Crawling
 
                 yield return keyword;
             }
-        }
-
-        // TODO: Do we need to escape anything else?
-        private static string Escape(string text)
-        {
-            if (!text.Contains(" "))
-                return text;
-
-            return $"\"{text}\"";
         }
     }
 }

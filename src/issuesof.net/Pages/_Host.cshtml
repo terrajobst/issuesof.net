@@ -53,6 +53,11 @@
                 dotNetObjRef.invokeMethodAsync('Search', text);
             }
         }
+        window.setCodeMirrorText = function(text) {
+            var codeMirror = document.querySelector('.CodeMirror');
+            if (codeMirror)
+                codeMirror.CodeMirror.setValue(text);
+        }
     </script>
     <script src="~/lib/codemirror/codemirror.min.js"></script>
     <script src="~/lib/codemirror/addon/hint/show-hint.min.js"></script>
