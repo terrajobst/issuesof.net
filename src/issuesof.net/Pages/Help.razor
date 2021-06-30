@@ -10,7 +10,7 @@
     <h4>Logical Conditions</h4>
 
     <p>
-        Just like in GitHub, all query terms are implicitly combined with a logical <code>AND</code>.
+        Just like in GitHub, all query terms are implicitly combined with a logical <em>and</em>.
         But you can also combine queries using <code>OR</code> and <code>NOT</code>, such as:
     </p>
 <pre class="ml-5"><code>org:dotnet (author:terrajobst <span class="text-primary">OR</span> author:jaredpar) <span class="text-primary">NOT</span> (label:api-ready-for-review <span class="text-primary">OR</span> label:api-needs-work)</code></pre>
@@ -24,6 +24,11 @@
         so this will show all open issues that aren't labelled as bugs:
     </p>
 <pre class="ml-5"><code>is:open is:issue <span class="text-primary">-</span>label:bug</code></pre>
+    <p class="alert alert-warning">
+        Do not combine query terms using <code>AND</code>. Multiple terms are always combined with a logical
+        <em>and</em> unless you use <code>OR</code>. A specified <code>AND</code> will be interpreted as a text filter
+        (i.e. it will only match issues that contain the word <code>AND</code>).
+    </p>
 
     <h4>Relative Dates</h4>
 
