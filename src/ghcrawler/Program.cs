@@ -163,7 +163,7 @@ namespace IssuesOfDotNet.Crawler
 
                 await foreach (var blob in cacheContainerClient.GetBlobsAsync())
                 {
-                    if (subscriptionList.Contains(blob.Name.Replace(".crcache", "")))
+                    if (!subscriptionList.Contains(blob.Name.Replace(".crcache", "")))
                         continue;
 
                     if (blob.Name == startingBlobName)
