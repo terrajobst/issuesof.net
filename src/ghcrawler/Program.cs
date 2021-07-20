@@ -285,22 +285,27 @@ namespace IssuesOfDotNet.Crawler
                         crawledRepo.AreaOwners = await GetAreaOwnersAsync(org, repo.Name);
                         crawledRepo.Size = repo.Size;
 
-                        var labels = new Dictionary<string, CrawledLabel>();
+                        // We fetch those from scratch every time
+
+                        crawledRepo.Labels.Clear();
+                        crawledRepo.Milestones.Clear();
+
+                        var labels = new Dictionary<long, CrawledLabel>();
 
                         foreach (var label in await RequestLabelsAsync(factory, client, org, repo.Name))
                         {
                             var crawledLabel = ConvertLabel(label);
-                            labels[label.Name] = crawledLabel;
-                            crawledRepo.Labels = crawledRepo.Labels.CopyAndAdd(crawledLabel);
+                            labels[label.Id] = crawledLabel;
+                            crawledRepo.Labels.Add(crawledLabel);
                         }
 
-                        var milestones = new Dictionary<int, CrawledMilestone>();
+                        var milestones = new Dictionary<long, CrawledMilestone>();
 
                         foreach (var milestone in await RequestMilestonesAsync(factory, client, org, repo.Name))
                         {
                             var crawledMilestone = ConvertMilestone(milestone);
-                            milestones[milestone.Number] = crawledMilestone;
-                            crawledRepo.Milestones = crawledRepo.Milestones.CopyAndAdd(crawledMilestone);
+                            milestones[milestone.Id] = crawledMilestone;
+                            crawledRepo.Milestones.Add(crawledMilestone);
                         }
 
                         // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
@@ -526,7 +531,7 @@ namespace IssuesOfDotNet.Crawler
             };
         }
 
-        private static CrawledIssue ConvertIssue(CrawledRepo repo, Issue issue, Dictionary<string, CrawledLabel> labels, Dictionary<int, CrawledMilestone> milestones)
+        private static CrawledIssue ConvertIssue(CrawledRepo repo, Issue issue, Dictionary<long, CrawledLabel> labels, Dictionary<long, CrawledMilestone> milestones)
         {
             return new CrawledIssue
             {
@@ -541,7 +546,7 @@ namespace IssuesOfDotNet.Crawler
                 ClosedAt = issue.ClosedAt,
                 CreatedBy = issue.User.Login,
                 Assignees = ConvertUsers(issue.Assignees),
-                Labels = ConvertLabels(issue.Labels, labels),
+                Labels = GetLabels(issue.Labels, labels),
                 Milestone = GetMilestone(issue.Milestone, milestones),
                 IsLocked = issue.Locked,
                 Comments = issue.Comments,
@@ -571,21 +576,21 @@ namespace IssuesOfDotNet.Crawler
                             .ToArray();
         }
 
-        private static CrawledLabel[] ConvertLabels(IReadOnlyList<Label> labels, Dictionary<string, CrawledLabel> crawledLabels)
+        private static CrawledLabel[] GetLabels(IReadOnlyList<Label> labels, Dictionary<long, CrawledLabel> crawledLabels)
         {
             var result = new List<CrawledLabel>();
             foreach (var label in labels)
             {
-                if (crawledLabels.TryGetValue(label.Name, out var crawledLabel))
+                if (crawledLabels.TryGetValue(label.Id, out var crawledLabel))
                     result.Add(crawledLabel);
             }
 
             return result.ToArray();
         }
 
-        private static CrawledMilestone GetMilestone(Milestone milestone, Dictionary<int, CrawledMilestone> milestones)
+        private static CrawledMilestone GetMilestone(Milestone milestone, Dictionary<long, CrawledMilestone> milestones)
         {
-            if (milestone != null && milestones.TryGetValue(milestone.Number, out var crawledMilestone))
+            if (milestone != null && milestones.TryGetValue(milestone.Id, out var crawledMilestone))
                 return crawledMilestone;
 
             return null;
