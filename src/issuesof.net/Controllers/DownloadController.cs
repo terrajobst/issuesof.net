@@ -41,6 +41,24 @@ namespace IssuesOfDotNet.Controllers
                 writer.Write("Number");
                 writer.Write(",");
                 writer.Write("Title");
+                writer.Write(",");
+                writer.Write("Comments");
+                writer.Write(",");
+                writer.Write("ReactionsPlus1");
+                writer.Write(",");
+                writer.Write("ReactionsMinus1");
+                writer.Write(",");
+                writer.Write("ReactionsSmile");
+                writer.Write(",");
+                writer.Write("ReactionsTada");
+                writer.Write(",");
+                writer.Write("ReactionsThinkingFace");
+                writer.Write(",");
+                writer.Write("ReactionsHeart");
+                writer.Write(",");
+                writer.Write("Reactions");
+                writer.Write(",");
+                writer.Write("Interactions");
 
                 var sb = new StringBuilder();
 
@@ -133,6 +151,24 @@ namespace IssuesOfDotNet.Controllers
                     writer.Write(issue.Number);
                     writer.Write(",");
                     writer.Write(Escape(sb, issue.Title));
+                    writer.Write(",");
+                    writer.Write(issue.Comments);
+                    writer.Write(",");
+                    writer.Write(issue.ReactionsPlus1);
+                    writer.Write(",");
+                    writer.Write(issue.ReactionsMinus1);
+                    writer.Write(",");
+                    writer.Write(issue.ReactionsSmile);
+                    writer.Write(",");
+                    writer.Write(issue.ReactionsTada);
+                    writer.Write(",");
+                    writer.Write(issue.ReactionsThinkingFace);
+                    writer.Write(",");
+                    writer.Write(issue.ReactionsHeart);
+                    writer.Write(",");
+                    writer.Write(issue.Reactions);
+                    writer.Write(",");
+                    writer.Write(issue.Interactions);
 
                     foreach (var groupValue in groupValues)
                     {
