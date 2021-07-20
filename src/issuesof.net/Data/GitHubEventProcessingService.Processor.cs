@@ -443,7 +443,7 @@ namespace IssuesOfDotNet.Data
                 {
                     var label1 = matchingLabels[0];
                     var label2 = matchingLabels[1];
-                    _logger.LogError("In repo {org}/{repo} multiple labels have id {labelId}: '{label1Name}', '{label2Name}'", repository.Owner, repository.Name, label.Id, label1.Name, label2.Name);
+                    _logger.LogError("In repo {org}/{repo} multiple labels have id {labelId}: '{label1Name}', '{label2Name}'", crawledRepo.Org, crawledRepo.Name, label.Id, label1.Name, label2.Name);
                 }
 
                 return matchingLabels[0];
@@ -560,7 +560,7 @@ namespace IssuesOfDotNet.Data
                 {
                     var milestone1 = matchingMilestones[0];
                     var milestone2 = matchingMilestones[1];
-                    _logger.LogError("In repo {org}/{repo} multiple milestones have id {milestoneId}: '{milestone1Name}', '{milestone2Name}'", repository.Owner, repository.Name, milestone.Id, milestone1.Title, milestone2.Title);
+                    _logger.LogError("In repo {org}/{repo} multiple milestones have id {milestoneId}: '{milestone1Name}', '{milestone2Name}'", crawledRepo.Org, crawledRepo.Name, milestone.Id, milestone1.Title, milestone2.Title);
                 }
 
                 return matchingMilestones[0];
