@@ -435,8 +435,18 @@ namespace IssuesOfDotNet.Data
                 var crawledRepo = index.Repos.SingleOrDefault(r => r.Id == repository.Id);
                 Debug.Assert(crawledRepo is not null);
 
-                var crawledLabel = crawledRepo.Labels.SingleOrDefault(l => l.Id == label.Id);
-                return crawledLabel is not null ? crawledLabel : CreateLabel(crawledRepo, label);
+                var matchingLabels = crawledRepo.Labels.Where(l => l.Id == label.Id).ToArray();
+                if (matchingLabels.Length == 0)
+                    return CreateLabel(crawledRepo, label);
+
+                if (matchingLabels.Length > 1)
+                {
+                    var label1 = matchingLabels[0];
+                    var label2 = matchingLabels[1];
+                    _logger.LogError("In repo {org}/{repo} multiple labels have id {labelId}: '{label1Name}', '{label2Name}'", repository.Owner, repository.Name, label.Id, label1.Name, label2.Name);
+                }
+
+                return matchingLabels[0];
             }
 
             private void AddMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
@@ -542,8 +552,18 @@ namespace IssuesOfDotNet.Data
                 var crawledRepo = index.Repos.SingleOrDefault(r => r.Id == repository.Id);
                 Debug.Assert(crawledRepo is not null);
 
-                var crawledMilestone = crawledRepo.Milestones.SingleOrDefault(m => m.Id == milestone.Id);
-                return crawledMilestone is not null ? crawledMilestone : CreateMilestone(crawledRepo, milestone);
+                var matchingMilestones = crawledRepo.Milestones.Where(m => m.Id == milestone.Id).ToArray();
+                if (matchingMilestones.Length == 0)
+                    return CreateMilestone(crawledRepo, milestone);
+
+                if (matchingMilestones.Length > 1)
+                {
+                    var milestone1 = matchingMilestones[0];
+                    var milestone2 = matchingMilestones[1];
+                    _logger.LogError("In repo {org}/{repo} multiple milestones have id {milestoneId}: '{milestone1Name}', '{milestone2Name}'", repository.Owner, repository.Name, milestone.Id, milestone1.Title, milestone2.Title);
+                }
+
+                return matchingMilestones[0];
             }
 
             private void AddIssueOrPullRequest(GitHubEventRepository repository, GitHubEventIssueOrPullRequest issueOrPullRequest)
