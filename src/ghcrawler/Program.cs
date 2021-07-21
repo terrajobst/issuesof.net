@@ -285,28 +285,13 @@ namespace IssuesOfDotNet.Crawler
                         crawledRepo.AreaOwners = await GetAreaOwnersAsync(org, repo.Name);
                         crawledRepo.Size = repo.Size;
 
-                        // We fetch those from scratch every time
+                        var currentLabels = await RequestLabelsAsync(factory, client, org, repo.Name);
 
-                        crawledRepo.Labels.Clear();
-                        crawledRepo.Milestones.Clear();
+                        SyncLabels(crawledRepo, currentLabels, out var labelById);
 
-                        var labels = new Dictionary<long, CrawledLabel>();
+                        var currentMilestones = await RequestMilestonesAsync(factory, client, org, repo.Name);
 
-                        foreach (var label in await RequestLabelsAsync(factory, client, org, repo.Name))
-                        {
-                            var crawledLabel = ConvertLabel(label);
-                            labels[label.Id] = crawledLabel;
-                            crawledRepo.Labels.Add(crawledLabel);
-                        }
-
-                        var milestones = new Dictionary<long, CrawledMilestone>();
-
-                        foreach (var milestone in await RequestMilestonesAsync(factory, client, org, repo.Name))
-                        {
-                            var crawledMilestone = ConvertMilestone(milestone);
-                            milestones[milestone.Id] = crawledMilestone;
-                            crawledRepo.Milestones.Add(crawledMilestone);
-                        }
+                        SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
 
                         // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
                         //
@@ -320,7 +305,7 @@ namespace IssuesOfDotNet.Crawler
 
                         foreach (var issue in await RequestIssuesAsync(factory, client, org, repo.Name, since))
                         {
-                            var crawledIssue = ConvertIssue(crawledRepo, issue, labels, milestones);
+                            var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
                             crawledRepo.Issues[issue.Number] = crawledIssue;
                         }
 
@@ -507,6 +492,91 @@ namespace IssuesOfDotNet.Crawler
                     await factory.RefreshTokenAsync(client);
                 }
             }
+        }
+
+
+        private static void SyncLabels(CrawledRepo crawledRepo, IReadOnlyList<Label> gitHubLabels, out Dictionary<long, CrawledLabel> labelById)
+        {
+            // TODO: This logic feels similar to what we do in the web site. Should we reconcile this?
+
+            var crawledLabelById = crawledRepo.Labels.ToDictionary(l => l.Id);
+            var gitHubLabelById = gitHubLabels.ToDictionary(l => l.Id);
+
+            foreach (var gitHubLabel in gitHubLabels)
+            {
+                if (crawledLabelById.TryGetValue(gitHubLabel.Id, out var crawledLabel))
+                {
+                    // Update
+                    crawledLabel.Name = gitHubLabel.Name;
+                    crawledLabel.Description = gitHubLabel.Description;
+                    crawledLabel.ColorText = gitHubLabel.Color;
+                }
+                else
+                {
+                    // Create
+                    crawledLabel = ConvertLabel(gitHubLabel);
+                    crawledRepo.Labels.Add(crawledLabel);
+                    crawledLabelById.Add(crawledLabel.Id, crawledLabel);
+                }
+            }
+
+            foreach (var crawledLabel in crawledRepo.Labels.Where(l => !gitHubLabelById.ContainsKey(l.Id)))
+            {
+                // Delete
+                crawledRepo.Labels.Remove(crawledLabel);
+
+                foreach (var issue in crawledRepo.Issues.Values)
+                {
+                    if (issue.Labels.Contains(crawledLabel))
+                    {
+                        var newLabels = issue.Labels.ToList();
+                        newLabels.Remove(crawledLabel);
+                        issue.Labels = newLabels.ToArray();
+                    }
+                }
+            }
+
+            labelById = crawledLabelById;
+        }
+
+        private static void SyncMilestones(CrawledRepo crawledRepo, IReadOnlyList<Milestone> gitHubMilestones, out Dictionary<long, CrawledMilestone> milestoneById)
+        {
+            // TODO: This logic feels similar to what we do in the web site. Should we reconcile this?
+
+            var crawledMilestoneById = crawledRepo.Milestones.ToDictionary(l => l.Id);
+            var gitHubMilestoneById = gitHubMilestones.ToDictionary(l => l.Id);
+
+            foreach (var gitHubMilestone in gitHubMilestones)
+            {
+                if (crawledMilestoneById.TryGetValue(gitHubMilestone.Id, out var crawledMilestone))
+                {
+                    // Update
+                    crawledMilestone.Title = gitHubMilestone.Title;
+                    crawledMilestone.Description = gitHubMilestone.Description;
+                    crawledMilestone.Number = gitHubMilestone.Number;
+                }
+                else
+                {
+                    // Create
+                    crawledMilestone = ConvertMilestone(gitHubMilestone);
+                    crawledRepo.Milestones.Add(crawledMilestone);
+                    crawledMilestoneById.Add(crawledMilestone.Id, crawledMilestone);
+                }
+            }
+
+            foreach (var crawledMilestone in crawledRepo.Milestones.Where(l => !gitHubMilestoneById.ContainsKey(l.Id)))
+            {
+                // Delete
+                crawledRepo.Milestones.Remove(crawledMilestone);
+
+                foreach (var issue in crawledRepo.Issues.Values)
+                {
+                    if (issue.Milestone == crawledMilestone)
+                        issue.Milestone = null;
+                }
+            }
+
+            milestoneById = crawledMilestoneById;
         }
 
         private static CrawledLabel ConvertLabel(Label label)
