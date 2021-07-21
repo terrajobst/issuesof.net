@@ -520,9 +520,13 @@ namespace IssuesOfDotNet.Crawler
                 }
             }
 
-            foreach (var crawledLabel in crawledRepo.Labels.Where(l => !gitHubLabelById.ContainsKey(l.Id)))
+            // Delete
+
+            var toBeDeleted = crawledRepo.Labels.Where(l => !gitHubLabelById.ContainsKey(l.Id))
+                                                .ToArray();
+
+            foreach (var crawledLabel in toBeDeleted)
             {
-                // Delete
                 crawledRepo.Labels.Remove(crawledLabel);
 
                 foreach (var issue in crawledRepo.Issues.Values)
@@ -564,9 +568,13 @@ namespace IssuesOfDotNet.Crawler
                 }
             }
 
-            foreach (var crawledMilestone in crawledRepo.Milestones.Where(l => !gitHubMilestoneById.ContainsKey(l.Id)))
+            // Delete
+
+            var toBeDeleted = crawledRepo.Milestones.Where(l => !gitHubMilestoneById.ContainsKey(l.Id))
+                                                    .ToArray();
+
+            foreach (var crawledMilestone in toBeDeleted)
             {
-                // Delete
                 crawledRepo.Milestones.Remove(crawledMilestone);
 
                 foreach (var issue in crawledRepo.Issues.Values)
