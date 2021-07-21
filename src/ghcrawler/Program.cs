@@ -193,7 +193,7 @@ namespace IssuesOfDotNet.Crawler
 
             var repos = new List<CrawledRepo>();
 
-            var reachedStartingRepo = false;
+            var reachedStartingRepo = reindex && startingRepoName is null;
 
             foreach (var org in subscriptionList.Orgs)
             {
@@ -272,9 +272,9 @@ namespace IssuesOfDotNet.Crawler
                         repos.Add(crawledRepo);
 
                         var existingIssues = crawledRepo.Issues.Values;
-                        var since = (!reindex || !reachedStartingRepo) && existingIssues.Any()
-                                        ? existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt)
-                                        : (DateTimeOffset?)null;
+                        var since = reachedStartingRepo || !existingIssues.Any()
+                                        ? (DateTimeOffset?)null
+                                        : existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt);
 
                         if (since is null)
                             Console.WriteLine($"Crawling {org}/{repo.Name}...");
