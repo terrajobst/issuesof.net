@@ -9,7 +9,7 @@ namespace IssueDb.Crawling
 {
     // TODO: We may want to support private repos
     //
-    //       If we do, we probbly need to store the set of users that have access to that repo
+    //       If we do, we probably need to store the set of users that have access to that repo
     //       so that we can efficiently do access control checks.
     //
     //       Hopefully, GitHub apps have a hook that lets us know when access permissions for
