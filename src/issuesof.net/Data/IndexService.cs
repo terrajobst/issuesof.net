@@ -105,7 +105,7 @@ namespace IssuesOfDotNet.Data
                             Org = repo.Org,
                             Repo = repo.Name,
                             Size = repo.Size,
-                            LastUpdatedAt = GetLastUpdatedAt(repo),
+                            LastUpdatedAt = repo.IncrementalUpdateStart,
                             NumberOfOpenIssues = repo.Issues.Values.Count(i => i.IsOpen),
                             NumberOfIssues = repo.Issues.Count
                         };
@@ -115,14 +115,6 @@ namespace IssuesOfDotNet.Data
                 }
 
                 return indexStats.ToArray();
-            }
-
-            static DateTimeOffset? GetLastUpdatedAt(CrawledRepo repo)
-            {
-                if (!repo.Issues.Any())
-                    return null;
-
-                return repo.Issues.Values.Max(i => i.UpdatedAt ?? i.CreatedAt);
             }
         }
 

@@ -43,6 +43,7 @@ namespace IssuesOfDotNet.Crawler
             var outputPath = "";
             var reindex = false;
             var pullLatest = true;
+            var randomReindex = true;
             var uploadToAzure = true;
             var startingRepoName = (string)null;
             var help = args.Length == 0;
@@ -72,6 +73,7 @@ namespace IssuesOfDotNet.Crawler
                 { "reindex", "Specifies that the repo should be reindexed", v => reindex = true },
                 { "starting-repo=", "The starting {repo} to re-index", v => startingRepoName = v },
                 { "no-pull-latest", null, v => pullLatest = false, true },
+                { "no-random-reindex", null, v => randomReindex = false, true },
                 { "no-upload", null, v => uploadToAzure = false, true },
                 { "h|?|help", null, v => help = true, true },
                 new ResponseFileSource()
@@ -131,7 +133,7 @@ namespace IssuesOfDotNet.Crawler
 
             try
             {
-                await RunAsync(subscriptionList, reindex, pullLatest, uploadToAzure, startingRepoName, outputPath);
+                await RunAsync(subscriptionList, reindex, pullLatest, randomReindex, uploadToAzure, startingRepoName, outputPath);
                 return 0;
             }
             catch (Exception ex) when (!Debugger.IsAttached)
@@ -141,8 +143,11 @@ namespace IssuesOfDotNet.Crawler
             }
         }
 
-        private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool uploadToAzure, string startingRepoName, string outputPath)
+        private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool randomReindex, bool uploadToAzure, string startingRepoName, string outputPath)
         {
+            var reindexIntervalInDays = 28;
+            var today = DateTime.Today;
+
             var connectionString = GetAzureStorageConnectionString();
 
             // TODO: We should avoid having to use a temp directory
@@ -269,65 +274,127 @@ namespace IssuesOfDotNet.Crawler
                             };
                         }
 
-                        repos.Add(crawledRepo);
-
-                        var existingIssues = crawledRepo.Issues.Values;
-                        var since = reachedStartingRepo || !existingIssues.Any()
-                                        ? (DateTimeOffset?)null
-                                        : existingIssues.Max(i => i.UpdatedAt ?? i.CreatedAt);
-
-                        if (since is null)
-                            Console.WriteLine($"Crawling {org}/{repo.Name}...");
-                        else
-                            Console.WriteLine($"Crawling {org}/{repo.Name} since {since}...");
-
                         crawledRepo.IsArchived = repo.Archived;
-                        crawledRepo.AreaOwners = await GetAreaOwnersAsync(org, repo.Name);
                         crawledRepo.Size = repo.Size;
 
-                        var currentLabels = await RequestLabelsAsync(factory, client, org, repo.Name);
+                        repos.Add(crawledRepo);
 
-                        SyncLabels(crawledRepo, currentLabels, out var labelById);
+                        var repoIsDueForReindexing = crawledRepo.LastReindex is null ||
+                                                     crawledRepo.LastReindex?.AddDays(reindexIntervalInDays) <= today;
 
-                        var currentMilestones = await RequestMilestonesAsync(factory, client, org, repo.Name);
+                        if (reachedStartingRepo)
+                            Console.WriteLine($"Marking {repo.FullName} to be re-indexed because we reached the starting repo {startingRepoName}.");
 
-                        SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
-
-                        // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
-                        //
-                        // That's the good part. The bad part is that for the new repository where
-                        // it shows up, we have no way of knowing which repo it came from and which
-                        // number it used to have (even when looking at the transferred event data),
-                        // so we can't remove the issue from the source repo.
-                        //
-                        // We probably have to accept that we need to re-index everything every
-                        // once in a while to get rid of transferred issues.
-
-                        foreach (var issue in await RequestIssuesAsync(factory, client, org, repo.Name, since))
+                        if (repoIsDueForReindexing)
                         {
-                            var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
-                            crawledRepo.Issues[issue.Number] = crawledIssue;
+                            if (crawledRepo.LastReindex is null)
+                                Console.WriteLine($"Marking {repo.FullName} to be re-indexed because it was never fully indexed.");
+                            else
+                                Console.WriteLine($"Marking {repo.FullName} to be re-indexed because it was more than {reindexIntervalInDays} days ago, on {crawledRepo.LastReindex}.");
                         }
 
-                        foreach (var pullRequest in await RequestPullRequestsAsync(factory, client, org, repo.Name, since))
-                        {
-                            if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
-                                UpdateIssue(issue, pullRequest);
-
-                            // TODO: Get PR reviews
-                            // TODO: Get PR commits
-                            // TODO: Get PR status
-                        }
-
-                        await crawledRepo.SaveAsync(repoPath);
-
-                        if (uploadToAzure)
-                        {
-                            Console.WriteLine($"Uploading {blobName} to Azure...");
-                            var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
-                            await repoClient.UploadAsync(repoPath, overwrite: true);
-                        }
+                        if (reachedStartingRepo || repoIsDueForReindexing)
+                            crawledRepo.Clear();
                     }
+                }
+            }
+
+            // We want to ensure that all repos are fully-reindexed at least once every four weeks.
+            // That means we need to reindex at least #Repos / 28 per day.
+            //
+            // On top of that, we need to ensure that all repos which were never fully indexed (e.g.
+            // they are new or were forced to be reindexed) are also reindexed.
+
+            if (randomReindex)
+            {
+                var reposThatNeedReindexing = repos.Where(r => r.LastReindex is null).ToHashSet();
+
+                var minimumNumberOfReposToBeReindexed = (int)Math.Ceiling(repos.Count / (float)reindexIntervalInDays);
+                var numberOfReposThatNeedReindexing = reposThatNeedReindexing.Count;
+
+                if (numberOfReposThatNeedReindexing < minimumNumberOfReposToBeReindexed)
+                {
+                    // OK, there are fewer repos that need reindexing than what we want to reindex
+                    // per day. So let's randomly pick some repos to reindex.
+
+                    var remainingRepos = repos.Except(reposThatNeedReindexing).ToList();
+                    var choiceCount = minimumNumberOfReposToBeReindexed - numberOfReposThatNeedReindexing;
+
+                    var random = new Random();
+
+                    for (var choice = 0; choice < choiceCount; choice++)
+                    {
+                        var i = random.Next(0, remainingRepos.Count);
+                        var repo = remainingRepos[i];
+
+                        Console.WriteLine($"Marking {repo.FullName} to be re-indexed because it was randomly chosen.");
+
+                        repo.Clear();
+                        reposThatNeedReindexing.Add(repo);
+                        remainingRepos.RemoveAt(i);
+                    }
+                }
+            }
+
+            Console.WriteLine($"Crawling {repos.Count:N0} repos, fully reindexing {repos.Count(r => r.LastReindex is null):N0} repos...");
+
+            foreach (var crawledRepo in repos)
+            {
+                var blobName = $"{crawledRepo.FullName}.crcache";
+                var repoPath = Path.Join(tempDirectory, blobName);
+                var since = crawledRepo.IncrementalUpdateStart;
+
+                if (since is null)
+                    Console.WriteLine($"Crawling {crawledRepo.FullName}...");
+                else
+                    Console.WriteLine($"Crawling {crawledRepo.FullName} since {since}...");
+
+                if (crawledRepo.LastReindex is null)
+                    crawledRepo.LastReindex = DateTimeOffset.UtcNow;
+
+                crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name);
+
+                var currentLabels = await RequestLabelsAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
+
+                SyncLabels(crawledRepo, currentLabels, out var labelById);
+
+                var currentMilestones = await RequestMilestonesAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
+
+                SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
+
+                // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
+                //
+                // That's the good part. The bad part is that for the new repository where
+                // it shows up, we have no way of knowing which repo it came from and which
+                // number it used to have (even when looking at the transferred event data),
+                // so we can't remove the issue from the source repo.
+                //
+                // We probably have to accept that we need to re-index everything every
+                // once in a while to get rid of transferred issues.
+
+                foreach (var issue in await RequestIssuesAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                {
+                    var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
+                    crawledRepo.Issues[issue.Number] = crawledIssue;
+                }
+
+                foreach (var pullRequest in await RequestPullRequestsAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                {
+                    if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
+                        UpdateIssue(issue, pullRequest);
+
+                    // TODO: Get PR reviews
+                    // TODO: Get PR commits
+                    // TODO: Get PR status
+                }
+
+                await crawledRepo.SaveAsync(repoPath);
+
+                if (uploadToAzure)
+                {
+                    Console.WriteLine($"Uploading {blobName} to Azure...");
+                    var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
+                    await repoClient.UploadAsync(repoPath, overwrite: true);
                 }
             }
 

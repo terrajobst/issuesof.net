@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -26,11 +28,27 @@ namespace IssueDb.Crawling
         public List<CrawledLabel> Labels { get; set; } = new();
         public List<CrawledMilestone> Milestones { get; set; } = new();
 
+        public DateTimeOffset? LastReindex { get; set; }
+
         [JsonIgnore]
         public Dictionary<string, CrawledAreaOwnerEntry> AreaOwners { get; set; } = new();
 
         [JsonIgnore]
         public string FullName => $"{Org}/{Name}";
+
+        [JsonIgnore]
+        public DateTimeOffset? IncrementalUpdateStart => LastReindex is null || !Issues.Any() ? null : Issues.Values.Max(i => i.UpdatedAt ?? i.CreatedAt);
+
+        public void Clear()
+        {
+            IsArchived = false;
+            Size = 0;
+            Issues = new();
+            Labels = new();
+            Milestones = new();
+            LastReindex = null;
+            AreaOwners = new();
+        }
 
         public static async Task<CrawledRepo> LoadAsync(string path)
         {
