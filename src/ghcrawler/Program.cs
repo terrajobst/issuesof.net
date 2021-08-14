@@ -780,13 +780,13 @@ namespace IssuesOfDotNet.Crawler
                 appId = secrets?.GitHubAppId;
 
             if (string.IsNullOrEmpty(appId))
-                throw new Exception("Cannot retreive secrete 'GitHubAppId'. You either need to define an environment variable or a user secret.");
+                throw new Exception("Cannot retreive secret 'GitHubAppId'. You either need to define an environment variable or a user secret.");
 
             if (string.IsNullOrEmpty(privateKey))
                 privateKey = secrets?.GitHubAppPrivateKey;
 
             if (string.IsNullOrEmpty(privateKey))
-                throw new Exception("Cannot retreive secrete 'GitHubAppPrivateKey'. You either need to define an environment variable or a user secret.");
+                throw new Exception("Cannot retreive secret 'GitHubAppPrivateKey'. You either need to define an environment variable or a user secret.");
 
             return (appId, privateKey);
         }
