@@ -635,6 +635,14 @@ namespace IssuesOfDotNet.Crawler
                 }
             }
 
+            // Fix labels
+
+            foreach (var issue in crawledRepo.Issues.Values)
+            {
+                for (var i = 0; i < issue.Labels.Length; i++)
+                    issue.Labels[i] = crawledLabelById[issue.Labels[i].Id];
+            }
+
             labelById = crawledLabelById;
         }
 
@@ -677,6 +685,14 @@ namespace IssuesOfDotNet.Crawler
                     if (issue.Milestone == crawledMilestone)
                         issue.Milestone = null;
                 }
+            }
+
+            // Fix milestones
+
+            foreach (var issue in crawledRepo.Issues.Values)
+            {
+                if (issue.Milestone is not null)
+                    issue.Milestone = crawledMilestoneById[issue.Milestone.Id];
             }
 
             milestoneById = crawledMilestoneById;
