@@ -210,6 +210,8 @@ namespace IssuesOfDotNet.Crawler
 
                 if (!pullLatest)
                 {
+                    Console.WriteLine($"Loading repos for {org}...");
+
                     foreach (var repoName in existingRepos)
                     {
                         var blobName = $"{repoName}.crcache";
