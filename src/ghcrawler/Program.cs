@@ -338,65 +338,68 @@ namespace IssuesOfDotNet.Crawler
                 }
             }
 
-            Console.WriteLine($"Crawling {repos.Count:N0} repos, fully reindexing {repos.Count(r => r.LastReindex is null):N0} repos...");
-
-            foreach (var crawledRepo in repos)
+            if (pullLatest)
             {
-                var blobName = $"{crawledRepo.FullName}.crcache";
-                var repoPath = Path.Join(tempDirectory, blobName);
-                var since = crawledRepo.IncrementalUpdateStart;
+                Console.WriteLine($"Crawling {repos.Count:N0} repos, fully reindexing {repos.Count(r => r.LastReindex is null):N0} repos...");
 
-                if (since is null)
-                    Console.WriteLine($"Crawling {crawledRepo.FullName}...");
-                else
-                    Console.WriteLine($"Crawling {crawledRepo.FullName} since {since}...");
-
-                if (crawledRepo.LastReindex is null)
-                    crawledRepo.LastReindex = DateTimeOffset.UtcNow;
-
-                crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name);
-
-                var currentLabels = await RequestLabelsAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
-
-                SyncLabels(crawledRepo, currentLabels, out var labelById);
-
-                var currentMilestones = await RequestMilestonesAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
-
-                SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
-
-                // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
-                //
-                // That's the good part. The bad part is that for the new repository where
-                // it shows up, we have no way of knowing which repo it came from and which
-                // number it used to have (even when looking at the transferred event data),
-                // so we can't remove the issue from the source repo.
-                //
-                // We probably have to accept that we need to re-index everything every
-                // once in a while to get rid of transferred issues.
-
-                foreach (var issue in await RequestIssuesAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                foreach (var crawledRepo in repos)
                 {
-                    var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
-                    crawledRepo.Issues[issue.Number] = crawledIssue;
-                }
+                    var blobName = $"{crawledRepo.FullName}.crcache";
+                    var repoPath = Path.Join(tempDirectory, blobName);
+                    var since = crawledRepo.IncrementalUpdateStart;
 
-                foreach (var pullRequest in await RequestPullRequestsAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
-                {
-                    if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
-                        UpdateIssue(issue, pullRequest);
+                    if (since is null)
+                        Console.WriteLine($"Crawling {crawledRepo.FullName}...");
+                    else
+                        Console.WriteLine($"Crawling {crawledRepo.FullName} since {since}...");
 
-                    // TODO: Get PR reviews
-                    // TODO: Get PR commits
-                    // TODO: Get PR status
-                }
+                    if (crawledRepo.LastReindex is null)
+                        crawledRepo.LastReindex = DateTimeOffset.UtcNow;
 
-                await crawledRepo.SaveAsync(repoPath);
+                    crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name);
 
-                if (uploadToAzure)
-                {
-                    Console.WriteLine($"Uploading {blobName} to Azure...");
-                    var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
-                    await repoClient.UploadAsync(repoPath, overwrite: true);
+                    var currentLabels = await RequestLabelsAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
+
+                    SyncLabels(crawledRepo, currentLabels, out var labelById);
+
+                    var currentMilestones = await RequestMilestonesAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
+
+                    SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
+
+                    // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
+                    //
+                    // That's the good part. The bad part is that for the new repository where
+                    // it shows up, we have no way of knowing which repo it came from and which
+                    // number it used to have (even when looking at the transferred event data),
+                    // so we can't remove the issue from the source repo.
+                    //
+                    // We probably have to accept that we need to re-index everything every
+                    // once in a while to get rid of transferred issues.
+
+                    foreach (var issue in await RequestIssuesAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                    {
+                        var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
+                        crawledRepo.Issues[issue.Number] = crawledIssue;
+                    }
+
+                    foreach (var pullRequest in await RequestPullRequestsAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                    {
+                        if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
+                            UpdateIssue(issue, pullRequest);
+
+                        // TODO: Get PR reviews
+                        // TODO: Get PR commits
+                        // TODO: Get PR status
+                    }
+
+                    await crawledRepo.SaveAsync(repoPath);
+
+                    if (uploadToAzure)
+                    {
+                        Console.WriteLine($"Uploading {blobName} to Azure...");
+                        var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
+                        await repoClient.UploadAsync(repoPath, overwrite: true);
+                    }
                 }
             }
 
