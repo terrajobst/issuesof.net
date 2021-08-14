@@ -487,7 +487,11 @@ namespace IssuesOfDotNet.Crawler
 
         private static Task<IReadOnlyList<Milestone>> RequestMilestonesAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo)
         {
-            return RetryOnRateLimiting(factory, client, () => client.Issue.Milestone.GetAllForRepository(org, repo));
+            var request = new MilestoneRequest
+            {
+                State = ItemStateFilter.All
+            };
+            return RetryOnRateLimiting(factory, client, () => client.Issue.Milestone.GetAllForRepository(org, repo, request));
         }
 
         private static Task<IReadOnlyList<Issue>> RequestIssuesAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo, DateTimeOffset? since)
