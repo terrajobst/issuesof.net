@@ -400,6 +400,25 @@ namespace IssuesOfDotNet.Crawler
                 }
             }
 
+            foreach (var repo in repos)
+            {
+                var milestones = repo.Milestones.ToHashSet();
+                var labels = repo.Labels.ToHashSet();
+
+                foreach (var issue in repo.Issues.Values)
+                {
+                    foreach (var label in issue.Labels.Where(l => !labels.Contains(l)))
+                    {
+                        Console.Error.WriteLine($"error: {repo.FullName}#{issue.Number}: label '{label.Name}' doesn't exist");
+                    }
+
+                    if (issue.Milestone is not null && !milestones.Contains(issue.Milestone))
+                    {
+                        Console.Error.WriteLine($"error: {repo.FullName}#{issue.Number}: milestone '{issue.Milestone.Title}' doesn't exist");
+                    }
+                }
+            }
+
             Console.WriteLine("Creating trie...");
 
             var trie = new CrawledTrie<CrawledIssue>();
