@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using IssueDb.Crawling;
 using IssueDb.Eventing;
@@ -31,6 +32,28 @@ namespace IssuesOfDotNet.Data
             _telemetryClient = telemetryClient;
             _processingService = processingService;
             _store = new GitHubEventStore(configuration["AzureStorageConnectionString"]);
+
+            // TODO: Hack, this should live somewhere else
+            LoadEventsAsync().Wait();
+        }
+
+        private async Task LoadEventsAsync()
+        {
+            try
+            {
+                foreach (var name in await _store.ListAsync())
+                {
+                    var payload = await _store.LoadAsync(name);
+                    var headers = payload.Headers.ToDictionary(kv => kv.Key, kv => new StringValues(kv.Value.ToArray()));
+                    var body = payload.Body;
+                    var message = GitHubEventMessage.Parse(headers, body);
+                    _processingService.Enqueue(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't load stored events");
+            }
         }
 
         public override void Process(IDictionary<string, StringValues> headers, string body)
