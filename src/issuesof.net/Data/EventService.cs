@@ -1,6 +1,14 @@
-﻿using IssueDb.Crawling;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using IssueDb.Crawling;
+using IssueDb.Eventing;
+
 using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 using Terrajobst.GitHubEvents;
 
@@ -12,12 +20,49 @@ namespace IssuesOfDotNet.Data
         private readonly TelemetryClient _telemetryClient;
         private readonly GitHubEventProcessingService _processingService;
         private readonly CrawledSubscriptionList _subscriptionList = CrawledSubscriptionList.CreateDefault();
+        private readonly GitHubEventStore _store;
 
-        public EventService(ILogger<EventService> logger, TelemetryClient telemetryClient, GitHubEventProcessingService processingService)
+        public EventService(ILogger<EventService> logger,
+                            TelemetryClient telemetryClient,
+                            GitHubEventProcessingService processingService,
+                            IConfiguration configuration)
         {
             _logger = logger;
             _telemetryClient = telemetryClient;
             _processingService = processingService;
+            _store = new GitHubEventStore(configuration["AzureStorageConnectionString"]);
+        }
+
+        public override void Process(IDictionary<string, StringValues> headers, string body)
+        {
+            try
+            {
+                var message = GitHubEventMessage.Parse(headers, body);
+                var delivery = message?.Headers?.Delivery;
+                var orgName = message?.Body?.Organization?.Login;
+                var repoName = message?.Body?.Repository?.Name;
+                var timestamp = DateTime.UtcNow;
+
+                if (delivery is not null &&
+                    orgName is not null &&
+                    repoName is not null)
+                {
+                    var payload = new GitHubEventPayload(headers.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)kv.Value.ToArray()), body);
+                    var name = new GitHubEventPayloadName(orgName, repoName, timestamp, delivery);
+                    _logger.LogInformation($"Storing event {name}");
+                    _store.SaveAsync(name, payload).Wait();
+                }
+                else
+                {
+                    _logger.LogWarning("Incomplete event {orgName}/{repoName}: {delivery}", orgName, repoName, delivery);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Couldn't handle event");
+            }
+
+            base.Process(headers, body);
         }
 
         public override void ProcessMessage(GitHubEventMessage message)
