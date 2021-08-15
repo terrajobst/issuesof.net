@@ -12,6 +12,7 @@ using GitHubJwt;
 
 using IssueDb;
 using IssueDb.Crawling;
+using IssueDb.Eventing;
 
 using Microsoft.Extensions.Configuration.UserSecrets;
 
@@ -340,6 +341,11 @@ namespace IssuesOfDotNet.Crawler
 
             if (pullLatest)
             {
+                Console.WriteLine($"Getting events...");
+
+                var eventStore = new GitHubEventStore(connectionString);
+                var events = await eventStore.ListAsync();
+
                 Console.WriteLine($"Crawling {repos.Count:N0} repos, fully reindexing {repos.Count(r => r.LastReindex is null):N0} repos...");
 
                 foreach (var crawledRepo in repos)
@@ -399,6 +405,16 @@ namespace IssuesOfDotNet.Crawler
                         Console.WriteLine($"Uploading {blobName} to Azure...");
                         var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
                         await repoClient.UploadAsync(repoPath, overwrite: true);
+
+                        if (since is null)
+                        {
+                            var eventsToBeDeleted = events.Where(e => string.Equals($"{e.Org}/{e.Repo}", crawledRepo.FullName, StringComparison.OrdinalIgnoreCase))
+                                                          .ToArray();
+
+                            Console.WriteLine($"Deleting {eventsToBeDeleted.Length:N0} events for {crawledRepo.FullName}...");
+                            foreach (var e in eventsToBeDeleted)
+                                await eventStore.DeleteAsync(e);
+                        }
                     }
                 }
             }
