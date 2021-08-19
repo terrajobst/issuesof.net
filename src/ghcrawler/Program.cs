@@ -15,10 +15,13 @@ using IssueDb.Crawling;
 using IssueDb.Eventing;
 
 using Microsoft.Extensions.Configuration.UserSecrets;
+using Microsoft.Extensions.Primitives;
 
 using Mono.Options;
 
 using Octokit;
+
+using Terrajobst.GitHubEvents;
 
 namespace IssuesOfDotNet.Crawler
 {
@@ -341,7 +344,7 @@ namespace IssuesOfDotNet.Crawler
 
             if (pullLatest)
             {
-                Console.WriteLine($"Getting events...");
+                Console.WriteLine($"Listing events...");
 
                 var eventStore = new GitHubEventStore(connectionString);
                 var events = await eventStore.ListAsync();
@@ -354,10 +357,45 @@ namespace IssuesOfDotNet.Crawler
                     var repoPath = Path.Join(tempDirectory, blobName);
                     var since = crawledRepo.IncrementalUpdateStart;
 
+                    var messages = new List<GitHubEventMessage>();
+
                     if (since is null)
+                    {
                         Console.WriteLine($"Crawling {crawledRepo.FullName}...");
+                    }
                     else
+                    {
+                        var toBeDownloaded = events.Where(n => string.Equals(n.Org, crawledRepo.Org, StringComparison.OrdinalIgnoreCase) &&
+                                                               string.Equals(n.Repo, crawledRepo.Name, StringComparison.OrdinalIgnoreCase))
+                                                   .ToArray();
+
+                        Console.WriteLine($"Loading {toBeDownloaded.Length:N0} events for {crawledRepo.FullName}...");
+
+                        var i = 0;
+                        var lastPercent = 0;
+
+                        foreach (var name in toBeDownloaded)
+                        {
+                            var percent = (int)Math.Ceiling((float)i / toBeDownloaded.Length * 100);
+                            i++;
+                            if (percent % 10 == 0)
+                            {
+                                if (percent != lastPercent)
+                                    Console.Write($"{percent}%...");
+                                lastPercent = percent;
+                            }
+
+                            var payload = await eventStore.LoadAsync(name);
+                            var headers = payload.Headers.ToDictionary(kv => kv.Key, kv => new StringValues(kv.Value.ToArray()));
+                            var body = payload.Body;
+                            var message = GitHubEventMessage.Parse(headers, body);
+                            messages.Add(message);
+                        }
+
+                        Console.WriteLine("done.");
+
                         Console.WriteLine($"Crawling {crawledRepo.FullName} since {since}...");
+                    }
 
                     if (crawledRepo.LastReindex is null)
                         crawledRepo.LastReindex = DateTimeOffset.UtcNow;
@@ -379,8 +417,9 @@ namespace IssuesOfDotNet.Crawler
                     // number it used to have (even when looking at the transferred event data),
                     // so we can't remove the issue from the source repo.
                     //
-                    // We probably have to accept that we need to re-index everything every
-                    // once in a while to get rid of transferred issues.
+                    // However, since we're persisting GitHub events, we'll later look up which
+                    // issues were transferred and remove them from the repo. This avoids having
+                    // to wait until we fully reindex the repo.
 
                     foreach (var issue in await RequestIssuesAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
                     {
@@ -396,6 +435,17 @@ namespace IssuesOfDotNet.Crawler
                         // TODO: Get PR reviews
                         // TODO: Get PR commits
                         // TODO: Get PR status
+                    }
+
+                    // Remove transferred issues
+
+                    foreach (var message in messages.Where(m => m.Body.Action == "transferred"))
+                    {
+                        Console.WriteLine($"Removing {message.Body?.Repository?.FullName}#{message.Body?.Issue?.Number}: {message.Body?.Issue?.Title}");
+
+                        var number = message.Body?.Issue?.Number;
+                        if (number is not null)
+                            crawledRepo.Issues.Remove(number.Value);
                     }
 
                     await crawledRepo.SaveAsync(repoPath);

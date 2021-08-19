@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
     <PackageReference Include="Mono.Options" Version="6.6.0.161" />
     <PackageReference Include="Octokit" Version="0.50.0" />
+    <PackageReference Include="Terrajobst.GitHubEvents" Version="0.1.9" />
   </ItemGroup>
 
   <ItemGroup>
