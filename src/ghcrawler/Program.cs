@@ -418,12 +418,25 @@ namespace IssuesOfDotNet.Crawler
                     //
                     // That's the good part. The bad part is that for the new repository where
                     // it shows up, we have no way of knowing which repo it came from and which
-                    // number it used to have (even when looking at the transferred event data),
+                    // number it used to have (even when looking at the issues timeline data),
                     // so we can't remove the issue from the source repo.
                     //
-                    // However, since we're persisting GitHub events, we'll later look up which
-                    // issues were transferred and remove them from the repo. This avoids having
-                    // to wait until we fully reindex the repo.
+                    // However, since we're persisting GitHub events we received, we'll can look
+                    // up which issues were transferred and remove them from the repo. This avoids
+                    // having to wait until we fully reindex the repo.
+                    //
+                    // Note, we remove transferred issues before pulling issues in case the issues
+                    // were being transferred back; it seems GitHub is reusing the numbers in that
+                    // case.
+
+                    foreach (var message in messages.Where(m => m.Body.Action == "transferred"))
+                    {
+                        Console.WriteLine($"Removing {message.Body?.Repository?.FullName}#{message.Body?.Issue?.Number}: {message.Body?.Issue?.Title}");
+
+                        var number = message.Body?.Issue?.Number;
+                        if (number is not null)
+                            crawledRepo.Issues.Remove(number.Value);
+                    }
 
                     foreach (var issue in await RequestIssuesAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
                     {
@@ -439,17 +452,6 @@ namespace IssuesOfDotNet.Crawler
                         // TODO: Get PR reviews
                         // TODO: Get PR commits
                         // TODO: Get PR status
-                    }
-
-                    // Remove transferred issues
-
-                    foreach (var message in messages.Where(m => m.Body.Action == "transferred"))
-                    {
-                        Console.WriteLine($"Removing {message.Body?.Repository?.FullName}#{message.Body?.Issue?.Number}: {message.Body?.Issue?.Title}");
-
-                        var number = message.Body?.Issue?.Number;
-                        if (number is not null)
-                            crawledRepo.Issues.Remove(number.Value);
                     }
 
                     await crawledRepo.SaveAsync(repoPath);
