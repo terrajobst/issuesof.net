@@ -369,30 +369,34 @@ namespace IssuesOfDotNet.Crawler
                                                                string.Equals(n.Repo, crawledRepo.Name, StringComparison.OrdinalIgnoreCase))
                                                    .ToArray();
 
-                        Console.WriteLine($"Loading {toBeDownloaded.Length:N0} events for {crawledRepo.FullName}...");
-
-                        var i = 0;
-                        var lastPercent = 0;
-
-                        foreach (var name in toBeDownloaded)
+                        if (toBeDownloaded.Any())
                         {
-                            var percent = (int)Math.Ceiling((float)i / toBeDownloaded.Length * 100);
-                            i++;
-                            if (percent % 10 == 0)
+                            Console.WriteLine($"Loading {toBeDownloaded.Length:N0} events for {crawledRepo.FullName}...");
+
+                            var i = 0;
+                            var lastPercent = 0;
+
+                            foreach (var name in toBeDownloaded)
                             {
-                                if (percent != lastPercent)
-                                    Console.Write($"{percent}%...");
-                                lastPercent = percent;
+                                var percent = (int)Math.Ceiling((float)i / toBeDownloaded.Length * 100);
+                                i++;
+                                if (percent % 10 == 0)
+                                {
+                                    if (percent != lastPercent)
+                                        Console.Write($"{percent}%...");
+
+                                    lastPercent = percent;
+                                }
+
+                                var payload = await eventStore.LoadAsync(name);
+                                var headers = payload.Headers.ToDictionary(kv => kv.Key, kv => new StringValues(kv.Value.ToArray()));
+                                var body = payload.Body;
+                                var message = GitHubEventMessage.Parse(headers, body);
+                                messages.Add(message);
                             }
 
-                            var payload = await eventStore.LoadAsync(name);
-                            var headers = payload.Headers.ToDictionary(kv => kv.Key, kv => new StringValues(kv.Value.ToArray()));
-                            var body = payload.Body;
-                            var message = GitHubEventMessage.Parse(headers, body);
-                            messages.Add(message);
+                            Console.WriteLine("done.");
                         }
-
-                        Console.WriteLine("done.");
 
                         Console.WriteLine($"Crawling {crawledRepo.FullName} since {since}...");
                     }
