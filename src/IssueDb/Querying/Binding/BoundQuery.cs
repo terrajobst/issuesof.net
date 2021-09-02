@@ -72,6 +72,17 @@ namespace IssueDb.Querying.Binding
             if (node is BoundNegatedQuery negated)
                 return ToDisjunctiveNormalForm(Negate(negated.Query));
 
+            if (node is BoundOrQuery or)
+            {
+                var left = ToDisjunctiveNormalForm(or.Left);
+                var right = ToDisjunctiveNormalForm(or.Right);
+                if (ReferenceEquals(left, or.Left) &&
+                    ReferenceEquals(right, or.Right))
+                    return node;
+
+                return new BoundOrQuery(left, right);
+            }
+
             if (node is BoundAndQuery and)
             {
                 var left = ToDisjunctiveNormalForm(and.Left);
