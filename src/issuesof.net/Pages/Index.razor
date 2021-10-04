@@ -137,7 +137,7 @@ else
                     </td>
                     <td class="w-100 p-2 text-break">
                         <div>
-                            <a class="gh-issue-title" href="@issue.Url">@issue.Title.AsInlineMarkdown()</a>
+                            <a class="gh-issue-title" href="@issue.Url">@issue.Title.HighlightCode()</a>
                             <span>
                                 @foreach (var label in issue.Labels)
                                 {

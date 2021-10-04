@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Markdig;
 using Markdig.Extensions.Emoji;
-
-using Microsoft.AspNetCore.Components;
 
 namespace IssuesOfDotNet.Data
 {
@@ -13,17 +10,12 @@ namespace IssuesOfDotNet.Data
     {
         private static IDictionary<string, string> _emojiMapping = EmojiMapping.GetDefaultEmojiShortcodeToUnicode();
 
-        public static MarkupString AsInlineMarkdown(this string markup)
+        public static string HighlightCode(this string text)
         {
-            // Escape any inline HTML first.
-            markup = markup.Replace("<", "&lt;").Replace(">", "&gt;");
+            // TODO: We should only expand balanced back ticks to <code></code>
+            //       But we also need to escape HTML.
 
-            // We clip off the beginning and ending <p></p> tags. It's dirty,
-            // but Alexandre gave it his blessing ;-)
-            //
-            // https://twitter.com/xoofx/status/1392198584733507596
-            var html = Markdown.ToHtml(markup)[3..^5];
-            return new MarkupString(html);
+            return text;
         }
 
         public static string ExpandEmojis(this string text)
