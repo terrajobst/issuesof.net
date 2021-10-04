@@ -34,7 +34,7 @@ namespace IssuesOfDotNet.Data
             _store = new GitHubEventStore(configuration["AzureStorageConnectionString"]);
 
             // TODO: Hack, this should live somewhere else
-            LoadEventsAsync().Wait();
+            // LoadEventsAsync().Wait();
         }
 
         private async Task LoadEventsAsync()
