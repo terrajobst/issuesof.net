@@ -23,6 +23,13 @@
         dotnet/EntityFramework.Docs     EF Core & EF 6 documentation
         dotnet/sqlclient                SqlClient data provider for SQL Server
 
+    Machine Learning and AI
+
+        dotnet/machinelearning                ML.NET
+        dotnet/machinelearning-modelbuilder   ML.NET Model Builder UI for Visual Studio
+        dotnet/ml-api-docs                    ML.NET API documentation
+        dotnet/spark                          .NET for Apache® Spark™
+
     Client UI
 
         dotnet/winforms                 Windows Forms
