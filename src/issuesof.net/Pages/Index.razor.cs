@@ -105,6 +105,7 @@ namespace IssuesOfDotNet.Pages
             SearchResults = Find(searchText);
             PageNumber = 1;
             ChangeUrl();
+            ChangeTitle();
             StateHasChanged();
         }
 
@@ -143,6 +144,17 @@ namespace IssuesOfDotNet.Pages
                                             uri.ToString(),
                                             /* forceLoad */ false,
                                             /* replace */ true);
+        }
+
+        private async void ChangeTitle()
+        {
+            var isDefaultQuery = (string.IsNullOrEmpty(_searchText) ||
+                                  _searchText.Trim() == _defaultSearch) &&
+                                  PageNumber <= 1;
+
+            var pageTitle = isDefaultQuery ? "Issues of .NET" : $"Issues of .NET ({_searchText})";
+
+            await JSRuntime.InvokeVoidAsync("setPageTitle", pageTitle);
         }
 
         private void CollapseAll()
