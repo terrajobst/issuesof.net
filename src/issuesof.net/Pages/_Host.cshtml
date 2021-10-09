@@ -134,7 +134,11 @@
                 return json;
             });
         }
-
+        
+        function setPageTitle(pageTitle) {
+            document.title = pageTitle;
+        }
+        
         var observer = new MutationObserver(function (mutations, observer) {
             var codeMirror = document.querySelector('.CodeMirror');
             var myTextarea = document.querySelector('#myTextarea');
