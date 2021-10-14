@@ -26,7 +26,7 @@
     Machine Learning and AI
 
         dotnet/machinelearning                ML.NET
-        dotnet/machinelearning-modelbuilder   ML.NET Model Builder UI for Visual Studio
+        dotnet/machinelearning-modelbuilder   ML.NET tooling
         dotnet/ml-api-docs                    ML.NET API documentation
         dotnet/spark                          .NET for Apache® Spark™
 
