@@ -632,6 +632,8 @@ namespace IssuesOfDotNet.Crawler
 
         private static async Task<T> RetryOnRateLimiting<T>(GitHubClientFactory factory, GitHubClient client, Func<Task<T>> func)
         {
+            var retryCount = 3;
+
             while (true)
             {
                 try
@@ -639,7 +641,7 @@ namespace IssuesOfDotNet.Crawler
                     var result = await func();
                     return result;
                 }
-                catch (RateLimitExceededException ex)
+                catch (RateLimitExceededException ex) when (retryCount > 0)
                 {
                     var padding = TimeSpan.FromMinutes(2);
                     var delay = ex.Reset - DateTimeOffset.Now + padding;
@@ -648,16 +650,28 @@ namespace IssuesOfDotNet.Crawler
                     await Task.Delay(delay);
                     Console.WriteLine("Trying again...");
                 }
-                catch (AuthorizationException ex)
+                catch (AuthorizationException ex) when (retryCount > 0)
                 {
                     Console.WriteLine($"Authorization error: {ex.Message}. Refreshing token...");
                     await factory.RefreshTokenAsync(client);
                 }
-                catch (OperationCanceledException)
+                catch (ApiException ex) when (retryCount > 0)
+                {
+                    var padding = TimeSpan.FromSeconds(30);
+                    var delay = TimeSpan.FromSeconds(30);;
+                    var time = DateTime.UtcNow + delay;
+                    Console.WriteLine($"API error: {ex.Message}");
+                    Console.WriteLine($"Waiting {delay.TotalMinutes:N0} minutes, until {time.ToLocalTime():M/d/yyyy h:mm tt}...");
+                    await Task.Delay(delay);
+                    Console.WriteLine("Trying again...");
+                }
+                catch (OperationCanceledException) when (retryCount > 0)
                 {
                     Console.WriteLine($"Operation canceled. Assuming this means a token refresh is needed...");
                     await factory.RefreshTokenAsync(client);
                 }
+
+                retryCount--;
             }
         }
 
