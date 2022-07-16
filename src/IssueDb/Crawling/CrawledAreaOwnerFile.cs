@@ -37,7 +37,7 @@ namespace IssueDb
                     {
                         // First attempt to load a JSON file
                         var jsonEntries = await client.GetFromJsonAsync<CrawledAreaOwnerJsonFile>(jsonUrl);
-                        return new CrawledAreaOwnerFile(jsonEntries.Areas.Select(area => new CrawledAreaOwnerEntry(area.Label, area.Lead, area.Owners)));
+                        return new CrawledAreaOwnerFile(jsonEntries.Areas.Select(area => new CrawledAreaOwnerEntry(area.Label.Replace("area-", ""), area.Lead, area.Owners)));
                     }
                     catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
                     {
