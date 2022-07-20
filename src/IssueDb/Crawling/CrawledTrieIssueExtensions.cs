@@ -42,6 +42,9 @@ namespace IssueDb.Crawling
             foreach (var areaLead in issue.AreaLeads)
                 result.Add($"area-lead:{areaLead}");
 
+            foreach (var areaPod in issue.AreaPods)
+                result.Add($"area-pod:{areaPod}");
+
             foreach (var areaOwner in issue.AreaOwners)
                 result.Add($"area-owner:{areaOwner}");
 
