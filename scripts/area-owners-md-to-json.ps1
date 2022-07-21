@@ -33,7 +33,7 @@ Function Parse-LabelLine {
     @{
         label = [String]$label;
         lead = [String]$lead;
-        owners = [String[]](($people + $teamMembers) | Sort-Object -Unique)
+        owners = [String[]]((($people + $teamMembers) | Sort-Object -Unique) + $teams)
     }
 }
 
