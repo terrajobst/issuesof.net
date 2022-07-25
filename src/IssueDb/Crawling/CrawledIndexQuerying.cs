@@ -80,6 +80,9 @@ namespace IssueDb.Crawling
             foreach (var areaLead in filter.IncludedAreaLeads)
                 ApplyTerm(ref result, index.Trie, $"area-lead:{areaLead}");
 
+            foreach (var areaPod in filter.IncludedAreaPods)
+                ApplyTerm(ref result, index.Trie, $"area-pod:{areaPod}");
+
             foreach (var areaOwner in filter.IncludedAreaOwners)
                 ApplyTerm(ref result, index.Trie, $"area-owner:{areaOwner}");
 
@@ -139,6 +142,11 @@ namespace IssueDb.Crawling
             else if (filter.NoAreaLead == false)
                 ApplyPredicate(ref result, index, i => i.AreaLeads.Any());
 
+            if (filter.NoAreaPod == true)
+                ApplyPredicate(ref result, index, i => !i.AreaPods.Any());
+            else if (filter.NoAreaPod == false)
+                ApplyPredicate(ref result, index, i => i.AreaPods.Any());
+
             if (filter.NoAreaOwner == true)
                 ApplyPredicate(ref result, index, i => !i.AreaOwners.Any());
             else if (filter.NoAreaOwner == false)
@@ -189,6 +197,9 @@ namespace IssueDb.Crawling
 
             foreach (var areaLead in filter.ExcludedAreaLeads)
                 ApplyNegatedTerm(ref result, index, $"area-lead:{areaLead}");
+
+            foreach (var areaPod in filter.ExcludedAreaPods)
+                ApplyNegatedTerm(ref result, index, $"area-pod:{areaPod}");
 
             foreach (var areaOwner in filter.ExcludedAreaOwners)
                 ApplyNegatedTerm(ref result, index, $"area-owner:{areaOwner}");

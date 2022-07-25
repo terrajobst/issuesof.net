@@ -12,7 +12,7 @@ namespace IssueDb.Crawling
     public sealed class CrawledIndex
     {
         private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-        private static readonly short _formatVersion = 7;
+        private static readonly short _formatVersion = 8;
 
         public List<CrawledRepo> Repos { get; set; } = new();
 
@@ -190,6 +190,7 @@ namespace IssueDb.Crawling
                         {
                             writer.Write(stringIndexer(kv.Key));
                             writer.Write(stringIndexer(kv.Value.Lead));
+                            writer.Write(stringIndexer(kv.Value.Pod));
                             writer.Write(kv.Value.Owners.Count);
                             foreach (var owner in kv.Value.Owners)
                                 writer.Write(stringIndexer(owner));
@@ -384,6 +385,7 @@ namespace IssueDb.Crawling
                     {
                         var area = stringIndex[reader.ReadInt32()];
                         var lead = stringIndex[reader.ReadInt32()];
+                        var pod = stringIndex[reader.ReadInt32()];
                         var ownerCount = reader.ReadInt32();
                         var owners = new List<string>(ownerCount);
                         while (ownerCount-- > 0)
@@ -392,7 +394,7 @@ namespace IssueDb.Crawling
                             owners.Add(owner);
                         }
 
-                        repo.AreaOwners[area] = new CrawledAreaOwnerEntry(area, lead, owners.ToArray());
+                        repo.AreaOwners[area] = new CrawledAreaOwnerEntry(area, lead, pod, owners.ToArray());
                     }
                 }
 

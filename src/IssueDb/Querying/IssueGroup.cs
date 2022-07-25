@@ -12,6 +12,7 @@
         AreaNode,
         AreaUnder,
         AreaLead,
+        AreaPod,
         AreaOwner
     }
 }

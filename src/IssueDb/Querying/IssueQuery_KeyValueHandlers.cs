@@ -212,6 +212,12 @@ namespace IssueDb.Querying
             filter.NoAreaLead = !query.IsNegated;
         }
 
+        [KeyValueHandler("no:area-pod")]
+        private static void ApplyNoAreaPod(IssueFilter filter, BoundKevValueQuery query)
+        {
+            filter.NoAreaPod = !query.IsNegated;
+        }
+
         [KeyValueHandler("no:area-owner")]
         private static void ApplyNoAreaOwner(IssueFilter filter, BoundKevValueQuery query)
         {
@@ -312,6 +318,15 @@ namespace IssueDb.Querying
                 filter.ExcludedAreaLeads.Add(query.Value);
             else
                 filter.IncludedAreaLeads.Add(query.Value);
+        }
+
+        [KeyValueHandler("area-pod")]
+        private static void ApplyAreaPod(IssueFilter filter, BoundKevValueQuery query)
+        {
+            if (query.IsNegated)
+                filter.ExcludedAreaPods.Add(query.Value);
+            else
+                filter.IncludedAreaPods.Add(query.Value);
         }
 
         [KeyValueHandler("area-owner")]
@@ -549,6 +564,12 @@ namespace IssueDb.Querying
         private static void ApplyGroupAreaLead(IssueFilter filter)
         {
             filter.Groups.Add(IssueGroup.AreaLead);
+        }
+
+        [KeyValueHandler("group:area-pod")]
+        private static void ApplyGroupAreaPod(IssueFilter filter)
+        {
+            filter.Groups.Add(IssueGroup.AreaPod);
         }
 
         [KeyValueHandler("group:area-owner")]

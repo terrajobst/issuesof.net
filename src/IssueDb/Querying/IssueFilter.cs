@@ -19,6 +19,7 @@ namespace IssueDb.Querying
         public bool? NoLabels { get; set; }
         public bool? NoArea { get; set; }
         public bool? NoAreaLead { get; set; }
+        public bool? NoAreaPod { get; set; }
         public bool? NoAreaOwner { get; set; }
         public bool? NoMilestone { get; set; }
 
@@ -32,6 +33,7 @@ namespace IssueDb.Querying
         public List<string> IncludedAreas { get; } = new List<string>();
         public List<string> IncludedAreaNodes { get; } = new List<string>();
         public List<string> IncludedAreaLeads { get; } = new List<string>();
+        public List<string> IncludedAreaPods { get; } = new List<string>();
         public List<string> IncludedAreaOwners { get; } = new List<string>();
         public List<string> IncludedTerms { get; } = new List<string>();
 
@@ -43,6 +45,7 @@ namespace IssueDb.Querying
         public List<string> ExcludedAreas { get; } = new List<string>();
         public List<string> ExcludedAreaNodes { get; } = new List<string>();
         public List<string> ExcludedAreaLeads { get; } = new List<string>();
+        public List<string> ExcludedAreaPods { get; } = new List<string>();
         public List<string> ExcludedAreaOwners { get; } = new List<string>();
         public List<string> ExcludedMilestones { get; } = new List<string>();
         public List<string> ExcludedTerms { get; } = new List<string>();
