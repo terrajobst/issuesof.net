@@ -538,6 +538,8 @@ namespace IssuesOfDotNet.Crawler
             if (file is null)
                 return null;
 
+            Console.WriteLine($"Found {file.Entries.Count:N0} area owners.");
+
             return file.Entries.ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
         }
 
