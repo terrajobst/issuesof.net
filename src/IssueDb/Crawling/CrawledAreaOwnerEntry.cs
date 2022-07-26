@@ -11,6 +11,13 @@ namespace IssueDb
             Lead = lead;
             Pod = pod;
             Owners = owners;
+
+            if (string.IsNullOrEmpty(pod) && owners is not null)
+            {
+                Pod = string.Join("-", owners.Where(o => !string.IsNullOrEmpty(o))
+                                             .OrderBy(o => o)
+                                             .Select(o => o.ToLower()));
+            }
         }
 
         public string Area { get; }
