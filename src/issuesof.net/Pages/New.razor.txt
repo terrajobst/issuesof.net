@@ -11,7 +11,6 @@
         dotnet/runtime                  .NET Core runtime, runtime installers, application model, & Base Class Library (BCL)
         dotnet/docs                     .NET documentation
         dotnet/dotnet-api-docs          .NET API documentation
-        dotnet/docs-maui                .NET Multi-platform App UI (.NET MAUI) documentation
         dotnet/extensions               .NET extension APIs (DI, logging, configuration, etc.)
         dotnet/dotnet-docker            .NET Core Docker images
         dotnet/standard                 .NET Standard definition
@@ -36,6 +35,7 @@
         dotnet/winforms                 Windows Forms
         dotnet/wpf                      Windows Presentation Foundation (WPF)
         dotnet/maui                     .NET Multi-platform App UI
+        dotnet/docs-maui                .NET Multi-platform App UI documentation
 
     Web
 
