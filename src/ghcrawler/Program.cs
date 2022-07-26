@@ -462,15 +462,13 @@ namespace IssuesOfDotNet.Crawler
                         var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
                         await repoClient.UploadAsync(repoPath, overwrite: true);
 
-                        if (since is null)
-                        {
-                            var eventsToBeDeleted = events.Where(e => string.Equals($"{e.Org}/{e.Repo}", crawledRepo.FullName, StringComparison.OrdinalIgnoreCase))
-                                                          .ToArray();
+                        // Delete all events associated with this repo.
 
-                            Console.WriteLine($"Deleting {eventsToBeDeleted.Length:N0} events for {crawledRepo.FullName}...");
-                            foreach (var e in eventsToBeDeleted)
-                                await eventStore.DeleteAsync(e);
-                        }
+                        var eventsToBeDeleted = events.Where(e => string.Equals($"{e.Org}/{e.Repo}", crawledRepo.FullName, StringComparison.OrdinalIgnoreCase))
+                                                      .ToArray();
+
+                        Console.WriteLine($"Deleting {eventsToBeDeleted.Length:N0} events for {crawledRepo.FullName}...");
+                        await eventStore.DeleteAsync(eventsToBeDeleted);
                     }
                 }
             }
