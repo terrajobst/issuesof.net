@@ -13,7 +13,7 @@ using Microsoft.JSInterop;
 
 namespace IssuesOfDotNet.Pages
 {
-    public sealed partial class Index : IDisposable
+    public sealed partial class Index
     {
         private static readonly string _defaultSearch = "is:open is:issue";
 
@@ -54,7 +54,16 @@ namespace IssuesOfDotNet.Pages
 
         protected override void OnInitialized()
         {
-            IndexService.Changed += IndexService_Changed;
+            // For now, we're no longer refreshing search results when the index changes. The
+            // reason being that the UI has a lot more state now, such as expanded groups
+            // when the query is grouped. In order to have a good UX we would have keep the
+            // state around when refreshing in order to avoid messing with the user's UI.
+            // 
+            // Refreshing the page would be useful for dashboards that are permanently open
+            // in the browser but I'm not aware of anyone doing this, so the easiest fix is
+            // to simply not refresh.
+            //
+            // IndexService.Changed += IndexService_Changed;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -65,11 +74,6 @@ namespace IssuesOfDotNet.Pages
                 await JSRuntime.InvokeVoidAsync("registerPage", dotNetObjRef);
                 ApplyQueryParameters();
             }
-        }
-
-        public void Dispose()
-        {
-            IndexService.Changed -= IndexService_Changed;
         }
 
         private void IndexService_Changed(object sender, EventArgs e)
