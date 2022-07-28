@@ -12,7 +12,7 @@ namespace IssueDb.Crawling
             private readonly IReadOnlyCollection<IssueSort> _sorts;
             private readonly CrawledIssueGroupKey[] _keys;
             private readonly CrawledIssueGroup[] _groups;
-            private readonly HashSet<CrawledIssueGroup> _expandedGroups = new HashSet<CrawledIssueGroup>();
+            private readonly HashSet<string> _expandedGroups = new HashSet<string>();
             private int _itemCount;
             private int _issueCount;
 
@@ -34,7 +34,7 @@ namespace IssueDb.Crawling
 
             public override IEnumerable<CrawledIssueOrGroup> Roots => _groups.Select(g => (CrawledIssueOrGroup)g);
 
-            public override bool IsExpanded(CrawledIssueGroup group) => _expandedGroups.Contains(group);
+            public override bool IsExpanded(CrawledIssueGroup group) => _expandedGroups.Contains(group.UniqueId);
 
             public override void ExpandAll()
             {
@@ -45,7 +45,7 @@ namespace IssueDb.Crawling
 
                 void Walk(CrawledIssueGroup group)
                 {
-                    _expandedGroups.Add(group);
+                    _expandedGroups.Add(group.UniqueId);
 
                     foreach (var child in group.Children)
                     {
@@ -63,13 +63,13 @@ namespace IssueDb.Crawling
 
             public override void Expand(CrawledIssueGroup group)
             {
-                _expandedGroups.Add(group);
+                _expandedGroups.Add(group.UniqueId);
                 UpdateCounts();
             }
 
             public override void Collapse(CrawledIssueGroup group)
             {
-                _expandedGroups.Remove(group);
+                _expandedGroups.Remove(group.UniqueId);
                 UpdateCounts();
             }
 
@@ -122,7 +122,7 @@ namespace IssueDb.Crawling
 
                 return result;
 
-                static void Walk(List<CrawledIssueOrGroup> result, HashSet<CrawledIssueGroup> expandedGroups, CrawledIssueGroup parent, CrawledIssueOrGroup item, ref int itemsToSkip)
+                static void Walk(List<CrawledIssueOrGroup> result, HashSet<string> expandedGroups, CrawledIssueGroup parent, CrawledIssueOrGroup item, ref int itemsToSkip)
                 {
                     if (result.Count == ItemsPerPage)
                         return;
@@ -144,7 +144,7 @@ namespace IssueDb.Crawling
                     {
                         var group = item.ToGroup();
 
-                        if (expandedGroups.Contains(group))
+                        if (expandedGroups.Contains(group.UniqueId))
                         {
                             foreach (var child in group.Children)
                                 Walk(result, expandedGroups, group, child, ref itemsToSkip);
