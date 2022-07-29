@@ -1,8 +1,8 @@
 ﻿namespace IssueDb.Querying.Binding
 {
-    public sealed class BoundKevValueQuery : BoundQuery
+    public sealed class BoundKeyValueQuery : BoundQuery
     {
-        public BoundKevValueQuery(bool isNegated, string key, string value)
+        public BoundKeyValueQuery(bool isNegated, string key, string value)
         {
             IsNegated = isNegated;
             Key = key;

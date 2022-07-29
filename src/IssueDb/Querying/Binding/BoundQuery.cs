@@ -44,7 +44,7 @@ namespace IssueDb.Querying.Binding
         {
             var key = node.KeyToken.Value;
             var value = node.ValueToken.Value;
-            return new BoundKevValueQuery(isNegated: false, key, value);
+            return new BoundKeyValueQuery(isNegated: false, key, value);
         }
 
         private static BoundQuery CreateOrExpression(OrQuerySyntax node)
@@ -124,7 +124,7 @@ namespace IssueDb.Querying.Binding
         {
             switch (node)
             {
-                case BoundKevValueQuery kevValue:
+                case BoundKeyValueQuery kevValue:
                     return NegateKevValueExpression(kevValue);
                 case BoundTextQuery text:
                     return NegateTextExpression(text);
@@ -139,9 +139,9 @@ namespace IssueDb.Querying.Binding
             }
         }
 
-        private static BoundQuery NegateKevValueExpression(BoundKevValueQuery node)
+        private static BoundQuery NegateKevValueExpression(BoundKeyValueQuery node)
         {
-            return new BoundKevValueQuery(!node.IsNegated, node.Key, node.Value);
+            return new BoundKeyValueQuery(!node.IsNegated, node.Key, node.Value);
         }
 
         private static BoundQuery NegateTextExpression(BoundTextQuery node)
@@ -178,7 +178,7 @@ namespace IssueDb.Querying.Binding
             {
                 switch (node)
                 {
-                    case BoundKevValueQuery kevValue:
+                    case BoundKeyValueQuery kevValue:
                         writer.WriteLine($"{(kevValue.IsNegated ? "-" : "")}{kevValue.Key}:{kevValue.Value}");
                         break;
                     case BoundTextQuery text:

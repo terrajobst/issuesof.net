@@ -10,11 +10,11 @@ namespace IssueDb.Querying
 {
     public sealed partial class IssueQuery
     {
-        private static readonly Dictionary<(string Key, string Value), Func<IssueFilter, BoundKevValueQuery, bool>> _keyValueHandlers = CreateKeyValueHandlers();
+        private static readonly Dictionary<(string Key, string Value), Func<IssueFilter, BoundKeyValueQuery, bool>> _keyValueHandlers = CreateKeyValueHandlers();
 
-        private static Dictionary<(string Key, string Value), Func<IssueFilter, BoundKevValueQuery, bool>> CreateKeyValueHandlers()
+        private static Dictionary<(string Key, string Value), Func<IssueFilter, BoundKeyValueQuery, bool>> CreateKeyValueHandlers()
         {
-            var result = new Dictionary<(string Key, string Value), Func<IssueFilter, BoundKevValueQuery, bool>>();
+            var result = new Dictionary<(string Key, string Value), Func<IssueFilter, BoundKeyValueQuery, bool>>();
             var methods = typeof(IssueQuery).GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
 
             foreach (var method in methods)
@@ -39,7 +39,7 @@ namespace IssueDb.Querying
                 var pairs = GetKeyValues(strings).ToArray();
                 var parameters = method.GetParameters();
 
-                Func<IssueFilter, BoundKevValueQuery, bool> handler;
+                Func<IssueFilter, BoundKeyValueQuery, bool> handler;
 
                 if (parameters.Length == 1 && parameters[0].ParameterType == typeof(IssueFilter))
                 {
@@ -50,7 +50,7 @@ namespace IssueDb.Querying
                     };
                 }
                 else if (parameters.Length == 2 && parameters[0].ParameterType == typeof(IssueFilter) &&
-                                                   parameters[1].ParameterType == typeof(BoundKevValueQuery))
+                                                   parameters[1].ParameterType == typeof(BoundKeyValueQuery))
                 {
                     handler = (filter, query) =>
                     {
@@ -59,7 +59,7 @@ namespace IssueDb.Querying
                     };
                 }
                 else if (parameters.Length == 3 && parameters[0].ParameterType == typeof(IssueFilter) &&
-                                                   parameters[1].ParameterType == typeof(BoundKevValueQuery) &&
+                                                   parameters[1].ParameterType == typeof(BoundKeyValueQuery) &&
                                                    parameters[2].ParameterType == typeof(RangeSyntax<DateTimeOffset>))
                 {
                     handler = (filter, query) =>
@@ -74,7 +74,7 @@ namespace IssueDb.Querying
                     };
                 }
                 else if (parameters.Length == 3 && parameters[0].ParameterType == typeof(IssueFilter) &&
-                                                   parameters[1].ParameterType == typeof(BoundKevValueQuery) &&
+                                                   parameters[1].ParameterType == typeof(BoundKeyValueQuery) &&
                                                    parameters[2].ParameterType == typeof(RangeSyntax<int>))
                 {
                     handler = (filter, query) =>
@@ -117,121 +117,121 @@ namespace IssueDb.Querying
 #pragma warning disable IDE0051 // Remove unused private members
 
         [KeyValueHandler("is:open", "state:open")]
-        private static void ApplyIsOpen(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsOpen(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsOpen = !query.IsNegated;
         }
 
         [KeyValueHandler("is:closed", "state:closed")]
-        private static void ApplyIsClosed(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsClosed(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsOpen = query.IsNegated;
         }
 
         [KeyValueHandler("is:locked")]
-        private static void ApplyIsLocked(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsLocked(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsLocked = !query.IsNegated;
         }
 
         [KeyValueHandler("is:unlocked")]
-        private static void ApplyIsUnlocked(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsUnlocked(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsLocked = query.IsNegated;
         }
 
         [KeyValueHandler("is:pr", "type:pr")]
-        private static void ApplyIsPr(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsPr(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsPullRequest = !query.IsNegated;
         }
 
         [KeyValueHandler("is:issue", "type:issue")]
-        private static void ApplyIsIssue(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsIssue(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsPullRequest = query.IsNegated;
         }
 
         [KeyValueHandler("is:merged", "state:merged")]
-        private static void ApplyIsMerged(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsMerged(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsMerged = !query.IsNegated;
         }
 
         [KeyValueHandler("is:unmerged", "state:unmerged")]
-        private static void ApplyIsUnmerged(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsUnmerged(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsMerged = query.IsNegated;
         }
 
         [KeyValueHandler("is:draft", "draft:true")]
-        private static void ApplyIsDraft(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyIsDraft(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsDraft = !query.IsNegated;
         }
 
         [KeyValueHandler("draft:false")]
-        private static void ApplyDraftFalse(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyDraftFalse(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsDraft = query.IsNegated;
         }
 
         [KeyValueHandler("archived:true")]
-        private static void ApplyArchivedTrue(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyArchivedTrue(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsArchived = !query.IsNegated;
         }
 
         [KeyValueHandler("archived:false")]
-        private static void ApplyArchivedFalse(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyArchivedFalse(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.IsArchived = query.IsNegated;
         }
 
         [KeyValueHandler("no:assignee")]
-        private static void ApplyNoAssignee(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoAssignee(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoAssignees = !query.IsNegated;
         }
 
         [KeyValueHandler("no:label")]
-        private static void ApplyNoLabel(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoLabel(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoLabels = !query.IsNegated;
         }
 
         [KeyValueHandler("no:area")]
-        private static void ApplyNoArea(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoArea(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoArea = !query.IsNegated;
         }
 
         [KeyValueHandler("no:area-lead")]
-        private static void ApplyNoAreaLead(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoAreaLead(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoAreaLead = !query.IsNegated;
         }
 
         [KeyValueHandler("no:area-pod")]
-        private static void ApplyNoAreaPod(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoAreaPod(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoAreaPod = !query.IsNegated;
         }
 
         [KeyValueHandler("no:area-owner")]
-        private static void ApplyNoAreaOwner(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoAreaOwner(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoAreaOwner = !query.IsNegated;
         }
 
         [KeyValueHandler("no:milestone")]
-        private static void ApplyNoMilestone(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyNoMilestone(IssueFilter filter, BoundKeyValueQuery query)
         {
             filter.NoMilestone = !query.IsNegated;
         }
 
         [KeyValueHandler("org")]
-        private static void ApplyOrg(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyOrg(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedOrgs.Add(query.Value);
@@ -240,7 +240,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("repo")]
-        private static void ApplyRepo(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyRepo(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedRepos.Add(query.Value);
@@ -249,7 +249,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("author")]
-        private static void ApplyAuthor(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAuthor(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAuthors.Add(query.Value);
@@ -258,7 +258,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("assignee")]
-        private static void ApplyAssignee(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAssignee(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAssignees.Add(query.Value);
@@ -267,7 +267,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("label")]
-        private static void ApplyLabel(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyLabel(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedLabels.Add(query.Value);
@@ -276,7 +276,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("milestone")]
-        private static void ApplyMilestone(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyMilestone(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedMilestones.Add(query.Value);
@@ -285,7 +285,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("area")]
-        private static void ApplyArea(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyArea(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedLabels.Add($"area-{query.Value}");
@@ -294,7 +294,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("area-under")]
-        private static void ApplyAreaUnder(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAreaUnder(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAreas.Add(query.Value);
@@ -303,7 +303,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("area-node")]
-        private static void ApplyAreaNode(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAreaNode(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAreaNodes.Add(query.Value);
@@ -312,7 +312,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("area-lead")]
-        private static void ApplyAreaLead(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAreaLead(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAreaLeads.Add(query.Value);
@@ -321,7 +321,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("area-pod")]
-        private static void ApplyAreaPod(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAreaPod(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAreaPods.Add(query.Value);
@@ -330,7 +330,7 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("area-owner")]
-        private static void ApplyAreaOwner(IssueFilter filter, BoundKevValueQuery query)
+        private static void ApplyAreaOwner(IssueFilter filter, BoundKeyValueQuery query)
         {
             if (query.IsNegated)
                 filter.ExcludedAreaOwners.Add(query.Value);
@@ -339,37 +339,37 @@ namespace IssueDb.Querying
         }
 
         [KeyValueHandler("created")]
-        private static void ApplyCreated(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<DateTimeOffset> range)
+        private static void ApplyCreated(IssueFilter filter, BoundKeyValueQuery query, RangeSyntax<DateTimeOffset> range)
         {
             filter.Created = range.Negate(query.IsNegated);
         }
 
         [KeyValueHandler("updated")]
-        private static void ApplyUpdated(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<DateTimeOffset> range)
+        private static void ApplyUpdated(IssueFilter filter, BoundKeyValueQuery query, RangeSyntax<DateTimeOffset> range)
         {
             filter.Updated = range.Negate(query.IsNegated);
         }
 
         [KeyValueHandler("closed")]
-        private static void ApplyClosed(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<DateTimeOffset> range)
+        private static void ApplyClosed(IssueFilter filter, BoundKeyValueQuery query, RangeSyntax<DateTimeOffset> range)
         {
             filter.Closed = range.Negate(query.IsNegated);
         }
 
         [KeyValueHandler("comments")]
-        private static void ApplyComments(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<int> range)
+        private static void ApplyComments(IssueFilter filter, BoundKeyValueQuery query, RangeSyntax<int> range)
         {
             filter.Comments = range.Negate(query.IsNegated);
         }
 
         [KeyValueHandler("reactions")]
-        private static void ApplyReactions(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<int> range)
+        private static void ApplyReactions(IssueFilter filter, BoundKeyValueQuery query, RangeSyntax<int> range)
         {
             filter.Reactions = range.Negate(query.IsNegated);
         }
 
         [KeyValueHandler("interactions")]
-        private static void ApplyInteractions(IssueFilter filter, BoundKevValueQuery query, RangeSyntax<int> range)
+        private static void ApplyInteractions(IssueFilter filter, BoundKeyValueQuery query, RangeSyntax<int> range)
         {
             filter.Interactions = range.Negate(query.IsNegated);
         }
