@@ -19,7 +19,26 @@ namespace IssueDb.Crawling
         {
             var result = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
             AddTermsFromMarkdown(result, issue.Title);
-            // TODO: Should we index the body or not?
+
+            // In a perfect world, we'd also index the body. Sadly, this is increases
+            // the trie significantly.
+            // 
+            // On August 22 2022 I did an experiment:
+            //
+            //      Scenario                | Size
+            //      ------------------------|-------
+            //      Title                   |  45 MB
+            //      Title + Metadata        |  77 MB
+            //      Title + Metadata + Body | 665 MB
+            //
+            //      Note: Here, metadata refers to including details like org:xxx or
+            //      label:yyy.
+            //
+            // Given the size of our App Service (3.5 GB), this is a bit much for just
+            // the trie, so for now we're not gonna index the body. For comments it's
+            // likely even worse. This is unfortunate, because it would be amazing
+            // to use the in-modifier like in:title,body,comment :-(
+            //
             // AddTermsFromMarkdown(result, issue.Body);
 
             result.Add($"org:{issue.Repo.Org}");
