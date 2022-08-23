@@ -13,8 +13,17 @@ namespace IssueDb
 
             foreach (var token in SplitByPunctuation(text))
             {
-                var singular = token.Singularize();
-                result.Add(singular.ToLowerInvariant());
+                // For some reason, Humanizer's Singularize() throws an index out of
+                // range exception on certain inputs.
+                try
+                {
+                    var singular = token.Singularize();
+                    result.Add(singular.ToLowerInvariant());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Humanizer failed to singularize '{text}': {ex}");
+                }
 
                 foreach (var nestedToken in SplitByCaseChanges(token))
                     result.Add(nestedToken.ToLowerInvariant());
