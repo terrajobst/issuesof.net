@@ -8,7 +8,7 @@ namespace IssueDb.Crawling
 {
     public abstract partial class CrawledIssueResults
     {
-        protected const int ItemsPerPage = 50;
+        protected const int ItemsPerPage = 100;
 
         public int PageCount => (int)Math.Ceiling(ItemCount / (float)ItemsPerPage);
 
