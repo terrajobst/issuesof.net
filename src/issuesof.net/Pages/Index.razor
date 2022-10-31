@@ -31,6 +31,12 @@ else
             <div class="input-group-prepend">
                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Filter</button>
                 <div class="dropdown-menu small">
+                    <a class="dropdown-item" @onclick:preventDefault @onclick="FilterToIssues">Issues</a>
+                    <a class="dropdown-item" @onclick:preventDefault @onclick="FilterToPulls">Pulls</a>
+                    <a class="dropdown-item" @onclick:preventDefault @onclick="FilterToOpen">Open</a>
+                    <a class="dropdown-item" @onclick:preventDefault @onclick="FilterToClosed">Closed</a>
+                    <a class="dropdown-item" @onclick:preventDefault @onclick="FilterToMerged">Merged</a>
+                    <a class="dropdown-item" @onclick:preventDefault @onclick="FilterToNotMerged">Not Merged</a>
                     <a class="dropdown-item" target="_blank" href="help">Syntax help</a>
                     <div role="separator" class="dropdown-divider"></div>
                     <a class="dropdown-item" target="_blank" href="https://docs.github.com/en/github/searching-for-information-on-github/searching-issues-and-pull-requests">GitHub syntax reference</a>

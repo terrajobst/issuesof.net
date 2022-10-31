@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using IssueDb.Crawling;
@@ -111,6 +112,60 @@ namespace IssuesOfDotNet.Pages
             ChangeUrl();
             ChangeTitle();
             StateHasChanged();
+        }
+
+        [JSInvokable]
+        public void FilterToIssues()
+        {
+            var issuesPullsPattern = new Regex(@"-?is:(issue|pr)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var updatedSearchText = "is:issue " + issuesPullsPattern.Replace(_searchText, "").Replace("  ", " ").Trim();
+
+            Find(updatedSearchText);
+        }
+
+        [JSInvokable]
+        public void FilterToPulls()
+        {
+            var issuesPullsPattern = new Regex(@"-?is:(issue|pr)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var updatedSearchText = "is:pr " + issuesPullsPattern.Replace(_searchText, "").Replace("  ", " ").Trim();
+
+            Find(updatedSearchText);
+        }
+
+        [JSInvokable]
+        public void FilterToOpen()
+        {
+            var issuesPullsPattern = new Regex(@"-?is:(open|closed)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var updatedSearchText = "is:open " + issuesPullsPattern.Replace(_searchText, "").Replace("  ", " ").Trim();
+
+            Find(updatedSearchText);
+        }
+
+        [JSInvokable]
+        public void FilterToClosed()
+        {
+            var issuesPullsPattern = new Regex(@"-?is:(open|closed)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var updatedSearchText = "is:closed " + issuesPullsPattern.Replace(_searchText, "").Replace("  ", " ").Trim();
+
+            Find(updatedSearchText);
+        }
+
+        [JSInvokable]
+        public void FilterToMerged()
+        {
+            var issuesPullsPattern = new Regex(@"-?is:merged", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var updatedSearchText = "is:merged " + issuesPullsPattern.Replace(_searchText, "").Replace("  ", " ").Trim();
+
+            Find(updatedSearchText);
+        }
+
+        [JSInvokable]
+        public void FilterToNotMerged()
+        {
+            var issuesPullsPattern = new Regex(@"-?is:merged", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            var updatedSearchText = "-is:merged " + issuesPullsPattern.Replace(_searchText, "").Replace("  ", " ").Trim();
+
+            Find(updatedSearchText);
         }
 
         private CrawledIssueResults Find(string searchText)
