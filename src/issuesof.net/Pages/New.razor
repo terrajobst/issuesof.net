@@ -15,31 +15,31 @@
 <table class="table">
     <tbody>
         @foreach (var entry in FilteredRepoEntries)
-        {
-            var marginLeft = $"{entry.Indent * 30}px";
-            var isRepo = entry.Link is not null;
-            var colspan = isRepo ? null : "2";
+    {
+        var marginLeft = $"{entry.Indent * 30}px";
+        var isRepo = entry.Link is not null;
+        var colspan = isRepo ? null : "2";
 
-            <tr>
+        <tr>
                 <td class="w-25" colspan="@colspan">
                     <div style="margin-left: @marginLeft">
                         @if (entry.Link is not null)
-                        {
-                            <a href="@entry.Link">@entry.Name</a>
-                        }
-                        else
-                        {
-                            <strong>@entry.Name</strong>
-                        }
+                    {
+                        <a href="@entry.Link">@entry.Name</a>
+                    }
+                    else
+                    {
+                        <strong>@entry.Name</strong>
+                    }
                     </div>
                 </td>
 
                 @if (entry.Description is not null)
-                {
-                    <td class="w-75">@entry.Description</td>
-                }
+            {
+                <td class="w-75">@entry.Description</td>
+            }
             </tr>
-        }
+    }
     </tbody>
 </table>
 

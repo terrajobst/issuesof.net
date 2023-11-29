@@ -1,11 +1,10 @@
-﻿namespace IssueDb.Querying.Ranges
+﻿namespace IssueDb.Querying.Ranges;
+
+public enum UnaryRangeOperator
 {
-    public enum UnaryRangeOperator
-    {
-        EqualTo,
-        LessThan,
-        LessThanOrEqual,
-        GreaterThan,
-        GreaterThanOrEqual
-    }
+    EqualTo,
+    LessThan,
+    LessThanOrEqual,
+    GreaterThan,
+    GreaterThanOrEqual
 }

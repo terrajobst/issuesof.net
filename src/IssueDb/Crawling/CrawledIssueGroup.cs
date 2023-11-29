@@ -1,14 +1,13 @@
-﻿namespace IssueDb.Crawling
-{
-    public sealed class CrawledIssueGroup
-    {
-        public CrawledIssueGroup(string[] keys, CrawledIssueOrGroup[] children)
-        {
-            Keys = keys;
-            Children = children;
-        }
+﻿namespace IssueDb.Crawling;
 
-        public string[] Keys { get; }
-        public CrawledIssueOrGroup[] Children { get; }
+public sealed class CrawledIssueGroup
+{
+    public CrawledIssueGroup(string[] keys, CrawledIssueOrGroup[] children)
+    {
+        Keys = keys;
+        Children = children;
     }
+
+    public string[] Keys { get; }
+    public CrawledIssueOrGroup[] Children { get; }
 }

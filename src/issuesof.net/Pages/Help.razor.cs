@@ -1,6 +1,5 @@
-﻿namespace IssuesOfDotNet.Pages
+﻿namespace IssuesOfDotNet.Pages;
+
+public partial class Help
 {
-    public partial class Help
-    {
-    }
 }

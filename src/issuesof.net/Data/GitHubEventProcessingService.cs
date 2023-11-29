@@ -8,75 +8,74 @@ using Microsoft.Extensions.Logging;
 
 using Terrajobst.GitHubEvents;
 
-namespace IssuesOfDotNet.Data
+namespace IssuesOfDotNet.Data;
+
+public sealed partial class GitHubEventProcessingService : IHostedService
 {
-    public sealed partial class GitHubEventProcessingService : IHostedService
+    private readonly ILogger<GitHubEventProcessingService> _logger;
+    private readonly CancellationTokenSource _cts = new();
+    private readonly ConcurrentQueue<GitHubEventMessage> _messages = new();
+    private readonly AutoResetEvent _dataAvailable = new (false);
+    private readonly Processor _processor;
+    private Task _workerTask;
+
+    public GitHubEventProcessingService(ILogger<GitHubEventProcessingService> logger, IndexService indexService)
     {
-        private readonly ILogger<GitHubEventProcessingService> _logger;
-        private readonly CancellationTokenSource _cts = new();
-        private readonly ConcurrentQueue<GitHubEventMessage> _messages = new();
-        private readonly AutoResetEvent _dataAvailable = new (false);
-        private readonly Processor _processor;
-        private Task _workerTask;
+        _logger = logger;
+        _processor = new Processor(logger, indexService);
+    }
 
-        public GitHubEventProcessingService(ILogger<GitHubEventProcessingService> logger, IndexService indexService)
+    public void Enqueue(GitHubEventMessage message)
+    {
+        _logger.LogInformation($"Enqueuing message {message}");
+
+        _messages.Enqueue(message);
+        _dataAvailable.Set();
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        _workerTask = Task.Run(() =>
         {
-            _logger = logger;
-            _processor = new Processor(logger, indexService);
-        }
-
-        public void Enqueue(GitHubEventMessage message)
-        {
-            _logger.LogInformation($"Enqueuing message {message}");
-
-            _messages.Enqueue(message);
-            _dataAvailable.Set();
-        }
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            _workerTask = Task.Run(() =>
+            try
             {
-                try
-                {
-                    Run(_cts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogInformation("GitHub event processing was cancelled");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in GitHub event processing");
-                }
-            }, CancellationToken.None);
-
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _cts.Cancel();
-            return _workerTask;
-        }
-
-        private void Run(CancellationToken cancellationToken)
-        {
-            var waitHandles = new[]
+                Run(_cts.Token);
+            }
+            catch (OperationCanceledException)
             {
-                _dataAvailable,
-                cancellationToken.WaitHandle
-            };
-
-            while (true)
+                _logger.LogInformation("GitHub event processing was cancelled");
+            }
+            catch (Exception ex)
             {
-                WaitHandle.WaitAny(waitHandles);
-                cancellationToken.ThrowIfCancellationRequested();
+                _logger.LogError(ex, "Error in GitHub event processing");
+            }
+        }, CancellationToken.None);
 
-                while (_messages.TryDequeue(out var message))
-                {
-                    _processor.ProcessMessage(message);
-                }
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _cts.Cancel();
+        return _workerTask;
+    }
+
+    private void Run(CancellationToken cancellationToken)
+    {
+        var waitHandles = new[]
+        {
+            _dataAvailable,
+            cancellationToken.WaitHandle
+        };
+
+        while (true)
+        {
+            WaitHandle.WaitAny(waitHandles);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            while (_messages.TryDequeue(out var message))
+            {
+                _processor.ProcessMessage(message);
             }
         }
     }

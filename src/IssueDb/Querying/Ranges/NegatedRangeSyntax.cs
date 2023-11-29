@@ -1,25 +1,24 @@
 ﻿using System;
 
-namespace IssueDb.Querying.Ranges
+namespace IssueDb.Querying.Ranges;
+
+public sealed class NegatedRangeSyntax<T> : RangeSyntax<T>
+    where T : IComparable<T>
 {
-    public sealed class NegatedRangeSyntax<T> : RangeSyntax<T>
-        where T : IComparable<T>
+    public NegatedRangeSyntax(RangeSyntax<T> operand)
     {
-        public NegatedRangeSyntax(RangeSyntax<T> operand)
-        {
-            Operand = operand;
-        }
+        Operand = operand;
+    }
 
-        public RangeSyntax<T> Operand { get; }
+    public RangeSyntax<T> Operand { get; }
 
-        public override bool Contains(T value)
-        {
-            return !Operand.Contains(value);
-        }
+    public override bool Contains(T value)
+    {
+        return !Operand.Contains(value);
+    }
 
-        public override string ToString()
-        {
-            return $"not {Operand}";
-        }
+    public override string ToString()
+    {
+        return $"not {Operand}";
     }
 }

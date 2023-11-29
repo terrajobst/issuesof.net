@@ -1,12 +1,11 @@
-﻿namespace IssueDb.Querying.Binding
-{
-    public sealed class BoundNegatedQuery : BoundQuery
-    {
-        public BoundNegatedQuery(BoundQuery query)
-        {
-            Query = query;
-        }
+﻿namespace IssueDb.Querying.Binding;
 
-        public BoundQuery Query { get; }
+public sealed class BoundNegatedQuery : BoundQuery
+{
+    public BoundNegatedQuery(BoundQuery query)
+    {
+        Query = query;
     }
+
+    public BoundQuery Query { get; }
 }

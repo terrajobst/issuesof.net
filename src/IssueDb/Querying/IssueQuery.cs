@@ -7,178 +7,177 @@ using System.Linq;
 using IssueDb.Querying.Binding;
 using IssueDb.Querying.Syntax;
 
-namespace IssueDb.Querying
+namespace IssueDb.Querying;
+
+public sealed partial class IssueQuery
 {
-    public sealed partial class IssueQuery
+    public static IEnumerable<string> SupportedKeys => _keyValueHandlers.Keys.Select(kv => kv.Key).Distinct();
+
+    public static IEnumerable<string> SupportedValues => _keyValueHandlers.Keys.Select(kv => kv.Value).Where(v => v is not null).Distinct();
+
+    public static IEnumerable<string> SupportedValuesFor(string key) => _keyValueHandlers.Keys.Where(kv => kv.Value is not null &&
+                                                                                                        string.Equals(kv.Key, key, StringComparison.OrdinalIgnoreCase))
+                                                                                              .Select(kv => kv.Value);
+
+    public IssueQuery(IEnumerable<IssueFilter> filters)
     {
-        public static IEnumerable<string> SupportedKeys => _keyValueHandlers.Keys.Select(kv => kv.Key).Distinct();
+        Filters = filters.ToArray();
+    }
 
-        public static IEnumerable<string> SupportedValues => _keyValueHandlers.Keys.Select(kv => kv.Value).Where(v => v is not null).Distinct();
+    public IssueFilter[] Filters { get; set; }
 
-        public static IEnumerable<string> SupportedValuesFor(string key) => _keyValueHandlers.Keys.Where(kv => kv.Value is not null &&
-                                                                                                            string.Equals(kv.Key, key, StringComparison.OrdinalIgnoreCase))
-                                                                                                  .Select(kv => kv.Value);
+    public static IssueQuery Create(string query)
+    {
+        var syntax = QuerySyntax.Parse(query);
+        var expression = BoundQuery.Create(syntax);
+        return Create(expression);
+    }
 
-        public IssueQuery(IEnumerable<IssueFilter> filters)
+    private static IssueQuery Create(BoundQuery node)
+    {
+        var filters = new List<IssueFilter>();
+
+        foreach (var or in FlattenOrs(node))
         {
-            Filters = filters.ToArray();
+            var filter = CreateFilter(or);
+            filters.Add(filter);
         }
 
-        public IssueFilter[] Filters { get; set; }
+        return new IssueQuery(filters);
+    }
 
-        public static IssueQuery Create(string query)
+    private static IssueFilter CreateFilter(BoundQuery node)
+    {
+        var result = new IssueFilter();
+
+        foreach (var and in FlattenAnds(node))
         {
-            var syntax = QuerySyntax.Parse(query);
-            var expression = BoundQuery.Create(syntax);
-            return Create(expression);
-        }
-
-        private static IssueQuery Create(BoundQuery node)
-        {
-            var filters = new List<IssueFilter>();
-
-            foreach (var or in FlattenOrs(node))
+            switch (and)
             {
-                var filter = CreateFilter(or);
-                filters.Add(filter);
-            }
-
-            return new IssueQuery(filters);
-        }
-
-        private static IssueFilter CreateFilter(BoundQuery node)
-        {
-            var result = new IssueFilter();
-
-            foreach (var and in FlattenAnds(node))
-            {
-                switch (and)
-                {
-                    case BoundKeyValueQuery keyValueExpression:
-                        Apply(result, keyValueExpression);
-                        break;
-                    case BoundTextQuery textExpression:
-                        Apply(result, textExpression);
-                        break;
-                    default:
-                        throw new Exception($"Unexpected node {and.GetType()}");
-                }
-            }
-
-            return result;
-        }
-
-        private static void Apply(IssueFilter result, BoundKeyValueQuery expression)
-        {
-            var key = expression.Key.ToLowerInvariant();
-            var value = expression.Value.ToLowerInvariant();
-
-            if (_keyValueHandlers.TryGetValue((key, value), out var handler) ||
-                _keyValueHandlers.TryGetValue((key, null), out handler))
-            {
-                handler(result, expression);
-                return;
-            }
-
-            Apply(result, new BoundTextQuery(expression.IsNegated, $"{key}:{value}"));
-        }
-
-        private static void Apply(IssueFilter result, BoundTextQuery expression)
-        {
-            var terms = TextTokenizer.Tokenize(expression.Text);
-            foreach (var term in terms)
-            {
-                if (expression.IsNegated)
-                    result.ExcludedTerms.Add(term);
-                else
-                    result.IncludedTerms.Add(term);
+                case BoundKeyValueQuery keyValueExpression:
+                    Apply(result, keyValueExpression);
+                    break;
+                case BoundTextQuery textExpression:
+                    Apply(result, textExpression);
+                    break;
+                default:
+                    throw new Exception($"Unexpected node {and.GetType()}");
             }
         }
 
-        private static IEnumerable<BoundQuery> FlattenAnds(BoundQuery node)
+        return result;
+    }
+
+    private static void Apply(IssueFilter result, BoundKeyValueQuery expression)
+    {
+        var key = expression.Key.ToLowerInvariant();
+        var value = expression.Value.ToLowerInvariant();
+
+        if (_keyValueHandlers.TryGetValue((key, value), out var handler) ||
+            _keyValueHandlers.TryGetValue((key, null), out handler))
         {
-            var stack = new Stack<BoundQuery>();
-            var result = new List<BoundQuery>();
-            stack.Push(node);
-
-            while (stack.Count > 0)
-            {
-                var n = stack.Pop();
-                if (n is not BoundAndQuery and)
-                {
-                    result.Add(n);
-                }
-                else
-                {
-                    stack.Push(and.Right);
-                    stack.Push(and.Left);
-                }
-            }
-
-            return result;
+            handler(result, expression);
+            return;
         }
 
-        private static IEnumerable<BoundQuery> FlattenOrs(BoundQuery node)
+        Apply(result, new BoundTextQuery(expression.IsNegated, $"{key}:{value}"));
+    }
+
+    private static void Apply(IssueFilter result, BoundTextQuery expression)
+    {
+        var terms = TextTokenizer.Tokenize(expression.Text);
+        foreach (var term in terms)
         {
-            var stack = new Stack<BoundQuery>();
-            var result = new List<BoundQuery>();
-            stack.Push(node);
-
-            while (stack.Count > 0)
-            {
-                var n = stack.Pop();
-                if (n is not BoundOrQuery or)
-                {
-                    result.Add(n);
-                }
-                else
-                {
-                    stack.Push(or.Right);
-                    stack.Push(or.Left);
-                }
-            }
-
-            return result;
+            if (expression.IsNegated)
+                result.ExcludedTerms.Add(term);
+            else
+                result.IncludedTerms.Add(term);
         }
+    }
 
-        public void WriteTo(TextWriter writer)
+    private static IEnumerable<BoundQuery> FlattenAnds(BoundQuery node)
+    {
+        var stack = new Stack<BoundQuery>();
+        var result = new List<BoundQuery>();
+        stack.Push(node);
+
+        while (stack.Count > 0)
         {
-            if (writer is IndentedTextWriter indentedTextWriter)
+            var n = stack.Pop();
+            if (n is not BoundAndQuery and)
             {
-                WriteTo(indentedTextWriter);
+                result.Add(n);
             }
             else
             {
-                indentedTextWriter = new IndentedTextWriter(writer);
-                WriteTo(indentedTextWriter);
+                stack.Push(and.Right);
+                stack.Push(and.Left);
             }
         }
 
-        private void WriteTo(IndentedTextWriter writer)
+        return result;
+    }
+
+    private static IEnumerable<BoundQuery> FlattenOrs(BoundQuery node)
+    {
+        var stack = new Stack<BoundQuery>();
+        var result = new List<BoundQuery>();
+        stack.Push(node);
+
+        while (stack.Count > 0)
         {
-            if (!Filters.Any())
-                return;
-
-            if (Filters.Length > 1)
+            var n = stack.Pop();
+            if (n is not BoundOrQuery or)
             {
-                writer.WriteLine("OR");
-                writer.Indent++;
+                result.Add(n);
             }
-
-            foreach (var filter in Filters)
-                filter.WriteTo(writer);
-
-            if (Filters.Length > 1)
+            else
             {
-                writer.Indent--;
+                stack.Push(or.Right);
+                stack.Push(or.Left);
             }
         }
 
-        public override string ToString()
+        return result;
+    }
+
+    public void WriteTo(TextWriter writer)
+    {
+        if (writer is IndentedTextWriter indentedTextWriter)
         {
-            using var writer = new StringWriter();
-            WriteTo(writer);
-            return writer.ToString();
+            WriteTo(indentedTextWriter);
         }
+        else
+        {
+            indentedTextWriter = new IndentedTextWriter(writer);
+            WriteTo(indentedTextWriter);
+        }
+    }
+
+    private void WriteTo(IndentedTextWriter writer)
+    {
+        if (!Filters.Any())
+            return;
+
+        if (Filters.Length > 1)
+        {
+            writer.WriteLine("OR");
+            writer.Indent++;
+        }
+
+        foreach (var filter in Filters)
+            filter.WriteTo(writer);
+
+        if (Filters.Length > 1)
+        {
+            writer.Indent--;
+        }
+    }
+
+    public override string ToString()
+    {
+        using var writer = new StringWriter();
+        WriteTo(writer);
+        return writer.ToString();
     }
 }

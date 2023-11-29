@@ -7,55 +7,54 @@ using IssueDb.Querying;
 
 using Microsoft.ApplicationInsights;
 
-namespace IssuesOfDotNet.Data
+namespace IssuesOfDotNet.Data;
+
+public sealed class SearchService : IDisposable
 {
-    public sealed class SearchService : IDisposable
+    private readonly TelemetryClient _telemetryClient;
+    private readonly IndexService _indexService;
+
+    private CrawledIssueResults _openIssuesResults;
+
+    public SearchService(TelemetryClient telemetryClient, IndexService indexService)
     {
-        private readonly TelemetryClient _telemetryClient;
-        private readonly IndexService _indexService;
+        _telemetryClient = telemetryClient;
+        _indexService = indexService;
+        _indexService.Changed += IndexService_Changed;
+    }
 
-        private CrawledIssueResults _openIssuesResults;
+    public void Dispose()
+    {
+        _indexService.Changed -= IndexService_Changed;
+    }
 
-        public SearchService(TelemetryClient telemetryClient, IndexService indexService)
-        {
-            _telemetryClient = telemetryClient;
-            _indexService = indexService;
-            _indexService.Changed += IndexService_Changed;
-        }
+    public CrawledIssueResults Search(string searchText)
+    {
+        if (_indexService.Index is null)
+            return CrawledIssueResults.Empty;
 
-        public void Dispose()
-        {
-            _indexService.Changed -= IndexService_Changed;
-        }
+        var isOpenIssuesQuery = searchText == "is:open is:issue";
+        if (isOpenIssuesQuery && _openIssuesResults != null)
+            return _openIssuesResults;
 
-        public CrawledIssueResults Search(string searchText)
-        {
-            if (_indexService.Index is null)
-                return CrawledIssueResults.Empty;
+        var stopwatch = Stopwatch.StartNew();
+        var query = IssueQuery.Create(searchText);
+        var results = query.Execute(_indexService.Index);
+        var elapsed = stopwatch.Elapsed;
 
-            var isOpenIssuesQuery = searchText == "is:open is:issue";
-            if (isOpenIssuesQuery && _openIssuesResults != null)
-                return _openIssuesResults;
+        Task.Run(() =>
+            _telemetryClient.GetMetric("Search")
+                            .TrackValue(elapsed.TotalMilliseconds)
+        );
 
-            var stopwatch = Stopwatch.StartNew();
-            var query = IssueQuery.Create(searchText);
-            var results = query.Execute(_indexService.Index);
-            var elapsed = stopwatch.Elapsed;
+        if (isOpenIssuesQuery && _openIssuesResults is null)
+            _openIssuesResults = results;
 
-            Task.Run(() =>
-                _telemetryClient.GetMetric("Search")
-                                .TrackValue(elapsed.TotalMilliseconds)
-            );
+        return results;
+    }
 
-            if (isOpenIssuesQuery && _openIssuesResults is null)
-                _openIssuesResults = results;
-
-            return results;
-        }
-
-        private void IndexService_Changed(object sender, EventArgs e)
-        {
-            _openIssuesResults = null;
-        }
+    private void IndexService_Changed(object sender, EventArgs e)
+    {
+        _openIssuesResults = null;
     }
 }

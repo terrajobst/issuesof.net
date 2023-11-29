@@ -1,10 +1,9 @@
-﻿namespace IssueDb.Querying
+﻿namespace IssueDb.Querying;
+
+public enum IssueGroupSort
 {
-    public enum IssueGroupSort
-    {
-        KeyAscending,
-        KeyDescending,
-        CountAscending,
-        CountDescending
-    }
+    KeyAscending,
+    KeyDescending,
+    CountAscending,
+    CountDescending
 }

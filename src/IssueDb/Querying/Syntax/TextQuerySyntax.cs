@@ -1,19 +1,18 @@
-﻿namespace IssueDb.Querying.Syntax
+﻿namespace IssueDb.Querying.Syntax;
+
+public sealed class TextQuerySyntax : QuerySyntax
 {
-    public sealed class TextQuerySyntax : QuerySyntax
+    public TextQuerySyntax(QueryToken textToken)
     {
-        public TextQuerySyntax(QueryToken textToken)
-        {
-            TextToken = textToken;
-        }
+        TextToken = textToken;
+    }
 
-        public override QuerySyntaxKind Kind => QuerySyntaxKind.TextQuery;
-        public override TextSpan Span => TextToken.Span;
-        public QueryToken TextToken { get; }
+    public override QuerySyntaxKind Kind => QuerySyntaxKind.TextQuery;
+    public override TextSpan Span => TextToken.Span;
+    public QueryToken TextToken { get; }
 
-        public override QueryNodeOrToken[] GetChildren()
-        {
-            return new[] { TextToken };
-        }
+    public override QueryNodeOrToken[] GetChildren()
+    {
+        return new[] { TextToken };
     }
 }

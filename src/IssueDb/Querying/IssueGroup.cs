@@ -1,18 +1,17 @@
-﻿namespace IssueDb.Querying
+﻿namespace IssueDb.Querying;
+
+public enum IssueGroup
 {
-    public enum IssueGroup
-    {
-        Org,
-        Repo,
-        Author,
-        Assignee,
-        Label,
-        Milestone,
-        Area,
-        AreaNode,
-        AreaUnder,
-        AreaLead,
-        AreaPod,
-        AreaOwner
-    }
+    Org,
+    Repo,
+    Author,
+    Assignee,
+    Label,
+    Milestone,
+    Area,
+    AreaNode,
+    AreaUnder,
+    AreaLead,
+    AreaPod,
+    AreaOwner
 }
