@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IssueDb.Querying.Ranges;
+﻿namespace IssueDb.Querying.Ranges;
 
 public static class RangeSyntax
 {

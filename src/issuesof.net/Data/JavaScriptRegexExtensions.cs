@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace IssuesOfDotNet.Data;
+﻿namespace IssuesOfDotNet.Data;
 
 public static class JavaScriptRegexExtensions
 {

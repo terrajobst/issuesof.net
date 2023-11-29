@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace IssueDb;
+﻿namespace IssueDb;
 
 public static class ListExtensions
 {

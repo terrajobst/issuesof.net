@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 
 using IssueDb.Crawling;
 
@@ -9,9 +6,7 @@ using IssuesOfDotNet.Data;
 using IssuesOfDotNet.net.Data;
 
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Hosting;
 using Microsoft.JSInterop;
 
 namespace IssuesOfDotNet.Pages;

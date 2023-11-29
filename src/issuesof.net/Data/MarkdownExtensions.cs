@@ -1,6 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 using Markdig.Extensions.Emoji;
 

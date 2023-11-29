@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using IssueDb.Querying.Syntax;
+﻿using IssueDb.Querying.Syntax;
 
 namespace IssueDb.Querying.Completion;
 

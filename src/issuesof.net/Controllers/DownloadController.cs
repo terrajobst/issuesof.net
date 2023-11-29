@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using System.Net.Mime;
+﻿using System.Net.Mime;
 using System.Text;
 
 using IssueDb.Crawling;

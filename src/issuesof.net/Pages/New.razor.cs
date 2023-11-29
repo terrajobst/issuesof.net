@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-namespace IssuesOfDotNet.Pages;
+﻿namespace IssuesOfDotNet.Pages;
 
 public partial class New
 {

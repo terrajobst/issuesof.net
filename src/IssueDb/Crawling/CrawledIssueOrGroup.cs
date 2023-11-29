@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IssueDb.Crawling;
+﻿namespace IssueDb.Crawling;
 
 public struct CrawledIssueOrGroup : IEquatable<CrawledIssueOrGroup>
 {

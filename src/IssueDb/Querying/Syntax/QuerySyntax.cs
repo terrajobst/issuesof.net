@@ -1,7 +1,4 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.IO;
-using System.Linq;
+﻿using System.CodeDom.Compiler;
 
 namespace IssueDb.Querying.Syntax;
 

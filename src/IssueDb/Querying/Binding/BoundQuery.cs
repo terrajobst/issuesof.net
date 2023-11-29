@@ -1,6 +1,4 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.IO;
+﻿using System.CodeDom.Compiler;
 
 using IssueDb.Querying.Syntax;
 

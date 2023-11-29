@@ -1,14 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using IssueDb.Crawling;
+﻿using IssueDb.Crawling;
 
 using IssuesOfDotNet.Data;
 
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Hosting;
 using Microsoft.JSInterop;
 
 namespace IssuesOfDotNet.Pages;

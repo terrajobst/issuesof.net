@@ -1,10 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using IssueDb.Crawling;
+﻿using IssueDb.Crawling;
 using IssueDb.Querying.Completion;
-
-using Microsoft.Extensions.Logging;
 
 namespace IssuesOfDotNet.Data;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IssueDb.Querying.Ranges;
+﻿namespace IssueDb.Querying.Ranges;
 
 public abstract class RangeSyntax<T>
     where T: IComparable<T>

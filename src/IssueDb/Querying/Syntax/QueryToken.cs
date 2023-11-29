@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IssueDb.Querying.Syntax;
+﻿namespace IssueDb.Querying.Syntax;
 
 public sealed class QueryToken : QueryNodeOrToken
 {

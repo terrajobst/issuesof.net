@@ -1,15 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Net.Mime;
+﻿using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 using IssuesOfDotNet.Data;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace IssuesOfDotNet.Controllers;
 

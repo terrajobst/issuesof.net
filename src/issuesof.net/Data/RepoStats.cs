@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace IssuesOfDotNet.net.Data;
+﻿namespace IssuesOfDotNet.net.Data;
 
 public class RepoStats
 {

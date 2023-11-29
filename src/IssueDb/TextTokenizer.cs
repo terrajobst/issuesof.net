@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Humanizer;
+﻿using Humanizer;
 
 namespace IssueDb;
 

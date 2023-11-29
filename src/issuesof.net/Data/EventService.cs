@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using IssueDb.Crawling;
+﻿using IssueDb.Crawling;
 using IssueDb.Eventing;
 
 using Microsoft.ApplicationInsights;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
 using Terrajobst.GitHubEvents;

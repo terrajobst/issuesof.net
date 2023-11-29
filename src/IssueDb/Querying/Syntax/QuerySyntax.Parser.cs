@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace IssueDb.Querying.Syntax;
+﻿namespace IssueDb.Querying.Syntax;
 
 public partial class QuerySyntax
 {
