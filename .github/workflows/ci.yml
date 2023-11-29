@@ -10,9 +10,14 @@ jobs:
 
     steps:
     - name: Get code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: dotnet build
+    - name: Get .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.*'
+
+    - name: Build
       run: |
         cd src/issuesof.net
         dotnet build -c Release -o '../../artifacts/issuesof.net'

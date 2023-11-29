@@ -10,19 +10,20 @@ jobs:
 
     steps:
     - name: Get code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    # Publishing
+    - name: Get .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.*'
 
-    - name: dotnet publish
+    - name: Publish
       run: |
         cd src/issuesof.net
         dotnet publish -c Release -o '../../artifacts/issuesof.net'
         cd ../..
 
-    # Deploy to Azure
-
-    - name: webapps-deploy
+    - name: Deploy to Azure
       uses: azure/webapps-deploy@v2
       with:
         app-name: issuesofdotnet

@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>IssuesOfDotNet</RootNamespace>
     <UserSecretsId>issuesof.net</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
-    <PackageReference Include="Humanizer.Core" Version="2.9.9" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
-    <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" Version="0.1.9" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Humanizer.Core" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+    <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
