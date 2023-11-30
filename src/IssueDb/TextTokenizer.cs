@@ -7,6 +7,10 @@ public static class TextTokenizer
     public static IEnumerable<string> Tokenize(string text)
     {
         var result = new SortedSet<string>();
+        var brokenInputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "S"
+        };
 
         foreach (var token in SplitByPunctuation(text))
         {
@@ -14,8 +18,15 @@ public static class TextTokenizer
             // range exception on certain inputs.
             try
             {
-                var singular = token.Singularize();
-                result.Add(singular.ToLowerInvariant());
+                if (brokenInputs.Contains(token))
+                {
+                    result.Add(token);
+                }
+                else
+                {
+                    var singular = token.Singularize();
+                    result.Add(singular.ToLowerInvariant());
+                }
             }
             catch (Exception ex)
             {

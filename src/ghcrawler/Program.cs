@@ -490,11 +490,23 @@ internal static class Program
         Console.WriteLine("Creating trie...");
 
         var trie = new CrawledTrie<CrawledIssue>();
+        var totalIssueCount = repos.Sum(r => r.Issues.Count);
+        var lastPercentage = 0;
+        var processedIssueCount = 0;
 
         foreach (var repo in repos)
         {
             foreach (var issue in repo.Issues.Values)
+            {
+                var percentage = (int)Math.Round((float)processedIssueCount++ / totalIssueCount * 100, 0);
+                if (percentage != lastPercentage)
+                {
+                    Console.WriteLine($"{percentage}%...");
+                    lastPercentage = percentage;
+                }
+
                 trie.Add(issue);
+            }
         }
 
         Console.WriteLine("Creating index...");
