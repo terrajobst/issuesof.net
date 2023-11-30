@@ -19,7 +19,7 @@ public static class TextTokenizer
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Humanizer failed to singularize '{text}': {ex}");
+                Console.WriteLine($"Humanizer failed to singularize '{token}': {ex}");
             }
 
             foreach (var nestedToken in SplitByCaseChanges(token))
