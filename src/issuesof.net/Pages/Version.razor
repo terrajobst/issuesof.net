@@ -1,0 +1,18 @@
+﻿@page "/version"
+
+@using System.Reflection;
+@using System.Runtime.InteropServices;
+
+<dl>
+    @if (_commit is not null)
+    {
+        <dt>Commit</dt>
+        <dd><a href="https://github.com/terrajobst/issuesof.net/commit/@(_commit)">@_commit</a></dd>
+    }
+
+    <dt>Framework</dt>
+    <dd>@RuntimeInformation.FrameworkDescription</dd>
+
+    <dt>OS</dt>
+    <dd>@RuntimeInformation.OSDescription</dd>
+</dl>

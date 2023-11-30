@@ -20,7 +20,7 @@ jobs:
     - name: Publish
       run: |
         cd src/issuesof.net
-        dotnet publish -c Release -o '../../artifacts/issuesof.net'
+        dotnet publish -c Release /p:SourceRevisionId=${{ github.sha }} -o '../../artifacts/issuesof.net'
         cd ../..
 
     - name: Deploy to Azure
