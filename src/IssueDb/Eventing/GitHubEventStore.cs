@@ -59,7 +59,7 @@ public sealed class GitHubEventStore
         var blobName = name.ToString();
         var blobClient = new BlobClient(_connectionString, containerClient.Name, blobName);
         var data = await blobClient.DownloadAsync();
-        
+
         using (var reader = new StreamReader(data.Value.Content))
         {
             var json = await reader.ReadToEndAsync();

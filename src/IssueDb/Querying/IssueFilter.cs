@@ -184,7 +184,7 @@ public sealed class IssueFilter
         }
 
         static void AddRangeFilter<T>(List<string> lines, RangeSyntax<T> range, string name)
-            where T: IComparable<T>
+            where T : IComparable<T>
         {
             if (range is not null)
                 lines.Add($"{name} {range}");

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace IssueDb.Crawling;
 
@@ -23,7 +23,7 @@ public sealed class CrawledSubscriptionList
         return result;
     }
 
-    private Dictionary<string, SortedSet<string>> _orgRepos = new Dictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, SortedSet<string>> _orgRepos = new Dictionary<string, SortedSet<string>>(StringComparer.OrdinalIgnoreCase);
 
     public void Add(string orgAndRepo)
     {
@@ -48,7 +48,7 @@ public sealed class CrawledSubscriptionList
         var (org, repo) = ParseOrgAndRepo(orgAndRepo);
         if (repo is null)
             return _orgRepos.ContainsKey(org);
-        
+
         return Contains(org, repo);
     }
 

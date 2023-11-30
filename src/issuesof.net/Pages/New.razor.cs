@@ -70,7 +70,7 @@ public partial class New
     {
         using var stream = GetType().Assembly.GetManifestResourceStream(GetType().FullName + ".razor.txt");
         using var streamReader = new StreamReader(stream);
-        return streamReader.ReadToEnd(); ;
+        return streamReader.ReadToEnd();
     }
 
     private static List<RepoEntry> ParseRepoEntries(string text)

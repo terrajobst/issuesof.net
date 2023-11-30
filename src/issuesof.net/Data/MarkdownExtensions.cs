@@ -6,7 +6,7 @@ namespace IssuesOfDotNet.Data;
 
 public static class MarkdownExtensions
 {
-    private static IDictionary<string, string> _emojiMapping = EmojiMapping.GetDefaultEmojiShortcodeToUnicode();
+    private static readonly IDictionary<string, string> _emojiMapping = EmojiMapping.GetDefaultEmojiShortcodeToUnicode();
 
     public static string HighlightCode(this string text)
     {

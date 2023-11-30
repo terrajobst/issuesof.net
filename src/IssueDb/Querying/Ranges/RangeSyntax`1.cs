@@ -1,7 +1,7 @@
 ﻿namespace IssueDb.Querying.Ranges;
 
 public abstract class RangeSyntax<T>
-    where T: IComparable<T>
+    where T : IComparable<T>
 {
     public delegate bool ScalarParser(string text, out T result);
 

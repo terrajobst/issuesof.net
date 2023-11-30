@@ -87,7 +87,7 @@ internal static class Program
                 options.WriteOptionDescriptions(Console.Error);
                 return 0;
             }
-            
+
             var unprocessed = new List<string>();
 
             foreach (var parameter in parameters)
@@ -112,7 +112,7 @@ internal static class Program
         }
 
         var subscriptionList = useSubscriptions
-            ? CrawledSubscriptionList.CreateDefault()        
+            ? CrawledSubscriptionList.CreateDefault()
             : new CrawledSubscriptionList();
 
         foreach (var repoSpec in repoSpecs)
@@ -665,7 +665,7 @@ internal static class Program
             catch (ApiException ex) when (retryCount > 0)
             {
                 var padding = TimeSpan.FromSeconds(30);
-                var delay = TimeSpan.FromSeconds(30);;
+                var delay = TimeSpan.FromSeconds(30);
                 var time = DateTime.UtcNow + delay;
                 Console.WriteLine($"API error: {ex.Message}");
                 Console.WriteLine($"Waiting {delay.TotalMinutes:N0} minutes, until {time.ToLocalTime():M/d/yyyy h:mm tt}...");

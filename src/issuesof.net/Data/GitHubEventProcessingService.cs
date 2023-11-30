@@ -9,7 +9,7 @@ public sealed partial class GitHubEventProcessingService : IHostedService
     private readonly ILogger<GitHubEventProcessingService> _logger;
     private readonly CancellationTokenSource _cts = new();
     private readonly ConcurrentQueue<GitHubEventMessage> _messages = new();
-    private readonly AutoResetEvent _dataAvailable = new (false);
+    private readonly AutoResetEvent _dataAvailable = new(false);
     private readonly Processor _processor;
     private Task _workerTask;
 
