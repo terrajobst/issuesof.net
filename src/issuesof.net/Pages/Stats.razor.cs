@@ -32,6 +32,8 @@ public sealed partial class Stats
     public int NumberOfTrieBytes { get; set; }
     public bool IsDevelopment => Environment.IsDevelopment();
 
+    public string Filter { get; set; } = string.Empty;
+
     public Sort SortBy
     {
         get => _sortBy;
@@ -48,7 +50,9 @@ public sealed partial class Stats
 
     public IEnumerable<RepoStats> Rows => TrieService.IndexStats == null
                                             ? Enumerable.Empty<RepoStats>()
-                                            : TrieService.IndexStats.OrderBy(x => x, SortBy.Comparer);
+                                            : TrieService.IndexStats
+                                                .Where(x => string.IsNullOrWhiteSpace(Filter) || x.FullName.Contains(Filter))
+                                                .OrderBy(x => x, SortBy.Comparer);
 
     protected override void OnInitialized()
     {

@@ -17,6 +17,12 @@
     </div>
 }
 
+<form>
+    <div class="form-group">
+        <input type="text" class="form-control" placeholder="Search" @bind="Filter" @bind:event="oninput" />
+    </div>
+</form>
+
 <div class="gh-table-header d-flex flex-row align-items-center">
     @{
     var stats = TrieService.IndexStats;
