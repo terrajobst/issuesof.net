@@ -1,0 +1,43 @@
+﻿@page "/areas"
+
+<IndexStatus />
+
+<form>
+    <div class="form-group">
+        <input type="text" class="form-control" placeholder="Search" @bind="Filter" @bind:event="oninput" />
+    </div>
+</form>
+
+<table class="table table-hover table-striped">
+    <thead>
+        <tr>
+            <th>Area</th>
+            <th>Leads</th>
+            <th>Owners</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in Rows)
+        {
+            void WriteUserList(IEnumerable<string> users)
+            {
+                <div class="d-flex flex-wrap" style="gap: .3rem;">
+                    @foreach (var user in users)
+                    {
+                        <a class="font-weight-bold" href="https://github.com/@user">@@@user</a>
+                    }
+                </div>
+            }
+
+            <tr>
+                <td>@row.Area</td>
+                <td>
+                    @{ WriteUserList(row.Leads); }
+                </td>
+                <td>
+                    @{ WriteUserList(row.Owners); }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
