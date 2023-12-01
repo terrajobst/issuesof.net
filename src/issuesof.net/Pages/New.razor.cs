@@ -1,14 +1,18 @@
-﻿namespace IssuesOfDotNet.Pages;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.JSInterop;
+
+namespace IssuesOfDotNet.Pages;
 
 public partial class New
 {
     private string _filter;
 
-    protected override void OnInitialized()
-    {
-        RepoEntries = GetRepoEntries();
-        UpdateIsVisible();
-    }
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
 
     private string Filter
     {
@@ -19,6 +23,7 @@ public partial class New
             {
                 _filter = value;
                 UpdateIsVisible();
+                ChangeUrl();
             }
         }
     }
@@ -27,14 +32,35 @@ public partial class New
 
     private List<RepoEntry> RepoEntries { get; set; }
 
-    private sealed class RepoEntry
+    protected override void OnInitialized()
     {
-        public bool IsVisible { get; set; }
-        public int Indent { get; set; }
-        public string Name { get; set; }
-        public string Link { get; set; }
-        public string Description { get; set; }
-        public RepoEntry[] Ancestors { get; set; } = Array.Empty<RepoEntry>();
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var parameters = QueryHelpers.ParseQuery(uri.Query);
+
+        if (parameters.TryGetValue("q", out var filter))
+            Filter = filter;
+
+        RepoEntries = GetRepoEntries();
+        UpdateIsVisible();
+    }
+
+    private async void ChangeUrl()
+    {
+        var hasFilter = !string.IsNullOrWhiteSpace(Filter);
+
+        if (!hasFilter)
+            return;
+
+        var query = new Dictionary<string, object>();
+
+        if (hasFilter)
+            query["q"] = Filter;
+
+        var uri = NavigationManager.GetUriWithQueryParameters(query);
+        await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",
+                                        uri.ToString(),
+                                        /* forceLoad */ false,
+                                        /* replace */ false);
     }
 
     private void UpdateIsVisible()
@@ -144,5 +170,15 @@ public partial class New
             return "https://developercommunity.visualstudio.com/search?space=61";
 
         return $"https://github.com/{repo}";
+    }
+
+    private sealed class RepoEntry
+    {
+        public bool IsVisible { get; set; }
+        public int Indent { get; set; }
+        public string Name { get; set; }
+        public string Link { get; set; }
+        public string Description { get; set; }
+        public RepoEntry[] Ancestors { get; set; } = Array.Empty<RepoEntry>();
     }
 }
