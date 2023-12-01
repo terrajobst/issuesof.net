@@ -16,7 +16,7 @@ public sealed class CrawledIssue
 {
     public CrawledRepo Repo { get; set; }
     public long Id { get; set; }
-    public int Number { get; set; }
+    public long Number { get; set; }
     public bool IsOpen { get; set; }
     public bool IsPullRequest { get; set; }
     public bool IsDraft { get; set; }

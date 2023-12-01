@@ -4,7 +4,17 @@ using System.Text;
 using IssueDb;
 using IssueDb.Crawling;
 
-using Terrajobst.GitHubEvents;
+using Octokit.Webhooks;
+using Octokit.Webhooks.Events;
+using Octokit.Webhooks.Events.Issues;
+using Octokit.Webhooks.Events.Label;
+using Octokit.Webhooks.Events.Milestone;
+using Octokit.Webhooks.Events.PullRequest;
+using Octokit.Webhooks.Events.Repository;
+using Octokit.Webhooks.Models;
+using Octokit.Webhooks.Models.PullRequestEvent;
+
+using Label = Octokit.Webhooks.Models.Label;
 
 namespace IssuesOfDotNet.Data;
 
@@ -16,7 +26,7 @@ public sealed partial class GitHubEventProcessingService
     //       This also avoids the problem where observers can see partially updated issues. If can just replace the entire issue object
     //       observers either the old issue or the new issue but never any partial state.
 
-    private sealed class Processor : GitHubEventProcessor
+    private sealed class Processor : WebhookEventProcessor
     {
         private readonly ILogger _logger;
         private readonly IndexService _indexService;
@@ -27,7 +37,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService = indexService;
         }
 
-        public override void ProcessMessage(GitHubEventMessage message)
+        public override async Task ProcessWebhookAsync(WebhookHeaders headers, WebhookEvent webhookEvent)
         {
             {
                 var sb = new StringBuilder();
@@ -35,14 +45,14 @@ public sealed partial class GitHubEventProcessingService
 
                 sb.Append("Processing message");
 
-                FormatMessage(message, sb, args);
+                FormatMessage(headers, webhookEvent, sb, args);
 
                 _logger.LogInformation(sb.ToString(), args.ToArray());
             }
 
             try
             {
-                base.ProcessMessage(message);
+                await base.ProcessWebhookAsync(headers, webhookEvent);
             }
             catch (Exception ex)
             {
@@ -51,220 +61,222 @@ public sealed partial class GitHubEventProcessingService
 
                 sb.Append("Error processing message");
 
-                FormatMessage(message, sb, args);
+                FormatMessage(headers, webhookEvent, sb, args);
 
                 _logger.LogError(ex, sb.ToString(), args.ToArray());
             }
 
-            static void FormatMessage(GitHubEventMessage message, StringBuilder sb, List<object> args)
+            static void FormatMessage(WebhookHeaders headers, WebhookEvent message, StringBuilder sb, List<object> args)
             {
                 sb.Append(", Delivery={Delivery}");
-                args.Add(message.Headers.Delivery);
+                args.Add(headers.Delivery);
 
-                if (message.Headers.Event is not null)
+                if (headers.Event is not null)
                 {
                     sb.Append(", Event={Event}");
-                    args.Add(message.Headers.Event);
+                    args.Add(headers.Event);
                 }
 
-                if (message.Body.Action is not null)
+                if (message.Action is not null)
                 {
                     sb.Append(", Action={Action}");
-                    args.Add(message.Body.Action);
+                    args.Add(message.Action);
                 }
 
-                if (message.Body.Organization is not null)
+                if (message.Organization is not null)
                 {
                     sb.Append(", Org={Org}");
-                    args.Add(message.Body.Organization.Login);
+                    args.Add(message.Organization.Login);
 
                     sb.Append(", OrgId={OrgId}");
-                    args.Add(message.Body.Organization.Id);
+                    args.Add(message.Organization.Id);
                 }
 
-                if (message.Body.Repository is not null)
+                if (message.Repository is not null)
                 {
                     sb.Append(", Repo={Repo}");
-                    args.Add(message.Body.Repository.Name);
+                    args.Add(message.Repository.Name);
 
                     sb.Append(", RepoId={RepoId}");
-                    args.Add(message.Body.Repository.Id);
+                    args.Add(message.Repository.Id);
                 }
 
-                if (message.Body.Issue is not null)
+                if (message is IssuesEvent issuesEvent)
                 {
                     sb.Append(", Issue={Issue}");
-                    args.Add(message.Body.Issue.Number);
+                    args.Add(issuesEvent.Issue.Number);
 
                     sb.Append(", IssueId={IssueId}");
-                    args.Add(message.Body.Issue.Id);
+                    args.Add(issuesEvent.Issue.Id);
                 }
 
-                if (message.Body.PullRequest is not null)
+                if (message is PullRequestEvent pullRequestEvent)
                 {
                     sb.Append(", PullRequest={PullRequest}");
-                    args.Add(message.Body.PullRequest.Number);
+                    args.Add(pullRequestEvent.PullRequest.Number);
 
                     sb.Append(", PullRequestId={PullRequestId}");
-                    args.Add(message.Body.PullRequest.Id);
+                    args.Add(pullRequestEvent.PullRequest.Id);
                 }
 
-                if (message.Body.Label is not null)
+                if (message is LabelEvent labelEvent)
                 {
                     sb.Append(", Label={Label}");
-                    args.Add(message.Body.Label.Name);
+                    args.Add(labelEvent.Label.Name);
 
                     sb.Append(", LabelId={LabelId}");
-                    args.Add(message.Body.Label.Id);
+                    args.Add(labelEvent.Label.Id);
                 }
 
-                if (message.Body.Milestone is not null)
+                if (message is MilestoneEvent milestoneEvent)
                 {
                     sb.Append(", Milestone={Milestone}");
-                    args.Add(message.Body.Milestone.Title);
+                    args.Add(milestoneEvent.Milestone.Title);
 
                     sb.Append(", MilestoneId={MilestoneId}");
-                    args.Add(message.Body.Milestone.Id);
+                    args.Add(milestoneEvent.Milestone.Id);
                 }
 
-                if (message.Body.Assignee is not null)
-                {
-                    sb.Append(", Assignee={Assignee}");
-                    args.Add(message.Body.Assignee.Login);
-
-                    sb.Append(", AssigneeId={AssigneeId}");
-                    args.Add(message.Body.Assignee.Id);
-                }
-
-                if (message.Body.Comment is not null)
+                if (message is IssueCommentEvent issueCommentEvent)
                 {
                     sb.Append(", Comment={Comment}");
-                    args.Add(message.Body.Comment.Id);
+                    args.Add(issueCommentEvent.Comment.Id);
                 }
 
-                if (message.Body.Sender is not null)
+                if (message.Sender is not null)
                 {
                     sb.Append(", Sender={Sender}");
-                    args.Add(message.Body.Sender.Login);
+                    args.Add(message.Sender.Login);
 
                     sb.Append(", SenderId={SenderId}");
-                    args.Add(message.Body.Sender.Id);
+                    args.Add(message.Sender.Id);
                 }
 
-                if (message.Body.Installation is not null)
+                if (message.Installation is not null)
                 {
                     sb.Append(", Installation={Installation}");
-                    args.Add(message.Body.Installation.Id);
+                    args.Add(message.Installation.Id);
                 }
             }
         }
 
-        protected override void ProcessRepoMessage(GitHubEventMessage message, GitHubEventRepository repository, GitHubEventRepoAction action)
+        protected override Task ProcessRepositoryWebhookAsync(WebhookHeaders headers, RepositoryEvent repositoryEvent, RepositoryAction action)
         {
             switch (action)
             {
-                case GitHubEventRepoAction.Created:
-                    AddRepo(repository);
+                case RepositoryActionValue.Created:
+                    AddRepo(repositoryEvent.Repository);
                     break;
-                case GitHubEventRepoAction.Deleted:
-                    RemoveRepo(repository);
+                case RepositoryActionValue.Deleted:
+                    RemoveRepo(repositoryEvent.Repository);
                     break;
-                case GitHubEventRepoAction.Archived:
-                case GitHubEventRepoAction.Unarchived:
-                case GitHubEventRepoAction.Publicized:
-                case GitHubEventRepoAction.Privatized:
-                    UpdateRepo(repository);
+                case RepositoryActionValue.Archived:
+                case RepositoryActionValue.Unarchived:
+                case RepositoryActionValue.Publicized:
+                case RepositoryActionValue.Privatized:
+                    UpdateRepo(repositoryEvent.Repository);
                     break;
             }
+
+            return base.ProcessRepositoryWebhookAsync(headers, repositoryEvent, action);
         }
 
-        protected override void ProcessLabelMessage(GitHubEventMessage message, GitHubEventRepository repository, GitHubEventLabel label, GitHubEventLabelAction action)
+        protected override Task ProcessLabelWebhookAsync(WebhookHeaders headers, LabelEvent labelEvent, LabelAction action)
         {
             switch (action)
             {
-                case GitHubEventLabelAction.Created:
-                    AddLabel(repository, label);
+                case LabelActionValue.Created:
+                    AddLabel(labelEvent.Repository, labelEvent.Label);
                     break;
-                case GitHubEventLabelAction.Edited:
-                    UpdateLabel(repository, label);
+                case LabelActionValue.Edited:
+                    UpdateLabel(labelEvent.Repository, labelEvent.Label);
                     break;
-                case GitHubEventLabelAction.Deleted:
-                    RemoveLabel(repository, label);
+                case LabelActionValue.Deleted:
+                    RemoveLabel(labelEvent.Repository, labelEvent.Label);
                     break;
             }
+
+
+            return base.ProcessLabelWebhookAsync(headers, labelEvent, action);
         }
 
-        protected override void ProcessMilestoneMessage(GitHubEventMessage message, GitHubEventRepository repository, GitHubEventMilestone milestone, GitHubEventMilestoneAction action)
+        protected override Task ProcessMilestoneWebhookAsync(WebhookHeaders headers, MilestoneEvent milestoneEvent, MilestoneAction action)
         {
             switch (action)
             {
-                case GitHubEventMilestoneAction.Created:
-                    AddMilestone(repository, milestone);
+                case MilestoneActionValue.Created:
+                    AddMilestone(milestoneEvent.Repository, milestoneEvent.Milestone);
                     break;
-                case GitHubEventMilestoneAction.Edited:
-                case GitHubEventMilestoneAction.Opened:
-                case GitHubEventMilestoneAction.Closed:
-                    UpdateMilestone(repository, milestone);
+                case MilestoneActionValue.Edited:
+                case MilestoneActionValue.Opened:
+                case MilestoneActionValue.Closed:
+                    UpdateMilestone(milestoneEvent.Repository, milestoneEvent.Milestone);
                     break;
-                case GitHubEventMilestoneAction.Deleted:
-                    RemoveMilestone(repository, milestone);
+                case MilestoneActionValue.Deleted:
+                    RemoveMilestone(milestoneEvent.Repository, milestoneEvent.Milestone);
                     break;
             }
+
+            return base.ProcessMilestoneWebhookAsync(headers, milestoneEvent, action);
         }
 
-        protected override void ProcessIssueMessage(GitHubEventMessage message, GitHubEventRepository repository, GitHubEventIssue issue, GitHubEventIssueAction action)
+        protected override Task ProcessIssuesWebhookAsync(WebhookHeaders headers, IssuesEvent issueEvent, IssuesAction action)
         {
             switch (action)
             {
-                case GitHubEventIssueAction.Opened:
-                    AddIssueOrPullRequest(repository, issue);
+                case IssuesActionValue.Opened:
+                    AddIssue(issueEvent.Repository, issueEvent.Issue);
                     break;
-                case GitHubEventIssueAction.Closed:
-                case GitHubEventIssueAction.Reopened:
-                case GitHubEventIssueAction.Edited:
-                case GitHubEventIssueAction.Assigned:
-                case GitHubEventIssueAction.Unassigned:
-                case GitHubEventIssueAction.Labeled:
-                case GitHubEventIssueAction.Unlabeled:
-                case GitHubEventIssueAction.Milestoned:
-                case GitHubEventIssueAction.Demilestoned:
-                case GitHubEventIssueAction.Locked:
-                case GitHubEventIssueAction.Unlocked:
-                    UpdateIssue(repository, issue);
+                case IssuesActionValue.Closed:
+                case IssuesActionValue.Reopened:
+                case IssuesActionValue.Edited:
+                case IssuesActionValue.Assigned:
+                case IssuesActionValue.Unassigned:
+                case IssuesActionValue.Labeled:
+                case IssuesActionValue.Unlabeled:
+                case IssuesActionValue.Milestoned:
+                case IssuesActionValue.Demilestoned:
+                case IssuesActionValue.Locked:
+                case IssuesActionValue.Unlocked:
+                    UpdateIssue(issueEvent.Repository, issueEvent.Issue);
                     break;
-                case GitHubEventIssueAction.Deleted:
-                    RemoveIssue(repository, issue);
+                case IssuesActionValue.Deleted:
+                    RemoveIssue(issueEvent.Repository, issueEvent.Issue);
                     break;
-                case GitHubEventIssueAction.Transferred:
-                    TransferIssue(repository, issue);
+                case IssuesActionValue.Transferred:
+                    TransferIssue(issueEvent.Repository, issueEvent.Issue);
                     break;
             }
+
+            return base.ProcessIssuesWebhookAsync(headers, issueEvent, action);
         }
 
-        protected override void ProcessPullRequestMessage(GitHubEventMessage message, GitHubEventRepository repository, GitHubEventPullRequest pullRequest, GitHubEventPullRequestAction action)
+        protected override Task ProcessPullRequestWebhookAsync(WebhookHeaders headers, PullRequestEvent pullRequestEvent, PullRequestAction action)
         {
             switch (action)
             {
-                case GitHubEventPullRequestAction.Opened:
-                    AddIssueOrPullRequest(repository, pullRequest);
+                case PullRequestActionValue.Opened:
+                    AddPullRequest(pullRequestEvent.Repository, pullRequestEvent.PullRequest);
                     break;
-                case GitHubEventPullRequestAction.Closed:
-                case GitHubEventPullRequestAction.Reopened:
-                case GitHubEventPullRequestAction.Edited:
-                case GitHubEventPullRequestAction.Assigned:
-                case GitHubEventPullRequestAction.Unassigned:
-                case GitHubEventPullRequestAction.Labeled:
-                case GitHubEventPullRequestAction.Unlabeled:
-                case GitHubEventPullRequestAction.Locked:
-                case GitHubEventPullRequestAction.Unlocked:
-                case GitHubEventPullRequestAction.ConvertedToDraft:
-                case GitHubEventPullRequestAction.ReadyForReview:
-                    UpdatePullRequest(repository, pullRequest);
+                case PullRequestActionValue.Closed:
+                case PullRequestActionValue.Reopened:
+                case PullRequestActionValue.Edited:
+                case PullRequestActionValue.Assigned:
+                case PullRequestActionValue.Unassigned:
+                case PullRequestActionValue.Labeled:
+                case PullRequestActionValue.Unlabeled:
+                case PullRequestActionValue.Locked:
+                case PullRequestActionValue.Unlocked:
+                case PullRequestActionValue.ConvertedToDraft:
+                case PullRequestActionValue.ReadyForReview:
+                    UpdatePullRequest(pullRequestEvent.Repository, pullRequestEvent.PullRequest);
                     break;
             }
+
+            return base.ProcessPullRequestWebhookAsync(headers, pullRequestEvent, action);
         }
 
-        private void AddRepo(GitHubEventRepository repository)
+        private void AddRepo(Repository repository)
         {
             if (repository.Private)
                 return;
@@ -284,7 +296,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private void UpdateRepo(GitHubEventRepository repository)
+        private void UpdateRepo(Repository repository)
         {
             if (repository.Private)
             {
@@ -305,14 +317,14 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private static void UpdateRepo(GitHubEventRepository repository, CrawledRepo crawledRepo)
+        private static void UpdateRepo(Repository repository, CrawledRepo crawledRepo)
         {
             crawledRepo.Org = repository.Owner.Login;
             crawledRepo.Name = repository.Name;
             crawledRepo.IsArchived = repository.Archived;
         }
 
-        private void RemoveRepo(GitHubEventRepository repository)
+        private void RemoveRepo(Repository repository)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -330,7 +342,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private void AddLabel(GitHubEventRepository repository, GitHubEventLabel label)
+        private void AddLabel(Repository repository, Label label)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -345,7 +357,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private static CrawledLabel CreateLabel(CrawledRepo crawledRepo, GitHubEventLabel label)
+        private static CrawledLabel CreateLabel(CrawledRepo crawledRepo, Label label)
         {
             var crawledLabel = new CrawledLabel();
             crawledLabel.Id = label.Id;
@@ -356,7 +368,7 @@ public sealed partial class GitHubEventProcessingService
             return crawledLabel;
         }
 
-        private void UpdateLabel(GitHubEventRepository repository, GitHubEventLabel label)
+        private void UpdateLabel(Repository repository, Label label)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -391,14 +403,14 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private static void UpdateLabel(GitHubEventLabel label, CrawledLabel crawledLabel)
+        private static void UpdateLabel(Label label, CrawledLabel crawledLabel)
         {
             crawledLabel.ColorText = label.Color;
             crawledLabel.Description = label.Description;
             crawledLabel.Name = label.Name;
         }
 
-        private void RemoveLabel(GitHubEventRepository repository, GitHubEventLabel label)
+        private void RemoveLabel(Repository repository, Label label)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -422,7 +434,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private CrawledLabel GetOrCreateLabel(GitHubEventRepository repository, GitHubEventLabel label)
+        private CrawledLabel GetOrCreateLabel(Repository repository, Label label)
         {
             var index = _indexService.Index;
             Debug.Assert(index is not null);
@@ -444,7 +456,7 @@ public sealed partial class GitHubEventProcessingService
             return matchingLabels[0];
         }
 
-        private void AddMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
+        private void AddMilestone(Repository repository, Milestone milestone)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -459,7 +471,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private static CrawledMilestone CreateMilestone(CrawledRepo crawledRepo, GitHubEventMilestone milestone)
+        private static CrawledMilestone CreateMilestone(CrawledRepo crawledRepo, Milestone milestone)
         {
             var crawledMilestone = new CrawledMilestone();
             crawledMilestone.Id = milestone.Id;
@@ -471,7 +483,7 @@ public sealed partial class GitHubEventProcessingService
             return crawledMilestone;
         }
 
-        private void UpdateMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
+        private void UpdateMilestone(Repository repository, Milestone milestone)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -506,13 +518,13 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private static void UpdateMilestone(GitHubEventMilestone milestone, CrawledMilestone crawledMilestone)
+        private static void UpdateMilestone(Milestone milestone, CrawledMilestone crawledMilestone)
         {
             crawledMilestone.Title = milestone.Title;
             crawledMilestone.Description = milestone.Description;
         }
 
-        private void RemoveMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
+        private void RemoveMilestone(Repository repository, Milestone milestone)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -536,7 +548,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private CrawledMilestone GetOrCreateMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
+        private CrawledMilestone GetOrCreateMilestone(Repository repository, Milestone milestone)
         {
             if (milestone is null)
                 return null;
@@ -561,7 +573,7 @@ public sealed partial class GitHubEventProcessingService
             return matchingMilestones[0];
         }
 
-        private void AddIssueOrPullRequest(GitHubEventRepository repository, GitHubEventIssueOrPullRequest issueOrPullRequest)
+        private void AddIssue(Repository repository, Issue issue)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -572,14 +584,14 @@ public sealed partial class GitHubEventProcessingService
                 return;
 
             var crawledIssue = new CrawledIssue();
-            crawledIssue.Id = issueOrPullRequest.Id;
+            crawledIssue.Id = issue.Id;
             crawledIssue.Repo = crawledRepo;
-            crawledIssue.Number = issueOrPullRequest.Number;
-            crawledIssue.CreatedAt = issueOrPullRequest.CreatedAt;
-            crawledIssue.CreatedBy = issueOrPullRequest.User.Login;
-            crawledIssue.IsPullRequest = issueOrPullRequest is GitHubEventPullRequest;
+            crawledIssue.Number = issue.Number;
+            crawledIssue.CreatedAt = issue.CreatedAt;
+            crawledIssue.CreatedBy = issue.User.Login;
+            crawledIssue.IsPullRequest = false;
 
-            UpdateIssueOrPullRequest(repository, issueOrPullRequest, crawledIssue);
+            UpdateIssue(repository, issue, crawledIssue);
 
             crawledRepo.Issues[crawledIssue.Number] = crawledIssue;
 
@@ -588,7 +600,34 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private void UpdateIssue(GitHubEventRepository repository, GitHubEventIssue issue)
+        private void AddPullRequest(Repository repository, PullRequest pullRequest)
+        {
+            var index = _indexService.Index;
+            if (index is null)
+                return;
+
+            var crawledRepo = index.Repos.SingleOrDefault(r => r.Id == repository.Id);
+            if (crawledRepo is null)
+                return;
+
+            var crawledIssue = new CrawledIssue();
+            crawledIssue.Id = pullRequest.Id;
+            crawledIssue.Repo = crawledRepo;
+            crawledIssue.Number = pullRequest.Number;
+            crawledIssue.CreatedAt = pullRequest.CreatedAt;
+            crawledIssue.CreatedBy = pullRequest.User.Login;
+            crawledIssue.IsPullRequest = true;
+
+            UpdatePullRequest(repository, pullRequest, crawledIssue);
+
+            crawledRepo.Issues[crawledIssue.Number] = crawledIssue;
+
+            AddTrieTerms(crawledIssue, crawledIssue.GetTrieTerms());
+
+            _indexService.NotifyIndexChanged();
+        }
+
+        private void UpdateIssue(Repository repository, Issue issue)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -603,31 +642,39 @@ public sealed partial class GitHubEventProcessingService
 
             var oldTrieTerms = crawledIssue.GetTrieTerms();
 
-            UpdateIssueOrPullRequest(repository, issue, crawledIssue);
+            UpdateIssue(repository, issue, crawledIssue);
             UpdateTrie(crawledIssue, oldTrieTerms);
 
             _indexService.NotifyIndexChanged();
         }
 
-        private void UpdateIssueOrPullRequest(GitHubEventRepository repository, GitHubEventIssueOrPullRequest issueOrPullRequest, CrawledIssue crawledIssue)
+        private void UpdateIssue(Repository repository, Issue issue, CrawledIssue crawledIssue)
         {
-            crawledIssue.IsOpen = issueOrPullRequest.State == "open";
-            crawledIssue.Title = issueOrPullRequest.Title;
-            crawledIssue.IsLocked = issueOrPullRequest.Locked;
-            crawledIssue.UpdatedAt = issueOrPullRequest.UpdatedAt; // TODO: Non-atomic write
-            crawledIssue.ClosedAt = issueOrPullRequest.ClosedAt;   // TODO: Non-atomic write
-            crawledIssue.Assignees = issueOrPullRequest.Assignees.Select(a => a.Login).ToArray();
-            crawledIssue.Labels = issueOrPullRequest.Labels.Select(l => GetOrCreateLabel(repository, l)).ToArray();
-            crawledIssue.Milestone = GetOrCreateMilestone(repository, issueOrPullRequest.Milestone);
-
-            if (issueOrPullRequest is GitHubEventPullRequest pullRequest)
-            {
-                crawledIssue.IsMerged = pullRequest.Merged;
-                crawledIssue.IsDraft = pullRequest.Draft;
-            }
+            crawledIssue.IsOpen = issue.State == "open";
+            crawledIssue.Title = issue.Title;
+            crawledIssue.IsLocked = issue.Locked == true;
+            crawledIssue.UpdatedAt = issue.UpdatedAt; // TODO: Non-atomic write
+            crawledIssue.ClosedAt = issue.ClosedAt;   // TODO: Non-atomic write
+            crawledIssue.Assignees = issue.Assignees.Select(a => a.Login).ToArray();
+            crawledIssue.Labels = issue.Labels.Select(l => GetOrCreateLabel(repository, l)).ToArray();
+            crawledIssue.Milestone = GetOrCreateMilestone(repository, issue.Milestone);
         }
 
-        private void TransferIssue(GitHubEventRepository repository, GitHubEventIssue issue)
+        private void UpdatePullRequest(Repository repository, PullRequest pullRequest, CrawledIssue crawledIssue)
+        {
+            crawledIssue.IsOpen = pullRequest.State == "open";
+            crawledIssue.Title = pullRequest.Title;
+            crawledIssue.IsLocked = pullRequest.Locked == true;
+            crawledIssue.UpdatedAt = pullRequest.UpdatedAt; // TODO: Non-atomic write
+            crawledIssue.ClosedAt = pullRequest.ClosedAt;   // TODO: Non-atomic write
+            crawledIssue.Assignees = pullRequest.Assignees.Select(a => a.Login).ToArray();
+            crawledIssue.Labels = pullRequest.Labels.Select(l => GetOrCreateLabel(repository, l)).ToArray();
+            crawledIssue.Milestone = GetOrCreateMilestone(repository, pullRequest.Milestone);
+            crawledIssue.IsMerged = pullRequest.Merged == true;
+            crawledIssue.IsDraft = pullRequest.Draft;
+        }
+
+        private void TransferIssue(Repository repository, Issue issue)
         {
             // When an issue is being transferred, GitHub sends two events:
             //
@@ -657,7 +704,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private void RemoveIssue(GitHubEventRepository repository, GitHubEventIssue issue)
+        private void RemoveIssue(Repository repository, Issue issue)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -684,7 +731,7 @@ public sealed partial class GitHubEventProcessingService
             RemoveTrieTerms(crawledIssue, oldTrieTerms);
         }
 
-        private void UpdatePullRequest(GitHubEventRepository repository, GitHubEventPullRequest pullRequest)
+        private void UpdatePullRequest(Repository repository, PullRequest pullRequest)
         {
             var index = _indexService.Index;
             if (index is null)
@@ -699,7 +746,7 @@ public sealed partial class GitHubEventProcessingService
 
             var oldTrieTerms = crawledIssue.GetTrieTerms();
 
-            UpdateIssueOrPullRequest(repository, pullRequest, crawledIssue);
+            UpdatePullRequest(repository, pullRequest, crawledIssue);
             UpdateTrie(crawledIssue, oldTrieTerms);
 
             _indexService.NotifyIndexChanged();

@@ -19,7 +19,7 @@ public sealed class CrawledRepo
     public string Name { get; set; }
     public bool IsArchived { get; set; }
     public long Size { get; set; }
-    public Dictionary<int, CrawledIssue> Issues { get; set; } = new();
+    public Dictionary<long, CrawledIssue> Issues { get; set; } = new();
     public List<CrawledLabel> Labels { get; set; } = new();
     public List<CrawledMilestone> Milestones { get; set; } = new();
 

@@ -11,7 +11,7 @@
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
-    <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" />
+    <PackageReference Include="Octokit.Webhooks.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>

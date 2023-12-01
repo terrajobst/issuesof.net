@@ -5,16 +5,12 @@ using Azure.Storage.Blobs;
 
 using IssueDb;
 using IssueDb.Crawling;
-using IssueDb.Eventing;
 
 using Microsoft.Extensions.Configuration.UserSecrets;
-using Microsoft.Extensions.Primitives;
 
 using Mono.Options;
 
 using Octokit;
-
-using Terrajobst.GitHubEvents;
 
 namespace IssuesOfDotNet.Crawler;
 
@@ -341,9 +337,6 @@ internal static class Program
 
             Console.WriteLine($"Listing events...");
 
-            var eventStore = new GitHubEventStore(connectionString);
-            var events = await eventStore.ListAsync();
-
             Console.WriteLine($"Crawling {repos.Count:N0} repos, fully reindexing {repos.Count(r => r.LastReindex is null):N0} repos...");
 
             foreach (var crawledRepo in repos)
@@ -352,47 +345,12 @@ internal static class Program
                 var repoPath = Path.Join(tempDirectory, blobName);
                 var since = crawledRepo.IncrementalUpdateStart;
 
-                var messages = new List<GitHubEventMessage>();
-
                 if (since is null)
                 {
                     Console.WriteLine($"Crawling {crawledRepo.FullName}...");
                 }
                 else
                 {
-                    var toBeDownloaded = events.Where(n => string.Equals(n.Org, crawledRepo.Org, StringComparison.OrdinalIgnoreCase) &&
-                                                           string.Equals(n.Repo, crawledRepo.Name, StringComparison.OrdinalIgnoreCase))
-                                               .ToArray();
-
-                    if (toBeDownloaded.Any())
-                    {
-                        Console.WriteLine($"Loading {toBeDownloaded.Length:N0} events for {crawledRepo.FullName}...");
-
-                        var i = 0;
-                        var lastPercent = 0;
-
-                        foreach (var name in toBeDownloaded)
-                        {
-                            var percent = (int)Math.Ceiling((float)i / toBeDownloaded.Length * 100);
-                            i++;
-                            if (percent % 10 == 0)
-                            {
-                                if (percent != lastPercent)
-                                    Console.Write($"{percent}%...");
-
-                                lastPercent = percent;
-                            }
-
-                            var payload = await eventStore.LoadAsync(name);
-                            var headers = payload.Headers.ToDictionary(kv => kv.Key, kv => new StringValues(kv.Value.ToArray()));
-                            var body = payload.Body;
-                            var message = GitHubEventMessage.Parse(headers, body);
-                            messages.Add(message);
-                        }
-
-                        Console.WriteLine("done.");
-                    }
-
                     Console.WriteLine($"Crawling {crawledRepo.FullName} since {since}...");
                 }
 
@@ -408,30 +366,6 @@ internal static class Program
                 var currentMilestones = await RequestMilestonesAsync(client, crawledRepo.Org, crawledRepo.Name);
 
                 SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
-
-                // NOTE: GitHub's Issues.GetAllForeRepository() doesn't include issues that were transferred
-                //
-                // That's the good part. The bad part is that for the new repository where
-                // it shows up, we have no way of knowing which repo it came from and which
-                // number it used to have (even when looking at the issues timeline data),
-                // so we can't remove the issue from the source repo.
-                //
-                // However, since we're persisting GitHub events we received, we'll can look
-                // up which issues were transferred and remove them from the repo. This avoids
-                // having to wait until we fully reindex the repo.
-                //
-                // Note, we remove transferred issues before pulling issues in case the issues
-                // were being transferred back; it seems GitHub is reusing the numbers in that
-                // case.
-
-                foreach (var message in messages.Where(m => m.Body.Action == "transferred"))
-                {
-                    Console.WriteLine($"Removing {message.Body?.Repository?.FullName}#{message.Body?.Issue?.Number}: {message.Body?.Issue?.Title}");
-
-                    var number = message.Body?.Issue?.Number;
-                    if (number is not null)
-                        crawledRepo.Issues.Remove(number.Value);
-                }
 
                 foreach (var issue in await RequestIssuesAsync(client, crawledRepo.Org, crawledRepo.Name, since))
                 {
@@ -456,14 +390,6 @@ internal static class Program
                     Console.WriteLine($"Uploading {blobName} to Azure...");
                     var repoClient = new BlobClient(connectionString, cacheContainerName, blobName);
                     await repoClient.UploadAsync(repoPath, overwrite: true);
-
-                    // Delete all events associated with this repo.
-
-                    var eventsToBeDeleted = events.Where(e => string.Equals($"{e.Org}/{e.Repo}", crawledRepo.FullName, StringComparison.OrdinalIgnoreCase))
-                                                  .ToArray();
-
-                    Console.WriteLine($"Deleting {eventsToBeDeleted.Length:N0} events for {crawledRepo.FullName}...");
-                    await eventStore.DeleteAsync(eventsToBeDeleted);
                 }
             }
         }

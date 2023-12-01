@@ -1,75 +1,42 @@
 ﻿using System.Collections.Concurrent;
 
-using Terrajobst.GitHubEvents;
+using Octokit.Webhooks;
 
 namespace IssuesOfDotNet.Data;
 
-public sealed partial class GitHubEventProcessingService : IHostedService
+public sealed partial class GitHubEventProcessingService : BackgroundService
 {
-    private readonly ILogger<GitHubEventProcessingService> _logger;
-    private readonly CancellationTokenSource _cts = new();
-    private readonly ConcurrentQueue<GitHubEventMessage> _messages = new();
+    private readonly ConcurrentQueue<(WebhookHeaders Headers, WebhookEvent WebhookEvent)> _messages = new();
     private readonly AutoResetEvent _dataAvailable = new(false);
     private readonly Processor _processor;
-    private Task _workerTask;
 
     public GitHubEventProcessingService(ILogger<GitHubEventProcessingService> logger, IndexService indexService)
     {
-        _logger = logger;
         _processor = new Processor(logger, indexService);
     }
 
-    public void Enqueue(GitHubEventMessage message)
+    public void Enqueue(WebhookHeaders headers, WebhookEvent webhookEvent)
     {
-        _logger.LogInformation($"Enqueuing message {message}");
-
-        _messages.Enqueue(message);
+        _messages.Enqueue((headers, webhookEvent));
         _dataAvailable.Set();
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-        _workerTask = Task.Run(() =>
-        {
-            try
-            {
-                Run(_cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation("GitHub event processing was cancelled");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GitHub event processing");
-            }
-        }, CancellationToken.None);
-
-        return Task.CompletedTask;
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        _cts.Cancel();
-        return _workerTask;
-    }
-
-    private void Run(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var waitHandles = new[]
         {
             _dataAvailable,
-            cancellationToken.WaitHandle
+            stoppingToken.WaitHandle
         };
 
         while (true)
         {
             WaitHandle.WaitAny(waitHandles);
-            cancellationToken.ThrowIfCancellationRequested();
+            stoppingToken.ThrowIfCancellationRequested();
 
             while (_messages.TryDequeue(out var message))
             {
-                _processor.ProcessMessage(message);
+                await _processor.ProcessWebhookAsync(message.Headers, message.WebhookEvent);
             }
         }
     }
