@@ -13,6 +13,7 @@ namespace IssuesOfDotNet.Pages;
 
 public sealed partial class Stats
 {
+    private string _filter = string.Empty;
     private Sort _sortBy = Sort.Default;
 
     [Inject]
@@ -32,7 +33,18 @@ public sealed partial class Stats
     public int NumberOfTrieBytes { get; set; }
     public bool IsDevelopment => Environment.IsDevelopment();
 
-    public string Filter { get; set; } = string.Empty;
+    public string Filter
+    {
+        get => _filter;
+        set
+        {
+            if (_filter != value)
+            {
+                _filter = value;
+                ChangeUrl();
+            }
+        }
+    }
 
     public Sort SortBy
     {
@@ -59,6 +71,15 @@ public sealed partial class Stats
         if (IsDevelopment && IndexService.Index is not null)
             Calc(IndexService.Index.Trie.Root);
 
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var parameters = QueryHelpers.ParseQuery(uri.Query);
+
+        if (parameters.TryGetValue("q", out var filter))
+            Filter = filter;
+
+        if (parameters.TryGetValue("sort", out var sortBy))
+            SortBy = Sort.Parse(sortBy);
+
         void Calc(CrawledTrieNode<CrawledIssue> node)
         {
             var nodeBytes = 16;
@@ -75,32 +96,24 @@ public sealed partial class Stats
         }
     }
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-            var parameters = QueryHelpers.ParseQuery(uri.Query);
-
-            if (parameters.TryGetValue("sort", out var sortBy))
-                SortBy = Sort.Parse(sortBy);
-        }
-    }
-
     private async void ChangeUrl()
     {
-        var isDefaultQuery = SortBy == Sort.Default;
+        var hasFilter = !string.IsNullOrWhiteSpace(Filter);
+        var hasSort = SortBy != Sort.Default;
+        var isDefaultQuery = !hasFilter && !hasSort;
 
         if (isDefaultQuery)
             return;
 
-        var query = $"?sort={Uri.EscapeDataString(SortBy.Name)}";
+        var query = new Dictionary<string, object>();
 
-        var uri = new UriBuilder(NavigationManager.Uri)
-        {
-            Query = query
-        }.ToString();
+        if (hasFilter)
+            query["q"] = Filter;
 
+        if (hasSort)
+            query["sort"] = SortBy.Name;      
+
+        var uri = NavigationManager.GetUriWithQueryParameters(query);
         await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",
                                         uri.ToString(),
                                         /* forceLoad */ false,
