@@ -51,7 +51,7 @@ public sealed partial class Stats
     public IEnumerable<RepoStats> Rows => IndexService.IndexStats == null
                                             ? Enumerable.Empty<RepoStats>()
                                             : IndexService.IndexStats
-                                                .Where(x => string.IsNullOrWhiteSpace(Filter) || x.FullName.Contains(Filter))
+                                                .Where(x => string.IsNullOrWhiteSpace(Filter) || x.FullName.Contains(Filter, StringComparison.OrdinalIgnoreCase))
                                                 .OrderBy(x => x, SortBy.Comparer);
 
     protected override void OnInitialized()
