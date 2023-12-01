@@ -75,10 +75,10 @@ public sealed partial class Stats
         var parameters = QueryHelpers.ParseQuery(uri.Query);
 
         if (parameters.TryGetValue("q", out var filter))
-            Filter = filter;
+            _filter = filter;
 
         if (parameters.TryGetValue("sort", out var sortBy))
-            SortBy = Sort.Parse(sortBy);
+            _sortBy = Sort.Parse(sortBy);
 
         void Calc(CrawledTrieNode<CrawledIssue> node)
         {
@@ -98,20 +98,11 @@ public sealed partial class Stats
 
     private async void ChangeUrl()
     {
-        var hasFilter = !string.IsNullOrWhiteSpace(Filter);
-        var hasSort = SortBy != Sort.Default;
-        var isDefaultQuery = !hasFilter && !hasSort;
-
-        if (isDefaultQuery)
-            return;
-
-        var query = new Dictionary<string, object>();
-
-        if (hasFilter)
-            query["q"] = Filter;
-
-        if (hasSort)
-            query["sort"] = SortBy.Name;      
+        var query = new Dictionary<string, object>
+        {
+            ["q"] = string.IsNullOrWhiteSpace(Filter) ? null : Filter,
+            ["sort"] = SortBy == Sort.Default ? null : SortBy.Name
+        };
 
         var uri = NavigationManager.GetUriWithQueryParameters(query);
         await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",

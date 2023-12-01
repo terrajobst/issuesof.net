@@ -38,7 +38,7 @@ public partial class New
         var parameters = QueryHelpers.ParseQuery(uri.Query);
 
         if (parameters.TryGetValue("q", out var filter))
-            Filter = filter;
+            _filter = filter;
 
         RepoEntries = GetRepoEntries();
         UpdateIsVisible();
@@ -46,15 +46,10 @@ public partial class New
 
     private async void ChangeUrl()
     {
-        var hasFilter = !string.IsNullOrWhiteSpace(Filter);
-
-        if (!hasFilter)
-            return;
-
-        var query = new Dictionary<string, object>();
-
-        if (hasFilter)
-            query["q"] = Filter;
+        var query = new Dictionary<string, object>
+        {
+            ["q"] = string.IsNullOrWhiteSpace(Filter) ? null : Filter
+        };
 
         var uri = NavigationManager.GetUriWithQueryParameters(query);
         await JSRuntime.InvokeVoidAsync("Blazor.navigateTo",
