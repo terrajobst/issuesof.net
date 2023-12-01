@@ -1,0 +1,48 @@
+﻿@page "/areas"
+
+<IndexStatus />
+
+<form>
+    <div class="form-group">
+        <input type="text" class="form-control" placeholder="Search" @bind="Filter" @bind:event="oninput" />
+    </div>
+</form>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Area</th>
+            <th>Leads</th>
+            <th>Owners</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in Rows)
+        {
+            void WriteUsers(IEnumerable<string> users)
+            {
+                var isFirst = true;
+
+                foreach (var user in users)
+                {
+                    var cssClass = isFirst ? null : "ml-1";
+
+                    if (isFirst)
+                        isFirst = false;
+
+                    <a class="@cssClass font-weight-bold" href="https://github.com/@user">@@@user</a>
+                }
+            }
+
+            <tr>
+                <td>@row.Area</td>
+                <td>
+                    @{ WriteUsers(row.Leads); }
+                </td>
+                <td>
+                    @{ WriteUsers(row.Owners); }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
