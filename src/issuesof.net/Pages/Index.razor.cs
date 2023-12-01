@@ -25,12 +25,7 @@ public sealed partial class Index
     public IndexService IndexService { get; set; }
 
     [Inject]
-    public IWebHostEnvironment Environment { get; set; }
-
-    [Inject]
     public SearchService SearchService { get; set; }
-
-    public bool IsDevelopment => Environment.IsDevelopment();
 
     public int PageNumber
     {

@@ -16,7 +16,7 @@ public sealed partial class Stats
     private Sort _sortBy = Sort.Default;
 
     [Inject]
-    public IndexService TrieService { get; set; }
+    public IndexService IndexService { get; set; }
 
     [Inject]
     public IJSRuntime JSRuntime { get; set; }
@@ -48,16 +48,16 @@ public sealed partial class Stats
         }
     }
 
-    public IEnumerable<RepoStats> Rows => TrieService.IndexStats == null
+    public IEnumerable<RepoStats> Rows => IndexService.IndexStats == null
                                             ? Enumerable.Empty<RepoStats>()
-                                            : TrieService.IndexStats
+                                            : IndexService.IndexStats
                                                 .Where(x => string.IsNullOrWhiteSpace(Filter) || x.FullName.Contains(Filter))
                                                 .OrderBy(x => x, SortBy.Comparer);
 
     protected override void OnInitialized()
     {
-        if (IsDevelopment && TrieService.Index is not null)
-            Calc(TrieService.Index.Trie.Root);
+        if (IsDevelopment && IndexService.Index is not null)
+            Calc(IndexService.Index.Trie.Root);
 
         void Calc(CrawledTrieNode<CrawledIssue> node)
         {

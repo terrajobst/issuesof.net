@@ -1,6 +1,8 @@
 ﻿@page "/stats"
 @using Humanizer.Bytes
 
+<IndexStatus />
+
 @if (IsDevelopment)
 {
     <div class="alert alert-info">
@@ -25,7 +27,7 @@
 
 <div class="gh-table-header d-flex flex-row align-items-center">
     @{
-    var stats = TrieService.IndexStats;
+    var stats = IndexService.IndexStats;
     var orgCount = stats.Select(r => r.Org).Distinct().Count();
     var repoCount = stats.Count;
     var issueCount = stats.Select(s => s.NumberOfIssues).DefaultIfEmpty().Sum();
