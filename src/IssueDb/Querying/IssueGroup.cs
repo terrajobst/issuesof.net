@@ -12,6 +12,5 @@ public enum IssueGroup
     AreaNode,
     AreaUnder,
     AreaLead,
-    AreaPod,
     AreaOwner
 }

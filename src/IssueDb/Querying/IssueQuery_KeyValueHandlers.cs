@@ -209,12 +209,6 @@ public sealed partial class IssueQuery
         filter.NoAreaLead = !query.IsNegated;
     }
 
-    [KeyValueHandler("no:area-pod")]
-    private static void ApplyNoAreaPod(IssueFilter filter, BoundKeyValueQuery query)
-    {
-        filter.NoAreaPod = !query.IsNegated;
-    }
-
     [KeyValueHandler("no:area-owner")]
     private static void ApplyNoAreaOwner(IssueFilter filter, BoundKeyValueQuery query)
     {
@@ -315,15 +309,6 @@ public sealed partial class IssueQuery
             filter.ExcludedAreaLeads.Add(query.Value);
         else
             filter.IncludedAreaLeads.Add(query.Value);
-    }
-
-    [KeyValueHandler("area-pod")]
-    private static void ApplyAreaPod(IssueFilter filter, BoundKeyValueQuery query)
-    {
-        if (query.IsNegated)
-            filter.ExcludedAreaPods.Add(query.Value);
-        else
-            filter.IncludedAreaPods.Add(query.Value);
     }
 
     [KeyValueHandler("area-owner")]
@@ -561,12 +546,6 @@ public sealed partial class IssueQuery
     private static void ApplyGroupAreaLead(IssueFilter filter)
     {
         filter.Groups.Add(IssueGroup.AreaLead);
-    }
-
-    [KeyValueHandler("group:area-pod")]
-    private static void ApplyGroupAreaPod(IssueFilter filter)
-    {
-        filter.Groups.Add(IssueGroup.AreaPod);
     }
 
     [KeyValueHandler("group:area-owner")]

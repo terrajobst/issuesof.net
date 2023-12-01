@@ -64,7 +64,7 @@ public sealed class CrawledAreaOwnerFile
             if (!TextTokenizer.TryParseArea(areaText, out var area))
                 continue;
 
-            var entry = new CrawledAreaOwnerEntry(area, lead, pod: null, owners);
+            var entry = new CrawledAreaOwnerEntry(area, lead, owners);
             entries.Add(entry);
         }
 

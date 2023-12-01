@@ -61,11 +61,6 @@ public sealed class CrawledIssue
                                                            .Distinct(StringComparer.OrdinalIgnoreCase);
 
     [JsonIgnore]
-    public IEnumerable<string> AreaPods => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
-                                                          .Select(r => Repo.AreaOwners[r].Pod)
-                                                          .Distinct(StringComparer.OrdinalIgnoreCase);
-
-    [JsonIgnore]
     public IEnumerable<string> AreaOwners => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
                                                             .SelectMany(r => Repo.AreaOwners[r].Owners)
                                                             .Distinct(StringComparer.OrdinalIgnoreCase);
