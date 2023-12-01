@@ -551,7 +551,7 @@ internal static class Program
         {
             var lead = entry.Lead;
             var expandedOwners = await ExpandAsync(teamsManager, entry.Owners);
-            var expandedEntry = new CrawledAreaOwnerEntry(area, lead, pod:null, expandedOwners);
+            var expandedEntry = new CrawledAreaOwnerEntry(area, lead, expandedOwners);
             result[area] = expandedEntry;
         }
 

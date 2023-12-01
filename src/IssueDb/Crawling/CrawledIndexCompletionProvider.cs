@@ -12,7 +12,6 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
     private readonly string[] _milestones;
     private readonly string[] _areaPaths;
     private readonly string[] _areaNodes;
-    private readonly string[] _areaPods;
 
     public CrawledIndexCompletionProvider(CrawledIndex index)
     {
@@ -55,12 +54,6 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
                        .SelectMany(l => TextTokenizer.GetAreaPaths(l.Name, segmentsOnly: true)),
             StringComparer.OrdinalIgnoreCase
         ).ToArray();
-
-        _areaPods = new SortedSet<string>(
-            index.Repos.SelectMany(r => r.AreaOwners)
-                       .Select(a => a.Value.Pod),
-            StringComparer.OrdinalIgnoreCase
-        ).ToArray();
     }
 
     public override IEnumerable<string> GetCompletionForKeyValue(string key, string value)
@@ -75,7 +68,6 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
             "milestone" => _milestones,
             "area" or "area-under" => _areaPaths,
             "area-node" => _areaNodes,
-            "area-pod" => _areaPods,
             _ => IssueQuery.SupportedValuesFor(key)
                            .OrderBy(x => x)
                            .ToArray()
