@@ -7,7 +7,8 @@ namespace IssueDb.Crawling;
 public sealed class CrawledIndex
 {
     private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-    private static readonly short _formatVersion = 8;
+    private static readonly short _currentFormatVersion = 8;
+    private static readonly short _minSupportedFormatVersion = 8;
 
     public List<CrawledRepo> Repos { get; set; } = new();
 
@@ -52,7 +53,7 @@ public sealed class CrawledIndex
                     // Write header
 
                     writer.Write(_formatMagicNumbers);
-                    writer.Write(_formatVersion);
+                    writer.Write(_currentFormatVersion);
                 }
 
                 // Write strings and buffered repos and nodes, compressed
@@ -231,7 +232,8 @@ public sealed class CrawledIndex
             throw new InvalidDataException();
 
         var formatVersion = BinaryPrimitives.ReadInt16LittleEndian(header.AsSpan(4));
-        if (formatVersion != _formatVersion)
+        if (formatVersion > _currentFormatVersion ||
+            formatVersion < _minSupportedFormatVersion)
             throw new InvalidDataException();
 
         // Read contents
