@@ -3,8 +3,6 @@ using System.Text.Json;
 
 using Azure.Storage.Blobs;
 
-using GitHubJwt;
-
 using IssueDb;
 using IssueDb.Crawling;
 using IssueDb.Eventing;
@@ -187,8 +185,8 @@ internal static class Program
             }
         }
 
-        var factory = CreateGitHubClientFactory();
-        var client = await factory.CreateAsync();
+        var client = CreateGitHubAppClient();
+        await client.UseInstallationTokenAsync("dotnet");
 
         var jsonOptions = new JsonSerializerOptions()
         {
@@ -223,7 +221,7 @@ internal static class Program
             else
             {
                 Console.WriteLine($"Requesting repos for {org}...");
-                var availableRepos = await RequestReposAsync(factory, client, org);
+                var availableRepos = await RequestReposAsync(client, org);
 
                 var deletedRepos = existingRepos.ToHashSet(StringComparer.OrdinalIgnoreCase);
                 deletedRepos.ExceptWith(availableRepos.Select(r => r.Name));
@@ -339,6 +337,8 @@ internal static class Program
 
         if (pullLatest)
         {
+            var teamManager = new GitHubTeamsManager(client);
+
             Console.WriteLine($"Listing events...");
 
             var eventStore = new GitHubEventStore(connectionString);
@@ -399,13 +399,13 @@ internal static class Program
                 if (crawledRepo.LastReindex is null)
                     crawledRepo.LastReindex = DateTimeOffset.UtcNow;
 
-                crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name);
+                crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name, teamManager);
 
-                var currentLabels = await RequestLabelsAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
+                var currentLabels = await RequestLabelsAsync(client, crawledRepo.Org, crawledRepo.Name);
 
                 SyncLabels(crawledRepo, currentLabels, out var labelById);
 
-                var currentMilestones = await RequestMilestonesAsync(factory, client, crawledRepo.Org, crawledRepo.Name);
+                var currentMilestones = await RequestMilestonesAsync(client, crawledRepo.Org, crawledRepo.Name);
 
                 SyncMilestones(crawledRepo, currentMilestones, out var milestoneById);
 
@@ -433,13 +433,13 @@ internal static class Program
                         crawledRepo.Issues.Remove(number.Value);
                 }
 
-                foreach (var issue in await RequestIssuesAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                foreach (var issue in await RequestIssuesAsync(client, crawledRepo.Org, crawledRepo.Name, since))
                 {
                     var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
                     crawledRepo.Issues[issue.Number] = crawledIssue;
                 }
 
-                foreach (var pullRequest in await RequestPullRequestsAsync(factory, client, crawledRepo.Org, crawledRepo.Name, since))
+                foreach (var pullRequest in await RequestPullRequestsAsync(client, crawledRepo.Org, crawledRepo.Name, since))
                 {
                     if (crawledRepo.Issues.TryGetValue(pullRequest.Number, out var issue))
                         UpdateIssue(issue, pullRequest);
@@ -537,46 +537,91 @@ internal static class Program
         Directory.Delete(tempDirectory, recursive: true);
     }
 
-    private static async Task<Dictionary<string, CrawledAreaOwnerEntry>> GetAreaOwnersAsync(string org, string name)
+    private static async Task<Dictionary<string, CrawledAreaOwnerEntry>> GetAreaOwnersAsync(string orgName, string repoName, GitHubTeamsManager teamsManager)
     {
-        var file = await CrawledAreaOwnerFile.GetAsync(org, name);
+        var file = await CrawledAreaOwnerFile.GetAsync(orgName, repoName);
         if (file is null)
             return null;
 
-        Console.WriteLine($"Found {file.Entries.Count:N0} area owners.");
+        Console.WriteLine($"{orgName}/{repoName}: found {file.Entries.Count:N0} area owners.");
 
-        return file.Entries.ToDictionary(e => e.Key, e => e.Value, StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, CrawledAreaOwnerEntry>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var (area, entry) in file.Entries)
+        {
+            var lead = entry.Lead;
+            var expandedOwners = await ExpandAsync(teamsManager, entry.Owners);
+            var expandedEntry = new CrawledAreaOwnerEntry(area, lead, pod:null, expandedOwners);
+            result[area] = expandedEntry;
+        }
+
+        return result;
+
+        static async Task<IReadOnlyList<string>> ExpandAsync(GitHubTeamsManager teamsManager, IEnumerable<string> usersOrTeams)
+        {
+            var result = new List<string>();
+
+            foreach (var userOrTeam in usersOrTeams)
+            {
+                var positionOfSlash = userOrTeam.IndexOf('/');
+                var isUser = positionOfSlash < 0;
+                if (isUser)
+                {
+                    result.Add(userOrTeam);
+                }
+                else
+                {
+                    var teamOrg = userOrTeam.Substring(0, positionOfSlash);
+                    var teamSlug = userOrTeam.Substring(positionOfSlash + 1);
+                    var expandedTeam = await teamsManager.ExpandTeamAsync(teamOrg, teamSlug);
+
+                    if (expandedTeam is null)
+                    {
+                        result.Add(userOrTeam);
+                    }
+                    else
+                    {
+                        foreach (var user in expandedTeam)
+                            result.Add(user);
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 
-    private static GitHubClientFactory CreateGitHubClientFactory()
+    private static GitHubAppClient CreateGitHubAppClient()
     {
         var (appId, privateKey) = GetGitHubAppIdAndPrivateKey();
-        return new GitHubClientFactory(appId, privateKey);
+        var name = Path.GetFileNameWithoutExtension(Environment.ProcessPath);
+        var productHeader = new ProductHeaderValue(name);
+        return new GitHubAppClient(productHeader, appId, privateKey);
     }
 
-    private static async Task<IReadOnlyList<Repository>> RequestReposAsync(GitHubClientFactory factory, GitHubClient client, string org)
+    private static async Task<IReadOnlyList<Repository>> RequestReposAsync(GitHubAppClient client, string org)
     {
-        var repos = await RetryOnRateLimiting(factory, client, () => client.Repository.GetAllForOrg(org));
+        var repos = await client.InvokeAsync(c => c.Repository.GetAllForOrg(org));
         return repos.OrderBy(r => r.Name)
                     .Where(r => r.Visibility == RepositoryVisibility.Public)
                     .ToArray();
     }
 
-    private static Task<IReadOnlyList<Label>> RequestLabelsAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo)
+    private static Task<IReadOnlyList<Label>> RequestLabelsAsync(GitHubAppClient client, string org, string repo)
     {
-        return RetryOnRateLimiting(factory, client, () => client.Issue.Labels.GetAllForRepository(org, repo));
+        return client.InvokeAsync(c => c.Issue.Labels.GetAllForRepository(org, repo));
     }
 
-    private static Task<IReadOnlyList<Milestone>> RequestMilestonesAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo)
+    private static Task<IReadOnlyList<Milestone>> RequestMilestonesAsync(GitHubAppClient client, string org, string repo)
     {
         var request = new MilestoneRequest
         {
             State = ItemStateFilter.All
         };
-        return RetryOnRateLimiting(factory, client, () => client.Issue.Milestone.GetAllForRepository(org, repo, request));
+        return client.InvokeAsync(c => c.Issue.Milestone.GetAllForRepository(org, repo, request));
     }
 
-    private static Task<IReadOnlyList<Issue>> RequestIssuesAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo, DateTimeOffset? since)
+    private static Task<IReadOnlyList<Issue>> RequestIssuesAsync(GitHubAppClient client, string org, string repo, DateTimeOffset? since)
     {
         var issueRequest = new RepositoryIssueRequest()
         {
@@ -586,10 +631,10 @@ internal static class Program
             Since = since,
         };
 
-        return RetryOnRateLimiting(factory, client, () => client.Issue.GetAllForRepository(org, repo, issueRequest));
+        return client.InvokeAsync(c => c.Issue.GetAllForRepository(org, repo, issueRequest));
     }
 
-    private static async Task<IReadOnlyList<PullRequest>> RequestPullRequestsAsync(GitHubClientFactory factory, GitHubClient client, string org, string repo, DateTimeOffset? since)
+    private static async Task<IReadOnlyList<PullRequest>> RequestPullRequestsAsync(GitHubAppClient client, string org, string repo, DateTimeOffset? since)
     {
         var pullRequestRequest = new PullRequestRequest()
         {
@@ -610,7 +655,7 @@ internal static class Program
                 PageCount = 1
             };
 
-            var batch = await RetryOnRateLimiting(factory, client, () => client.PullRequest.GetAllForRepository(org, repo, pullRequestRequest, options));
+            var batch = await client.InvokeAsync(c => c.PullRequest.GetAllForRepository(org, repo, pullRequestRequest, options));
             if (batch.Count == 0)
                 break;
 
@@ -636,52 +681,6 @@ internal static class Program
 
         return result.ToArray();
     }
-
-    private static async Task<T> RetryOnRateLimiting<T>(GitHubClientFactory factory, GitHubClient client, Func<Task<T>> func)
-    {
-        var retryCount = 3;
-
-        while (true)
-        {
-            try
-            {
-                var result = await func();
-                return result;
-            }
-            catch (RateLimitExceededException ex) when (retryCount > 0)
-            {
-                var padding = TimeSpan.FromMinutes(2);
-                var delay = ex.Reset - DateTimeOffset.Now + padding;
-                var time = ex.Reset + padding;
-                Console.WriteLine($"API rate limit exceeded. Waiting {delay.TotalMinutes:N0} minutes until it resets at {time.ToLocalTime():M/d/yyyy h:mm tt}...");
-                await Task.Delay(delay);
-                Console.WriteLine("Trying again...");
-            }
-            catch (AuthorizationException ex) when (retryCount > 0)
-            {
-                Console.WriteLine($"Authorization error: {ex.Message}. Refreshing token...");
-                await factory.RefreshTokenAsync(client);
-            }
-            catch (ApiException ex) when (retryCount > 0)
-            {
-                var padding = TimeSpan.FromSeconds(30);
-                var delay = TimeSpan.FromSeconds(30);
-                var time = DateTime.UtcNow + delay;
-                Console.WriteLine($"API error: {ex.Message}");
-                Console.WriteLine($"Waiting {delay.TotalMinutes:N0} minutes, until {time.ToLocalTime():M/d/yyyy h:mm tt}...");
-                await Task.Delay(delay);
-                Console.WriteLine("Trying again...");
-            }
-            catch (OperationCanceledException) when (retryCount > 0)
-            {
-                Console.WriteLine($"Operation canceled. Assuming this means a token refresh is needed...");
-                await factory.RefreshTokenAsync(client);
-            }
-
-            retryCount--;
-        }
-    }
-
 
     private static void SyncLabels(CrawledRepo crawledRepo, IReadOnlyList<Label> gitHubLabels, out Dictionary<long, CrawledLabel> labelById)
     {
@@ -940,77 +939,6 @@ internal static class Program
 
             var secretsJson = File.ReadAllText(secretsPath);
             return JsonSerializer.Deserialize<Secrets>(secretsJson)!;
-        }
-    }
-}
-
-public sealed class GitHubClientFactory
-{
-    private readonly int _appId;
-    private readonly string _privateKey;
-
-    public GitHubClientFactory(string appId, string privateKey)
-    {
-        _appId = Convert.ToInt32(appId);
-        _privateKey = privateKey;
-    }
-
-    public async Task<GitHubClient> CreateAsync()
-    {
-        var token = await GenerateInstallationTokenAsync();
-        return CreateForToken(token, AuthenticationType.Oauth);
-    }
-
-    private async Task<string> GenerateInstallationTokenAsync()
-    {
-        // See: https://octokitnet.readthedocs.io/en/latest/github-apps/ for details.
-
-        var privateKeySource = new PlainStringPrivateKeySource(_privateKey);
-        var generator = new GitHubJwtFactory(
-            privateKeySource,
-            new GitHubJwtFactoryOptions
-            {
-                AppIntegrationId = _appId,
-                ExpirationSeconds = 8 * 60 // 600 is apparently too high
-            });
-        var token = generator.CreateEncodedJwtToken();
-
-        var client = CreateForToken(token, AuthenticationType.Bearer);
-
-        var installations = await client.GitHubApps.GetAllInstallationsForCurrent();
-        var installation = installations.First();
-        var installationTokenResult = await client.GitHubApps.CreateInstallationToken(installation.Id);
-        return installationTokenResult.Token;
-    }
-
-    private static GitHubClient CreateForToken(string token, AuthenticationType authenticationType)
-    {
-        var productInformation = new ProductHeaderValue("eventstesting");
-        var client = new GitHubClient(productInformation)
-        {
-            Credentials = new Credentials(token, authenticationType)
-        };
-        return client;
-    }
-
-    public async Task RefreshTokenAsync(GitHubClient client)
-    {
-        var token = await GenerateInstallationTokenAsync();
-        client.Credentials = new Credentials(token, AuthenticationType.Oauth);
-    }
-
-    public sealed class PlainStringPrivateKeySource : IPrivateKeySource
-    {
-        private readonly string _key;
-
-        public PlainStringPrivateKeySource(string key)
-        {
-            _key = key;
-        }
-
-        public TextReader GetPrivateKeyReader()
-        {
-            return new StringReader(_key);
         }
     }
 }

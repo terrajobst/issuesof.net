@@ -1,8 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Net;
-using System.Net.Http.Json;
-
-using IssueDb.Crawling;
 
 namespace IssueDb;
 
@@ -18,51 +15,26 @@ public sealed class CrawledAreaOwnerFile
     public static async Task<CrawledAreaOwnerFile> GetAsync(string org, string repo)
     {
         var maxTries = 3;
-        var jsonUrl = $"https://raw.githubusercontent.com/{org}/{repo}/main/docs/area-owners.json";
-        var markdownUrl = $"https://raw.githubusercontent.com/{org}/{repo}/main/docs/area-owners.md";
-        var jsonFileNotFound = false;
+        var url = $"https://raw.githubusercontent.com/{org}/{repo}/main/docs/area-owners.md";        
+        var client = new HttpClient();
 
         while (maxTries-- > 0)
         {
-            var client = new HttpClient();
 
-            if (!jsonFileNotFound)
+            try
             {
-                try
-                {
-                    // First attempt to load a JSON file
-                    var jsonEntries = await client.GetFromJsonAsync<CrawledAreaOwnerJsonFile>(jsonUrl);
-                    return new CrawledAreaOwnerFile(jsonEntries.Areas.Select(area => new CrawledAreaOwnerEntry(area.Label.Replace("area-", ""), area.Lead, area.Pod, area.Owners)));
-                }
-                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-                {
-                    // If the JSON file was not found, fall back to trying to load the Markdown file
-                    jsonFileNotFound = true;
-                }
-                catch (HttpRequestException ex)
-                {
-                    // This might be a transient error; log it and continue
-                    Debug.WriteLine(ex);
-                }
+                var contents = await client.GetStringAsync(url);
+                return Parse(contents);
             }
-
-            if (jsonFileNotFound)
+            catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                try
-                {
-                    var contents = await client.GetStringAsync(markdownUrl);
-                    return Parse(contents);
-                }
-                catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-                {
-                    // Neither the JSON nor MD files could be found; there's no area owner file
-                    return null;
-                }
-                catch (HttpRequestException ex)
-                {
-                    // This might be a transient error.
-                    Debug.WriteLine(ex);
-                }
+                // Neither the JSON nor MD files could be found; there's no area owner file
+                return null;
+            }
+            catch (HttpRequestException ex)
+            {
+                // This might be a transient error.
+                Debug.WriteLine(ex);
             }
 
             await Task.Delay(TimeSpan.FromSeconds(5));
