@@ -547,8 +547,9 @@ internal static class Program
 
         var result = new Dictionary<string, CrawledAreaOwnerEntry>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (area, entry) in file.Entries)
+        foreach (var entry in file.Entries)
         {
+            var area = entry.Area;
             var lead = entry.Lead;
             var expandedOwners = await ExpandAsync(teamsManager, entry.Owners);
             var expandedEntry = new CrawledAreaOwnerEntry(area, lead, expandedOwners);

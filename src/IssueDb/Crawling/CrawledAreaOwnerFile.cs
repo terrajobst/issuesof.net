@@ -7,10 +7,10 @@ public sealed class CrawledAreaOwnerFile
 {
     public CrawledAreaOwnerFile(IEnumerable<CrawledAreaOwnerEntry> entries)
     {
-        Entries = entries.ToDictionary(e => e.Area, StringComparer.OrdinalIgnoreCase);
+        Entries = entries.ToArray();
     }
 
-    public IReadOnlyDictionary<string, CrawledAreaOwnerEntry> Entries { get; }
+    public IReadOnlyList<CrawledAreaOwnerEntry> Entries { get; }
 
     public static async Task<CrawledAreaOwnerFile> GetAsync(string org, string repo)
     {
