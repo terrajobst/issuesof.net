@@ -7,7 +7,7 @@ namespace IssueDb.Crawling;
 public sealed class CrawledIndex
 {
     private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-    private static readonly short _currentFormatVersion = 9;
+    private static readonly short _currentFormatVersion = 10;
     private static readonly short _minSupportedFormatVersion = 9;
 
     public int Version { get; set; } = _currentFormatVersion;
@@ -189,7 +189,11 @@ public sealed class CrawledIndex
                     foreach (var kv in repo.AreaOwners)
                     {
                         writer.Write(stringIndexer(kv.Key));
-                        writer.Write(stringIndexer(kv.Value.Lead));
+
+                        writer.Write(kv.Value.Leads.Count);
+                        foreach (var lead in kv.Value.Leads)
+                            writer.Write(stringIndexer(lead));
+
                         writer.Write(kv.Value.Owners.Count);
                         foreach (var owner in kv.Value.Owners)
                             writer.Write(stringIndexer(owner));
@@ -384,7 +388,26 @@ public sealed class CrawledIndex
                 while (areaEntryCount-- > 0)
                 {
                     var area = stringIndex[reader.ReadInt32()];
-                    var lead = stringIndex[reader.ReadInt32()];
+
+                    List<string> leads;
+
+                    if (formatVersion == 9)
+                    {
+                        leads = new List<string>(1);
+                        var lead = stringIndex[reader.ReadInt32()];
+                        leads.Add(lead);
+                    }
+                    else
+                    {
+                        var leadCount = reader.ReadInt32();
+                        leads = new List<string>(leadCount);
+                        while (leadCount-- > 0)
+                        {
+                            var lead = stringIndex[reader.ReadInt32()];
+                            leads.Add(lead);
+                        }
+                    }
+
                     var ownerCount = reader.ReadInt32();
                     var owners = new List<string>(ownerCount);
                     while (ownerCount-- > 0)
@@ -393,7 +416,7 @@ public sealed class CrawledIndex
                         owners.Add(owner);
                     }
 
-                    repo.AreaOwners[area] = new CrawledAreaOwnerEntry(area, lead, owners.ToArray());
+                    repo.AreaOwners[area] = new CrawledAreaOwnerEntry(area, leads.ToArray(), owners.ToArray());
                 }
             }
 

@@ -55,20 +55,29 @@ public sealed class CrawledAreaOwnerFile
                 continue;
 
             var areaText = parts[1].Trim();
-            var lead = GetUntaggedUserName(parts[2].Trim());
+            var leadText = parts[2].Trim();
             var ownerText = parts[3].Trim();
-            var owners = ownerText.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                  .Select(o => GetUntaggedUserName(o.Trim()))
-                                  .ToArray();
 
             if (!TextTokenizer.TryParseArea(areaText, out var area))
                 continue;
 
-            var entry = new CrawledAreaOwnerEntry(area, lead, owners);
+            var leads = GetUntaggedUserNames(leadText);
+            var owners = GetUntaggedUserNames(ownerText);
+
+            var entry = new CrawledAreaOwnerEntry(area, leads, owners);
             entries.Add(entry);
         }
 
         return new CrawledAreaOwnerFile(entries);
+
+        static string[] GetUntaggedUserNames(string text)
+        {
+            var users = text.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(t => GetUntaggedUserName(t.Trim()))
+                            .ToArray();
+
+            return users;
+        }
 
         static string GetUntaggedUserName(string userName)
         {

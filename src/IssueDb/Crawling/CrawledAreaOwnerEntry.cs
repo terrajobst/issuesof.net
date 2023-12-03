@@ -2,14 +2,14 @@
 
 public sealed class CrawledAreaOwnerEntry
 {
-    public CrawledAreaOwnerEntry(string area, string lead, IReadOnlyList<string> owners)
+    public CrawledAreaOwnerEntry(string area, IReadOnlyList<string> leads, IReadOnlyList<string> owners)
     {
         Area = area;
-        Lead = lead;
+        Leads = leads;
         Owners = owners;
     }
 
     public string Area { get; }
-    public string Lead { get; }
+    public IReadOnlyList<string> Leads { get; }
     public IReadOnlyList<string> Owners { get; }
 }

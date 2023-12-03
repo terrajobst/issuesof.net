@@ -57,7 +57,7 @@ public sealed class CrawledIssue
 
     [JsonIgnore]
     public IEnumerable<string> AreaLeads => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
-                                                           .Select(r => Repo.AreaOwners[r].Lead)
+                                                           .SelectMany(r => Repo.AreaOwners[r].Leads)
                                                            .Distinct(StringComparer.OrdinalIgnoreCase);
 
     [JsonIgnore]

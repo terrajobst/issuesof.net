@@ -550,9 +550,9 @@ internal static class Program
         foreach (var entry in file.Entries)
         {
             var area = entry.Area;
-            var lead = entry.Lead;
+            var leads = await ExpandAsync(teamsManager, entry.Leads);
             var expandedOwners = await ExpandAsync(teamsManager, entry.Owners);
-            var expandedEntry = new CrawledAreaOwnerEntry(area, lead, expandedOwners);
+            var expandedEntry = new CrawledAreaOwnerEntry(area, leads, expandedOwners);
             result[area] = expandedEntry;
         }
 
