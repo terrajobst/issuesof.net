@@ -468,6 +468,10 @@ internal static class Program
             }
         }
 
+        // Create area
+
+        // Do some consistency checking
+
         foreach (var repo in repos)
         {
             var milestones = repo.Milestones.ToHashSet();
