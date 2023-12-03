@@ -1,9 +1,16 @@
 ﻿using System.Reflection;
 
+using IssuesOfDotNet.Data;
+
+using Microsoft.AspNetCore.Components;
+
 namespace IssuesOfDotNet.Pages;
 
 public partial class Version
 {
+    [Inject]
+    public IndexService IndexService { get; set; }
+
     private string _commit;
 
     protected override void OnInitialized()

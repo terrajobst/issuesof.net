@@ -10,6 +10,10 @@ public sealed class CrawledIndex
     private static readonly short _currentFormatVersion = 9;
     private static readonly short _minSupportedFormatVersion = 8;
 
+    public int Version { get; set; } = _currentFormatVersion;
+
+    public static int LatestVersion => _currentFormatVersion;
+
     public List<CrawledRepo> Repos { get; set; } = new();
 
     public CrawledTrie<CrawledIssue> Trie { get; set; } = new();
@@ -402,6 +406,7 @@ public sealed class CrawledIndex
 
             return Task.FromResult(new CrawledIndex
             {
+                Version = formatVersion,
                 Repos = repos.ToList(),
                 Trie = new CrawledTrie<CrawledIssue>(root)
             });

@@ -2,6 +2,7 @@
 
 @using System.Reflection;
 @using System.Runtime.InteropServices;
+@using IssueDb.Crawling;
 
 <dl>
     @if (_commit is not null)
@@ -15,4 +16,18 @@
 
     <dt>OS</dt>
     <dd>@RuntimeInformation.OSDescription</dd>
+
+    <dt>Index Format Version</dt>
+
+    @if (IndexService.Index is null)
+    {
+        <dd>Unknown</dd>
+    }
+    else
+    {
+        <dd>@IndexService.Index.Version</dd>
+    }
+
+    <dt>Latest Format Version</dt>
+    <dd>@CrawledIndex.LatestVersion</dd>
 </dl>
