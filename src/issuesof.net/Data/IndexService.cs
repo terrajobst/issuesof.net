@@ -123,6 +123,7 @@ public sealed class IndexService
             {
                 _progress = value;
                 NotifyIndexChanged();
+                NotifyProgressChanged();
             }
         }
     }
@@ -133,5 +134,12 @@ public sealed class IndexService
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    public void NotifyProgressChanged()
+    {
+        ProgressChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public event EventHandler Changed;
+
+    public event EventHandler ProgressChanged;
 }
