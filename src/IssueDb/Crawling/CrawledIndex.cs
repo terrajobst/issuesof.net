@@ -8,7 +8,7 @@ public sealed class CrawledIndex
 {
     private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
     private static readonly short _currentFormatVersion = 11;
-    private static readonly short _minSupportedFormatVersion = 10;
+    private static readonly short _minSupportedFormatVersion = 11;
 
     public int Version { get; set; } = _currentFormatVersion;
 
@@ -306,82 +306,73 @@ public sealed class CrawledIndex
 
             // Read area ownership
 
-            AreaOwnership areaOwnership;
+            var areaEntryCount = reader.ReadInt32();
+            var areaEntries = new List<AreaEntry>(areaEntryCount);
 
-            if (formatVersion == 11)
+            for (var i = 0; i < areaEntryCount; i++)
             {
-                var areaEntryCount = reader.ReadInt32();
-                var areaEntries = new List<AreaEntry>(areaEntryCount);
+                var area = stringIndex[reader.ReadInt32()];
+                var leads = ReadAreaMembers(reader, stringIndex);
+                var owners = ReadAreaMembers(reader, stringIndex);
+                var entry = new AreaEntry(area, leads, owners);
+                areaEntries.Add(entry);
 
-                for (var i = 0; i < areaEntryCount; i++)
+                static AreaMember[] ReadAreaMembers(BinaryReader reader,
+                                                    Dictionary<int, string> stringIndex)
                 {
-                    var area = stringIndex[reader.ReadInt32()];
-                    var leads = ReadAreaMembers(reader, stringIndex);
-                    var owners = ReadAreaMembers(reader, stringIndex);
-                    var entry = new AreaEntry(area, leads, owners);
-                    areaEntries.Add(entry);
+                    var memberCount = reader.ReadInt32();
+                    var members = new List<AreaMember>(memberCount);
 
-                    static AreaMember[] ReadAreaMembers(BinaryReader reader,
-                                                        Dictionary<int, string> stringIndex)
+                    for (var i = 0; i < memberCount; i++)
                     {
-                        var memberCount = reader.ReadInt32();
-                        var members = new List<AreaMember>(memberCount);
-
-                        for (var i = 0; i < memberCount; i++)
-                        {
-                            var userName = stringIndex[reader.ReadInt32()];
-                            var origin = ReadAreaOrigin(reader, stringIndex);
-                            var member = new AreaMember(origin, userName);
-                            members.Add(member);
-                        }
-
-                        return members.ToArray();
+                        var userName = stringIndex[reader.ReadInt32()];
+                        var origin = ReadAreaOrigin(reader, stringIndex);
+                        var member = new AreaMember(origin, userName);
+                        members.Add(member);
                     }
 
-                    static AreaMemberOrigin ReadAreaOrigin(BinaryReader reader,
-                                                           Dictionary<int, string> stringIndex)
-                    {
-                        var kind = reader.ReadInt32();
-
-                        switch (kind)
-                        {
-                            case 0: // Composite
-                                {
-                                    var originCount = reader.ReadInt32();
-                                    var origins = new List<AreaMemberOrigin>(originCount);
-                                    for (var i = 0; i < originCount; i++)
-                                    {
-                                        var origin = ReadAreaOrigin(reader, stringIndex);
-                                        origins.Add(origin);
-                                    }
-                                    return new AreaMemberOrigin.Composite(origins);
-                                }
-                            case 1: // File
-                                {
-                                    var orgName = stringIndex[reader.ReadInt32()];
-                                    var repoName = stringIndex[reader.ReadInt32()];
-                                    var path = stringIndex[reader.ReadInt32()];
-                                    var lineNumber = reader.ReadInt32();
-                                    return new AreaMemberOrigin.File(orgName, repoName, path, lineNumber);
-                                }
-                            case 2: // Teams
-                                {
-                                    var orgName = stringIndex[reader.ReadInt32()];
-                                    var teamName = stringIndex[reader.ReadInt32()];
-                                    return new AreaMemberOrigin.Team(orgName, teamName);
-                                }
-                            default:
-                                throw new Exception($"unexpected area origin kind: {kind}");
-                        }
-                    }
+                    return members.ToArray();
                 }
 
-                areaOwnership = new AreaOwnership(areaEntries.ToArray());
+                static AreaMemberOrigin ReadAreaOrigin(BinaryReader reader,
+                                                       Dictionary<int, string> stringIndex)
+                {
+                    var kind = reader.ReadInt32();
+
+                    switch (kind)
+                    {
+                        case 0: // Composite
+                            {
+                                var originCount = reader.ReadInt32();
+                                var origins = new List<AreaMemberOrigin>(originCount);
+                                for (var i = 0; i < originCount; i++)
+                                {
+                                    var origin = ReadAreaOrigin(reader, stringIndex);
+                                    origins.Add(origin);
+                                }
+                                return new AreaMemberOrigin.Composite(origins);
+                            }
+                        case 1: // File
+                            {
+                                var orgName = stringIndex[reader.ReadInt32()];
+                                var repoName = stringIndex[reader.ReadInt32()];
+                                var path = stringIndex[reader.ReadInt32()];
+                                var lineNumber = reader.ReadInt32();
+                                return new AreaMemberOrigin.File(orgName, repoName, path, lineNumber);
+                            }
+                        case 2: // Teams
+                            {
+                                var orgName = stringIndex[reader.ReadInt32()];
+                                var teamName = stringIndex[reader.ReadInt32()];
+                                return new AreaMemberOrigin.Team(orgName, teamName);
+                            }
+                        default:
+                            throw new Exception($"unexpected area origin kind: {kind}");
+                    }
+                }
             }
-            else
-            {
-                areaOwnership = AreaOwnership.Empty;
-            }
+
+            var areaOwnership = new AreaOwnership(areaEntries.ToArray());
 
             // Read repos
 
@@ -497,88 +488,9 @@ public sealed class CrawledIndex
                     repo.Issues.Add(issue.Number, issue);
                     issueIndex.Add(issueId, issue);
                 }
-
-                if (formatVersion < 11)
-                {
-                    // Read area owners
-
-                    var areaEntryCount = reader.ReadInt32();
-
-                    repo.AreaOwners = new Dictionary<string, CrawledAreaOwnerEntry>(StringComparer.OrdinalIgnoreCase);
-
-                    while (areaEntryCount-- > 0)
-                    {
-                        var area = stringIndex[reader.ReadInt32()];
-
-                        var leadCount = reader.ReadInt32();
-                        var leads = new List<string>(leadCount);
-                        while (leadCount-- > 0)
-                        {
-                            var lead = stringIndex[reader.ReadInt32()];
-                            leads.Add(lead);
-                        }
-
-                        var ownerCount = reader.ReadInt32();
-                        var owners = new List<string>(ownerCount);
-                        while (ownerCount-- > 0)
-                        {
-                            var owner = stringIndex[reader.ReadInt32()];
-                            owners.Add(owner);
-                        }
-
-                        repo.AreaOwners[area] = new CrawledAreaOwnerEntry(area, leads.ToArray(), owners.ToArray());
-                    }
-                }
             }
 
             var root = ReadNode(reader, stringIndex, issueIndex);
-
-            if (formatVersion == 10)
-            {
-                areaOwnership = AreaOwnership.Empty;
-
-                foreach (var repo in repos)
-                {
-                    if (repo.AreaOwners?.Count == 0)
-                        continue;
-
-                    var repoAreaOwnership = ConvertAreaOwners(repo.Org, repo.Name, repo.AreaOwners);
-                    areaOwnership = areaOwnership.Merge(repoAreaOwnership);
-                }
-
-                static AreaOwnership ConvertAreaOwners(string org,
-                                                       string repo,
-                                                       Dictionary<string, CrawledAreaOwnerEntry> areaOwners)
-                {
-                    var entries = new List<AreaEntry>(areaOwners.Count);
-
-                    foreach (var (area, entry) in areaOwners)
-                    {
-                        var convertedLeads = ConvertAreaMembers(org, repo, entry.Leads);
-                        var convertedOwners = ConvertAreaMembers(org, repo, entry.Owners);
-                        var convertedEntry = new AreaEntry(area, convertedLeads, convertedOwners);
-                        entries.Add(convertedEntry);
-                    }
-
-                    return new AreaOwnership(entries.ToArray());
-                }
-
-                static AreaMember[] ConvertAreaMembers(string org,
-                                                       string repo,
-                                                       IReadOnlyList<string> members)
-                {
-                    var result = new List<AreaMember>(members.Count);
-
-                    foreach (var userName in members)
-                    {
-                        var origin = new AreaMemberOrigin.File(org, repo, "docs/area-owners.md", 0);
-                        var convertedEntry = new AreaMember(origin, userName);
-                        result.Add(convertedEntry);
-                    }
-
-                    return result.ToArray();
-                }
-            }
 
             foreach (var repo in repos)
                 repo.AreaOwnership = areaOwnership;

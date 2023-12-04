@@ -26,10 +26,6 @@ public sealed class CrawledRepo
     public DateTimeOffset? LastReindex { get; set; }
 
     [JsonIgnore]
-#warning Remove me
-    public Dictionary<string, CrawledAreaOwnerEntry> AreaOwners { get; set; } = new();
-
-    [JsonIgnore]
     public AreaOwnership AreaOwnership { get; set; } = AreaOwnership.Empty;
 
     [JsonIgnore]
@@ -46,7 +42,6 @@ public sealed class CrawledRepo
         Labels = new();
         Milestones = new();
         LastReindex = null;
-        AreaOwners = new();
         AreaOwnership = AreaOwnership.Empty;
     }
 

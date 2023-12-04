@@ -340,8 +340,6 @@ internal static class Program
 
         if (pullLatest)
         {
-            var teamManager = new GitHubTeamsManager(client);
-
             Console.WriteLine($"Listing events...");
 
             var eventStore = new GitHubEventStore(connectionString);
