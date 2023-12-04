@@ -186,6 +186,9 @@ internal static class Program
         }
 
         var client = CreateGitHubAppClient();
+
+        // Loading repos
+
         await client.UseInstallationTokenAsync("dotnet");
 
         var jsonOptions = new JsonSerializerOptions()
@@ -399,7 +402,7 @@ internal static class Program
                 if (crawledRepo.LastReindex is null)
                     crawledRepo.LastReindex = DateTimeOffset.UtcNow;
 
-                crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name, teamManager);
+                crawledRepo.AreaOwnership = await AreaOwnershipLoader.FromRepoAsync(crawledRepo.Org, crawledRepo.Name);
 
                 var currentLabels = await RequestLabelsAsync(client, crawledRepo.Org, crawledRepo.Name);
 
@@ -468,6 +471,18 @@ internal static class Program
             }
         }
 
+        // Merge area ownerships
+
+        var areaOwnership = AreaOwnership.Empty;
+
+        foreach (var repo in repos)
+            areaOwnership = areaOwnership.Merge(repo.AreaOwnership);
+
+        foreach (var repo in repos)
+            repo.AreaOwnership = areaOwnership;
+
+        // Do some consistency checking
+
         foreach (var repo in repos)
         {
             var milestones = repo.Milestones.ToHashSet();
@@ -513,6 +528,7 @@ internal static class Program
 
         var index = new CrawledIndex()
         {
+            AreaOwnership = areaOwnership,
             Repos = repos.ToList(),
             Trie = trie
         };
@@ -535,61 +551,6 @@ internal static class Program
         Console.WriteLine("Deleting temp files...");
 
         Directory.Delete(tempDirectory, recursive: true);
-    }
-
-    private static async Task<Dictionary<string, CrawledAreaOwnerEntry>> GetAreaOwnersAsync(string orgName, string repoName, GitHubTeamsManager teamsManager)
-    {
-        var file = await CrawledAreaOwnerFile.GetAsync(orgName, repoName);
-        if (file is null)
-            return null;
-
-        Console.WriteLine($"{orgName}/{repoName}: found {file.Entries.Count:N0} area owners.");
-
-        var result = new Dictionary<string, CrawledAreaOwnerEntry>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var entry in file.Entries)
-        {
-            var area = entry.Area;
-            var expandedLeads = await ExpandAsync(teamsManager, entry.Leads);
-            var expandedOwners = await ExpandAsync(teamsManager, entry.Owners);
-            var expandedEntry = new CrawledAreaOwnerEntry(area, expandedLeads, expandedOwners);
-            result[area] = expandedEntry;
-        }
-
-        return result;
-
-        static async Task<IReadOnlyList<string>> ExpandAsync(GitHubTeamsManager teamsManager, IEnumerable<string> usersOrTeams)
-        {
-            var result = new List<string>();
-
-            foreach (var userOrTeam in usersOrTeams)
-            {
-                var positionOfSlash = userOrTeam.IndexOf('/');
-                var isUser = positionOfSlash < 0;
-                if (isUser)
-                {
-                    result.Add(userOrTeam);
-                }
-                else
-                {
-                    var teamOrg = userOrTeam.Substring(0, positionOfSlash);
-                    var teamSlug = userOrTeam.Substring(positionOfSlash + 1);
-                    var expandedTeam = await teamsManager.ExpandTeamAsync(teamOrg, teamSlug);
-
-                    if (expandedTeam is null)
-                    {
-                        result.Add(userOrTeam);
-                    }
-                    else
-                    {
-                        foreach (var user in expandedTeam)
-                            result.Add(user);
-                    }
-                }
-            }
-
-            return result;
-        }
     }
 
     private static GitHubAppClient CreateGitHubAppClient()

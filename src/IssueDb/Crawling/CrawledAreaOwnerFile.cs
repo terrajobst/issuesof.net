@@ -3,6 +3,7 @@ using System.Net;
 
 namespace IssueDb;
 
+#warning Remove me
 public sealed class CrawledAreaOwnerFile
 {
     public CrawledAreaOwnerFile(IEnumerable<CrawledAreaOwnerEntry> entries)

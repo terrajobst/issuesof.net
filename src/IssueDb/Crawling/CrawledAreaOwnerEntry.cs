@@ -1,5 +1,6 @@
 ﻿namespace IssueDb;
 
+#warning Remove me
 public sealed class CrawledAreaOwnerEntry
 {
     public CrawledAreaOwnerEntry(string area, IReadOnlyList<string> leads, IReadOnlyList<string> owners)

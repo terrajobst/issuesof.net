@@ -56,13 +56,15 @@ public sealed class CrawledIssue
                                                         .Select(l => l.Name.Substring(5));
 
     [JsonIgnore]
-    public IEnumerable<string> AreaLeads => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
-                                                           .SelectMany(r => Repo.AreaOwners[r].Leads)
+    public IEnumerable<string> AreaLeads => DirectAreaNodes.Where(r => Repo.AreaOwnership.EntryByName.ContainsKey(r) == true)
+                                                           .SelectMany(r => Repo.AreaOwnership.EntryByName[r].Leads)
+                                                           .Select(m => m.UserName)
                                                            .Distinct(StringComparer.OrdinalIgnoreCase);
 
     [JsonIgnore]
-    public IEnumerable<string> AreaOwners => DirectAreaNodes.Where(r => Repo.AreaOwners?.ContainsKey(r) == true)
-                                                            .SelectMany(r => Repo.AreaOwners[r].Owners)
+    public IEnumerable<string> AreaOwners => DirectAreaNodes.Where(r => Repo.AreaOwnership.EntryByName.ContainsKey(r) == true)
+                                                            .SelectMany(r => Repo.AreaOwnership.EntryByName[r].Owners)
+                                                            .Select(m => m.UserName)
                                                             .Distinct(StringComparer.OrdinalIgnoreCase);
 
     [JsonIgnore]

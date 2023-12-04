@@ -1,4 +1,6 @@
 ﻿@page "/areas"
+@using System.Text
+@using IssueDb
 
 <IndexStatus />
 
@@ -17,25 +19,56 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var row in Rows)
+        @foreach (var entry in Entries)
         {
-            void WriteUserList(IEnumerable<string> users)
+            void WriteUserList(IEnumerable<AreaMember> members)
             {
+                if (!members.Any())
+                    return;
+
                 <div class="d-flex flex-wrap" style="gap: .3rem;">
-                    @foreach (var user in users)
+                    @foreach (var member in members)
                     {
-                        <a class="font-weight-bold" href="https://github.com/@user">@@@user</a>
+                        var muted = member.Origin is AreaMemberOrigin.Composite ? "text-muted" : null;
+                        var description = ConvertOriginToText(member.Origin);
+                        <a class="font-weight-bold @muted" title="@description" href="https://github.com/@member.UserName">@@@member.UserName</a>
                     }
                 </div>
             }
 
+            void WriteUserListGrouped(IEnumerable<AreaMember> members)
+            {
+                var primaries = members.Where(m => m.Origin is not AreaMemberOrigin.Composite);
+                var secondaries = members.Where(m => m.Origin is AreaMemberOrigin.Composite);
+                WriteUserList(primaries);
+                WriteUserList(secondaries);
+            }
+
+            static string ConvertOriginToText(AreaMemberOrigin origin)
+            {
+                switch (origin)
+                {
+                    case AreaMemberOrigin.Composite c:
+                        var sb = new StringBuilder();
+                        foreach (var nested in c.Origins)
+                            sb.AppendLine(ConvertOriginToText(nested));
+                        return sb.ToString();
+                    case AreaMemberOrigin.File f:
+                        return $"Listed in {f.OrgName}/{f.RepoName}/{f.Path}:{f.LineNumber}";
+                    case AreaMemberOrigin.Team t:
+                        return $"Member of {t.OrgName}/{t.TeamName}";
+                    default:
+                        return $"Unknown origin {origin}";
+                }
+            }
+
             <tr>
-                <td>@row.Area</td>
+                <td>@entry.Area</td>
                 <td>
-                    @{ WriteUserList(row.Leads); }
+                    @{ WriteUserListGrouped(entry.Leads); }
                 </td>
                 <td>
-                    @{ WriteUserList(row.Owners); }
+                    @{ WriteUserListGrouped(entry.Owners); }
                 </td>
             </tr>
         }
