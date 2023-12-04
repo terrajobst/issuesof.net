@@ -8,7 +8,7 @@ public sealed class CrawledIndex
 {
     private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
     private static readonly short _currentFormatVersion = 10;
-    private static readonly short _minSupportedFormatVersion = 9;
+    private static readonly short _minSupportedFormatVersion = 10;
 
     public int Version { get; set; } = _currentFormatVersion;
 
@@ -389,23 +389,12 @@ public sealed class CrawledIndex
                 {
                     var area = stringIndex[reader.ReadInt32()];
 
-                    List<string> leads;
-
-                    if (formatVersion == 9)
+                    var leadCount = reader.ReadInt32();
+                    var leads = new List<string>(leadCount);
+                    while (leadCount-- > 0)
                     {
-                        leads = new List<string>(1);
                         var lead = stringIndex[reader.ReadInt32()];
                         leads.Add(lead);
-                    }
-                    else
-                    {
-                        var leadCount = reader.ReadInt32();
-                        leads = new List<string>(leadCount);
-                        while (leadCount-- > 0)
-                        {
-                            var lead = stringIndex[reader.ReadInt32()];
-                            leads.Add(lead);
-                        }
                     }
 
                     var ownerCount = reader.ReadInt32();
