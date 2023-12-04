@@ -1,5 +1,6 @@
 ﻿namespace IssuesOfDotNet.Crawler;
 
+#warning Remove me
 internal sealed class GitHubTeamsManager
 {
     private readonly GitHubAppClient _client;

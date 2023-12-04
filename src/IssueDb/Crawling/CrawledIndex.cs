@@ -14,6 +14,8 @@ public sealed class CrawledIndex
 
     public static int LatestVersion => _currentFormatVersion;
 
+    public AreaOwnership AreaOwnership { get; set; } = AreaOwnership.Empty;
+
     public List<CrawledRepo> Repos { get; set; } = new();
 
     public CrawledTrie<CrawledIssue> Trie { get; set; } = new();
@@ -37,6 +39,8 @@ public sealed class CrawledIndex
 
                 return index;
             });
+
+            #warning Write area ownership
 
             using (var memoryStream = new MemoryStream())
             {
@@ -263,6 +267,8 @@ public sealed class CrawledIndex
                 var s = reader.ReadString();
                 stringIndex.Add(i, s);
             }
+
+            #warning Read area ownership
 
             // Read repos
 

@@ -7,6 +7,7 @@ using IssueDb;
 using IssueDb.Crawling;
 using IssueDb.Eventing;
 
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Primitives;
 
@@ -186,6 +187,27 @@ internal static class Program
         }
 
         var client = CreateGitHubAppClient();
+
+        // Loading area owners
+
+        var orgAreaOwnerships = new List<AreaOwnership>();
+
+        foreach (var org in subscriptionList.Orgs)
+        {
+            Console.WriteLine($"Loading areas from teams in {org}...");
+            try
+            {
+                var orgAreaOwnership = await AreaOwnershipLoader.FromTeamsAsync(client, org);
+                orgAreaOwnerships.Add(orgAreaOwnership);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"error: Unable to read teams in {org}: {ex}");
+            }
+        }
+
+        // Loading repos
+
         await client.UseInstallationTokenAsync("dotnet");
 
         var jsonOptions = new JsonSerializerOptions()
@@ -399,7 +421,7 @@ internal static class Program
                 if (crawledRepo.LastReindex is null)
                     crawledRepo.LastReindex = DateTimeOffset.UtcNow;
 
-                crawledRepo.AreaOwners = await GetAreaOwnersAsync(crawledRepo.Org, crawledRepo.Name, teamManager);
+                crawledRepo.AreaOwnership = await AreaOwnershipLoader.FromRepoAsync(crawledRepo.Org, crawledRepo.Name);
 
                 var currentLabels = await RequestLabelsAsync(client, crawledRepo.Org, crawledRepo.Name);
 
@@ -468,7 +490,18 @@ internal static class Program
             }
         }
 
-        // Create area
+        // Merge area ownerships
+
+        var areaOwnership = AreaOwnership.Empty;
+
+        foreach (var orgOwnership in orgAreaOwnerships)
+            areaOwnership = areaOwnership.Merge(orgOwnership);
+
+        foreach (var repo in repos)
+            areaOwnership = areaOwnership.Merge(repo.AreaOwnership);
+
+        foreach (var repo in repos)
+            repo.AreaOwnership = areaOwnership;
 
         // Do some consistency checking
 
@@ -517,6 +550,7 @@ internal static class Program
 
         var index = new CrawledIndex()
         {
+            AreaOwnership = areaOwnership,
             Repos = repos.ToList(),
             Trie = trie
         };
