@@ -17,11 +17,25 @@
             <th>Open</th>
             <th>Leads</th>
             <th>Owners</th>
+            <th>Definitions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var entry in Entries)
         {
+            void WriteDefinitions(CrawledAreaEntry entry)
+            {
+                if (!entry.Definitions.Any())
+                    return;
+
+                <div class="d-flex flex-wrap" style="gap: .3rem;">
+                    @foreach (var file in entry.Definitions)
+                    {
+                        <a href="@file.ToUrl()">@file.OrgName/@file.RepoName</a>
+                    }
+                </div>
+            }
+
             void WriteUserList(IEnumerable<CrawledAreaMember> members)
             {
                 if (!members.Any())
@@ -55,7 +69,7 @@
                             sb.AppendLine(ConvertOriginToText(nested));
                         return sb.ToString();
                     case CrawledAreaMemberOrigin.File f:
-                        return $"Listed in {f.OrgName}/{f.RepoName}/{f.Path}:{f.LineNumber}";
+                        return $"Listed in {f.ToShortString()}";
                     case CrawledAreaMemberOrigin.Team t:
                         return $"Member of {t.OrgName}/{t.TeamName}";
                     default:
@@ -97,6 +111,9 @@
                 </td>
                 <td>
                     @{ WriteUserListGrouped(entry.Owners); }
+                </td>
+                <td>
+                    @{ WriteDefinitions(entry); }
                 </td>
             </tr>
         }

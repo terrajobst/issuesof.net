@@ -13,6 +13,16 @@ public abstract class CrawledAreaMemberOrigin
         public string RepoName { get; } = repoName;
         public string Path { get; } = path;
         public int LineNumber { get; } = lineNumber;
+
+        public string ToShortString()
+        {
+            return $"{OrgName}/{RepoName}/{Path}#{LineNumber}";
+        }
+
+        public string ToUrl()
+        {
+            return $"https://github.com/{OrgName}/{RepoName}/blob/main/{Path}?plain=1#L{LineNumber}";
+        }
     }
 
     public sealed class Team(string orgName, string teamName) : CrawledAreaMemberOrigin
