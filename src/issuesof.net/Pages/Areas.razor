@@ -46,7 +46,7 @@
                     {
                         var boldOrMuted = member.IsPrimary ? "font-weight-bold" : "text-muted";
                         var description = ConvertOriginToText(member.Origin);
-                        <a class="@boldOrMuted" title="@description" href="https://github.com/@member.UserName">@@@member.UserName</a>
+                        <a class="@boldOrMuted" title="@description" href="@member.ToUrl()">@@@member.UserName</a>
                     }
                 </div>
             }

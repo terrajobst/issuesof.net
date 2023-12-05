@@ -46,4 +46,15 @@ public sealed class CrawledAreaMember
             return true;
         }
     }
+
+    public string ToUrl()
+    {
+        var indexOfSlash = UserName.IndexOf('/');
+        if (indexOfSlash < 0)
+            return $"https://github.com/{UserName}";
+
+        var orgName = UserName.Substring(0, indexOfSlash);
+        var teamName =  UserName.Substring(indexOfSlash + 1);
+        return $"https://github.com/orgs/{orgName}/teams/{teamName}";
+    }
 }
