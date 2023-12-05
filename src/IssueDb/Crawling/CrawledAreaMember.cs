@@ -7,23 +7,39 @@ public sealed class CrawledAreaMember
     {
         Origin = origin;
         UserName = userName;
+        IsPrimary = ComputeIsPrimary(origin);
     }
 
     public CrawledAreaMemberOrigin Origin { get; }
     public string UserName { get; }
+    public bool IsPrimary { get; }
 
-    public bool IsPrimary()
+    private static bool ComputeIsPrimary(CrawledAreaMemberOrigin origin)
     {
         // We consider the origin to be primary if it wasn't expanded
         // by a team.
 
-        if (Origin is CrawledAreaMemberOrigin.Composite c)
+        if (origin is CrawledAreaMemberOrigin.Composite c)
         {
-            // A composite can also occur if multiple repos define a given member.
-            // in their area-owners.md file.
-            //
-            // In this case we'd still consider it primary.
-            return !c.Origins.Any(c => c is CrawledAreaMemberOrigin.Team);
+            // A composite can occur in multiple cases:
+            // - The area member is defined directly and indirectly via a team
+            // - Multiple repos define a given member
+
+            var remainder = c.Origins.ToList();
+
+            for (var i = remainder.Count - 1; i >= 0; i--)
+            {
+                if (remainder[i] is CrawledAreaMemberOrigin.Team)
+                    remainder.RemoveRange(i, 2);
+            }
+
+            foreach (var o in remainder)
+            {
+                if (o is CrawledAreaMemberOrigin.File)
+                    return true;
+            }
+
+            return false;
         }
         else
         {
