@@ -64,8 +64,24 @@
             }
 
             <tr>
-                <td>@entry.Area</td>
                 <td>
+                    <div class="d-flex flex-wrap" style="gap: .3rem;" title="@entry.Area">
+                        @{
+                            var elements = TextTokenizer.GetAreaPaths("area-" + entry.Area, segmentsOnly: true);
+
+                            for (var i = 0; i < elements.Count; i++)
+                            {
+                                if (i > 0)
+                                {
+                                    <span class="mx-1 text-muted">/</span>
+                                }
+
+                                <text>@elements[i]</text>
+                            }
+                        }
+                    </div>
+                </td>
+                <td>    
                     @{
                         var info = AreaQueryInfos[entry];
                     }
