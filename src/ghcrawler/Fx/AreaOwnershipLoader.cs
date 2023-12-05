@@ -3,6 +3,8 @@ using System.Net;
 
 using IssueDb;
 
+using Markdig;
+
 namespace IssuesOfDotNet.Crawler;
 
 internal static class AreaOwnershipLoader
@@ -181,15 +183,40 @@ internal static class AreaOwnershipLoader
         var lines = GetLines(contents);
         var entries = new List<CrawledAreaEntry>();
 
+        var hasSeenHeaders = false;
+        var indexOfArea = -1;
+        var indexOfLead = -1;
+        var indexOfOwners = -1;
+
         foreach (var (line, lineIndex) in lines.Select((l, i) => (l, i)))
         {
             var parts = line.Split('|');
             if (parts.Length != 6)
                 continue;
 
-            var areaText = parts[1].Trim();
-            var leadText = parts[2].Trim();
-            var ownerText = parts[3].Trim();
+            var cells = new string[]
+            {
+                Markdown.ToPlainText(parts[1]).Trim(),
+                Markdown.ToPlainText(parts[2]).Trim(),
+                Markdown.ToPlainText(parts[3]).Trim()
+            };
+
+            if (!hasSeenHeaders)
+            {
+                indexOfArea = Array.FindIndex(cells, x => x.Contains("Area", StringComparison.OrdinalIgnoreCase));
+                indexOfLead = Array.FindIndex(cells, x => x.Contains("Lead", StringComparison.OrdinalIgnoreCase));
+                indexOfOwners = Array.FindIndex(cells, x => x.Contains("Owner", StringComparison.OrdinalIgnoreCase));
+                hasSeenHeaders = true;
+            }
+
+            if (indexOfArea < 0 || indexOfArea >= cells.Length ||
+                indexOfLead < 0 || indexOfLead >= cells.Length ||
+                indexOfOwners < 0 || indexOfOwners >= cells.Length)
+                continue;
+
+            var areaText = cells[indexOfArea];
+            var leadText = cells[indexOfLead];
+            var ownerText = cells[indexOfOwners];
 
             if (!TextTokenizer.TryParseArea(areaText, out var area))
                 continue;
