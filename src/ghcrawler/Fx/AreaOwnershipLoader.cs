@@ -89,7 +89,10 @@ internal static class AreaOwnershipLoader
 
         static CrawledAreaMember[] ExpandMembers(Dictionary<string, ParsedTeam> expandedTeams, IEnumerable<CrawledAreaMember> members)
         {
-            var expandedMembers = new List<CrawledAreaMember>();
+            var expandedMembersByName = new Dictionary<string, CrawledAreaMember>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var member in members)
+                expandedMembersByName.Add(member.UserName, member);
 
             foreach (var member in members)
             {
@@ -99,15 +102,22 @@ internal static class AreaOwnershipLoader
                     {
                         var expandedOrigin = parsedTeam.Origin.Merge(member.Origin);
                         var expandedMember = new CrawledAreaMember(expandedOrigin, teamMember);
-                        expandedMembers.Add(expandedMember);
+
+                        if (expandedMembersByName.TryGetValue(expandedMember.UserName, out var existingMember))
+                        {
+                            var mergedOrigin = existingMember.Origin.Merge(expandedMember.Origin);
+                            var mergedMember = new CrawledAreaMember(mergedOrigin, expandedMember.UserName);
+                            expandedMembersByName[expandedMember.UserName] = mergedMember;
+                        }
+                        else
+                        {
+                            expandedMembersByName.Add(expandedMember.UserName, expandedMember);
+                        }
                     }
                 }
-
-                // It's intentional to always add the member, even if it's a team.
-                expandedMembers.Add(member);
             }
 
-            return expandedMembers.ToArray();
+            return expandedMembersByName.Values.OrderBy(m => m.UserName).ToArray();
         }
     }
 
