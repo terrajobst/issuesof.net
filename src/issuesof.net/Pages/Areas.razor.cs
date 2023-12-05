@@ -52,7 +52,8 @@ public sealed partial class Areas
 
         return row.Area.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
                row.Leads.Any(l => l.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
-               row.Owners.Any(o => o.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase));
+               row.Owners.Any(o => o.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
+               row.Definitions.Any(d => $"{d.OrgName}/{d.RepoName}".Contains(Filter, StringComparison.OrdinalIgnoreCase));
     }
 
     protected override void OnInitialized()
