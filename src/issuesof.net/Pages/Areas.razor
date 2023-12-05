@@ -30,17 +30,17 @@
                 <div class="d-flex flex-wrap" style="gap: .3rem;">
                     @foreach (var member in members)
                     {
-                        var muted = member.Origin is CrawledAreaMemberOrigin.Composite ? "text-muted" : null;
+                        var boldOrMuted = member.IsPrimary() ? "font-weight-bold" : "text-muted";
                         var description = ConvertOriginToText(member.Origin);
-                        <a class="font-weight-bold @muted" title="@description" href="https://github.com/@member.UserName">@@@member.UserName</a>
+                        <a class="@boldOrMuted" title="@description" href="https://github.com/@member.UserName">@@@member.UserName</a>
                     }
                 </div>
             }
 
             void WriteUserListGrouped(IEnumerable<CrawledAreaMember> members)
             {
-                var primaries = members.Where(m => m.Origin is not CrawledAreaMemberOrigin.Composite);
-                var secondaries = members.Where(m => m.Origin is CrawledAreaMemberOrigin.Composite);
+                var primaries = members.Where(m => m.IsPrimary());
+                var secondaries = members.Where(m => !m.IsPrimary());
                 WriteUserList(primaries);
                 WriteUserList(secondaries);
             }
