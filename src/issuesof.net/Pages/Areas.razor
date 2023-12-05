@@ -22,7 +22,7 @@
     <tbody>
         @foreach (var entry in Entries)
         {
-            void WriteUserList(IEnumerable<AreaMember> members)
+            void WriteUserList(IEnumerable<CrawledAreaMember> members)
             {
                 if (!members.Any())
                     return;
@@ -30,33 +30,33 @@
                 <div class="d-flex flex-wrap" style="gap: .3rem;">
                     @foreach (var member in members)
                     {
-                        var muted = member.Origin is AreaMemberOrigin.Composite ? "text-muted" : null;
+                        var muted = member.Origin is CrawledAreaMemberOrigin.Composite ? "text-muted" : null;
                         var description = ConvertOriginToText(member.Origin);
                         <a class="font-weight-bold @muted" title="@description" href="https://github.com/@member.UserName">@@@member.UserName</a>
                     }
                 </div>
             }
 
-            void WriteUserListGrouped(IEnumerable<AreaMember> members)
+            void WriteUserListGrouped(IEnumerable<CrawledAreaMember> members)
             {
-                var primaries = members.Where(m => m.Origin is not AreaMemberOrigin.Composite);
-                var secondaries = members.Where(m => m.Origin is AreaMemberOrigin.Composite);
+                var primaries = members.Where(m => m.Origin is not CrawledAreaMemberOrigin.Composite);
+                var secondaries = members.Where(m => m.Origin is CrawledAreaMemberOrigin.Composite);
                 WriteUserList(primaries);
                 WriteUserList(secondaries);
             }
 
-            static string ConvertOriginToText(AreaMemberOrigin origin)
+            static string ConvertOriginToText(CrawledAreaMemberOrigin origin)
             {
                 switch (origin)
                 {
-                    case AreaMemberOrigin.Composite c:
+                    case CrawledAreaMemberOrigin.Composite c:
                         var sb = new StringBuilder();
                         foreach (var nested in c.Origins)
                             sb.AppendLine(ConvertOriginToText(nested));
                         return sb.ToString();
-                    case AreaMemberOrigin.File f:
+                    case CrawledAreaMemberOrigin.File f:
                         return $"Listed in {f.OrgName}/{f.RepoName}/{f.Path}:{f.LineNumber}";
-                    case AreaMemberOrigin.Team t:
+                    case CrawledAreaMemberOrigin.Team t:
                         return $"Member of {t.OrgName}/{t.TeamName}";
                     default:
                         return $"Unknown origin {origin}";

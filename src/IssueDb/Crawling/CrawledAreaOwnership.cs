@@ -2,20 +2,20 @@
 
 namespace IssueDb;
 
-public sealed class AreaOwnership
+public sealed class CrawledAreaOwnership
 {
-    public static AreaOwnership Empty { get; } = new([]);
+    public static CrawledAreaOwnership Empty { get; } = new([]);
 
-    private FrozenDictionary<string, AreaEntry> _entryByName;
+    private FrozenDictionary<string, CrawledAreaEntry> _entryByName;
 
-    public AreaOwnership(IReadOnlyList<AreaEntry> entries)
+    public CrawledAreaOwnership(IReadOnlyList<CrawledAreaEntry> entries)
     {
         Entries = entries;
     }
 
-    public IReadOnlyList<AreaEntry> Entries { get; }
+    public IReadOnlyList<CrawledAreaEntry> Entries { get; }
 
-    public FrozenDictionary<string, AreaEntry> EntryByName
+    public FrozenDictionary<string, CrawledAreaEntry> EntryByName
     {
         get
         {
@@ -29,7 +29,7 @@ public sealed class AreaOwnership
         }
     }
 
-    public AreaOwnership Merge(AreaOwnership other)
+    public CrawledAreaOwnership Merge(CrawledAreaOwnership other)
     {
         if (other is null || other == Empty)
             return this;
@@ -37,7 +37,7 @@ public sealed class AreaOwnership
         if (this == Empty)
             return other;
 
-        var entryByName = new Dictionary<string, AreaEntry>(StringComparer.OrdinalIgnoreCase);
+        var entryByName = new Dictionary<string, CrawledAreaEntry>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var entry in Entries)
             entryByName.Add(entry.Area, entry);
@@ -55,18 +55,18 @@ public sealed class AreaOwnership
         }
 
         var mergedEntries = entryByName.Values.OrderBy(e => e.Area).ToArray();
-        return new AreaOwnership(mergedEntries);
+        return new CrawledAreaOwnership(mergedEntries);
 
-        static AreaEntry MergeEntries(AreaEntry entry, AreaEntry otherEntry)
+        static CrawledAreaEntry MergeEntries(CrawledAreaEntry entry, CrawledAreaEntry otherEntry)
         {
             var mergedLeads = MergeMembers(entry.Leads, otherEntry.Leads);
             var mergedOwners = MergeMembers(entry.Owners, otherEntry.Owners);
-            return new AreaEntry(entry.Area, mergedLeads, mergedOwners);
+            return new CrawledAreaEntry(entry.Area, mergedLeads, mergedOwners);
         }
 
-        static AreaMember[] MergeMembers(IReadOnlyList<AreaMember> members, IReadOnlyList<AreaMember> otherMembers)
+        static CrawledAreaMember[] MergeMembers(IReadOnlyList<CrawledAreaMember> members, IReadOnlyList<CrawledAreaMember> otherMembers)
         {
-            var memberByName = new Dictionary<string, AreaMember>(StringComparer.OrdinalIgnoreCase);
+            var memberByName = new Dictionary<string, CrawledAreaMember>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var member in members)
                 memberByName.Add(member.UserName, member);
@@ -85,10 +85,10 @@ public sealed class AreaOwnership
             return memberByName.Values.OrderBy(m => m.UserName).ToArray();
         }
 
-        static AreaMember MergeMember(AreaMember member, AreaMember otherMember)
+        static CrawledAreaMember MergeMember(CrawledAreaMember member, CrawledAreaMember otherMember)
         {
             var origin = member.Origin.Merge(otherMember.Origin);
-            return new AreaMember(origin, member.UserName);
+            return new CrawledAreaMember(origin, member.UserName);
         }
     }
 }

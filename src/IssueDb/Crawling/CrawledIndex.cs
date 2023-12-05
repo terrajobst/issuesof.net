@@ -14,7 +14,7 @@ public sealed class CrawledIndex
 
     public static int LatestVersion => _currentFormatVersion;
 
-    public AreaOwnership AreaOwnership { get; set; } = AreaOwnership.Empty;
+    public CrawledAreaOwnership AreaOwnership { get; set; } = CrawledAreaOwnership.Empty;
 
     public List<CrawledRepo> Repos { get; set; } = new();
 
@@ -85,7 +85,7 @@ public sealed class CrawledIndex
         }
 
         static void WriteAreaOwnership(BinaryWriter writer,
-                                       AreaOwnership ownership,
+                                       CrawledAreaOwnership ownership,
                                        Func<string, int> stringIndexer)
         {
             writer.Write(ownership.Entries.Count);
@@ -95,7 +95,7 @@ public sealed class CrawledIndex
         }
 
         static void WriteAreaEntry(BinaryWriter writer,
-                                   AreaEntry entry,
+                                   CrawledAreaEntry entry,
                                    Func<string, int> stringIndexer)
         {
             writer.Write(stringIndexer(entry.Area));
@@ -104,7 +104,7 @@ public sealed class CrawledIndex
         }
 
         static void WriteAreaMembers(BinaryWriter writer,
-                                     IReadOnlyList<AreaMember> members,
+                                     IReadOnlyList<CrawledAreaMember> members,
                                      Func<string, int> stringIndexer)
         {
             writer.Write(members.Count);
@@ -117,25 +117,25 @@ public sealed class CrawledIndex
         }
 
         static void WriteAreaMemberOrigin(BinaryWriter writer,
-                                          AreaMemberOrigin origin,
+                                          CrawledAreaMemberOrigin origin,
                                           Func<string, int> stringIndexer)
         {
             switch (origin)
             {
-                case AreaMemberOrigin.Composite c:
+                case CrawledAreaMemberOrigin.Composite c:
                     writer.Write(0);
                     writer.Write(c.Origins.Count);
                     foreach (var o in c.Origins)
                         WriteAreaMemberOrigin(writer, o, stringIndexer);
                     break;
-                case AreaMemberOrigin.File f:
+                case CrawledAreaMemberOrigin.File f:
                     writer.Write(1);
                     writer.Write(stringIndexer(f.OrgName));
                     writer.Write(stringIndexer(f.RepoName));
                     writer.Write(stringIndexer(f.Path));
                     writer.Write(f.LineNumber);
                     break;
-                case AreaMemberOrigin.Team t:
+                case CrawledAreaMemberOrigin.Team t:
                     writer.Write(2);
                     writer.Write(stringIndexer(t.OrgName));
                     writer.Write(stringIndexer(t.TeamName));
@@ -307,34 +307,34 @@ public sealed class CrawledIndex
             // Read area ownership
 
             var areaEntryCount = reader.ReadInt32();
-            var areaEntries = new List<AreaEntry>(areaEntryCount);
+            var areaEntries = new List<CrawledAreaEntry>(areaEntryCount);
 
             for (var i = 0; i < areaEntryCount; i++)
             {
                 var area = stringIndex[reader.ReadInt32()];
                 var leads = ReadAreaMembers(reader, stringIndex);
                 var owners = ReadAreaMembers(reader, stringIndex);
-                var entry = new AreaEntry(area, leads, owners);
+                var entry = new CrawledAreaEntry(area, leads, owners);
                 areaEntries.Add(entry);
 
-                static AreaMember[] ReadAreaMembers(BinaryReader reader,
+                static CrawledAreaMember[] ReadAreaMembers(BinaryReader reader,
                                                     Dictionary<int, string> stringIndex)
                 {
                     var memberCount = reader.ReadInt32();
-                    var members = new List<AreaMember>(memberCount);
+                    var members = new List<CrawledAreaMember>(memberCount);
 
                     for (var i = 0; i < memberCount; i++)
                     {
                         var userName = stringIndex[reader.ReadInt32()];
                         var origin = ReadAreaOrigin(reader, stringIndex);
-                        var member = new AreaMember(origin, userName);
+                        var member = new CrawledAreaMember(origin, userName);
                         members.Add(member);
                     }
 
                     return members.ToArray();
                 }
 
-                static AreaMemberOrigin ReadAreaOrigin(BinaryReader reader,
+                static CrawledAreaMemberOrigin ReadAreaOrigin(BinaryReader reader,
                                                        Dictionary<int, string> stringIndex)
                 {
                     var kind = reader.ReadInt32();
@@ -344,13 +344,13 @@ public sealed class CrawledIndex
                         case 0: // Composite
                             {
                                 var originCount = reader.ReadInt32();
-                                var origins = new List<AreaMemberOrigin>(originCount);
+                                var origins = new List<CrawledAreaMemberOrigin>(originCount);
                                 for (var i = 0; i < originCount; i++)
                                 {
                                     var origin = ReadAreaOrigin(reader, stringIndex);
                                     origins.Add(origin);
                                 }
-                                return new AreaMemberOrigin.Composite(origins);
+                                return new CrawledAreaMemberOrigin.Composite(origins);
                             }
                         case 1: // File
                             {
@@ -358,13 +358,13 @@ public sealed class CrawledIndex
                                 var repoName = stringIndex[reader.ReadInt32()];
                                 var path = stringIndex[reader.ReadInt32()];
                                 var lineNumber = reader.ReadInt32();
-                                return new AreaMemberOrigin.File(orgName, repoName, path, lineNumber);
+                                return new CrawledAreaMemberOrigin.File(orgName, repoName, path, lineNumber);
                             }
                         case 2: // Teams
                             {
                                 var orgName = stringIndex[reader.ReadInt32()];
                                 var teamName = stringIndex[reader.ReadInt32()];
-                                return new AreaMemberOrigin.Team(orgName, teamName);
+                                return new CrawledAreaMemberOrigin.Team(orgName, teamName);
                             }
                         default:
                             throw new Exception($"unexpected area origin kind: {kind}");
@@ -372,7 +372,7 @@ public sealed class CrawledIndex
                 }
             }
 
-            var areaOwnership = new AreaOwnership(areaEntries.ToArray());
+            var areaOwnership = new CrawledAreaOwnership(areaEntries.ToArray());
 
             // Read repos
 

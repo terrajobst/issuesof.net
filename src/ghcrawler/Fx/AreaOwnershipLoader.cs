@@ -9,7 +9,7 @@ internal static class AreaOwnershipLoader
 {
     private const string AreaOwnersPath = "docs/area-owners.md";
 
-    public static async Task<AreaOwnership> ExpandTeamsAsync(GitHubAppClient client, AreaOwnership ownership)
+    public static async Task<CrawledAreaOwnership> ExpandTeamsAsync(GitHubAppClient client, CrawledAreaOwnership ownership)
     {
         var expandedTeams = new Dictionary<string, ParsedTeam>(StringComparer.OrdinalIgnoreCase);
 
@@ -45,20 +45,20 @@ internal static class AreaOwnershipLoader
 
         // Expand teams
 
-        var entries = new List<AreaEntry>();
+        var entries = new List<CrawledAreaEntry>();
 
         foreach (var entry in ownership.Entries)
         {
             var area = entry.Area;
             var expandedLeads = ExpandMembers(expandedTeams, entry.Leads);
             var expandedOwners = ExpandMembers(expandedTeams, entry.Owners);
-            var expandedEntry = new AreaEntry(entry.Area, expandedLeads, expandedOwners);
+            var expandedEntry = new CrawledAreaEntry(entry.Area, expandedLeads, expandedOwners);
             entries.Add(expandedEntry);
         }
 
-        return new AreaOwnership(entries.ToArray());
+        return new CrawledAreaOwnership(entries.ToArray());
 
-        static void AddTeams(Dictionary<string, ParsedTeam> receiver, IEnumerable<AreaMember> members)
+        static void AddTeams(Dictionary<string, ParsedTeam> receiver, IEnumerable<CrawledAreaMember> members)
         {
             foreach (var member in members)
             {
@@ -87,9 +87,9 @@ internal static class AreaOwnershipLoader
             return true;
         }
 
-        static AreaMember[] ExpandMembers(Dictionary<string, ParsedTeam> expandedTeams, IEnumerable<AreaMember> members)
+        static CrawledAreaMember[] ExpandMembers(Dictionary<string, ParsedTeam> expandedTeams, IEnumerable<CrawledAreaMember> members)
         {
-            var expandedMembers = new List<AreaMember>();
+            var expandedMembers = new List<CrawledAreaMember>();
 
             foreach (var member in members)
             {
@@ -98,7 +98,7 @@ internal static class AreaOwnershipLoader
                     foreach (var teamMember in parsedTeam.Members)
                     {
                         var expandedOrigin = parsedTeam.Origin.Merge(member.Origin);
-                        var expandedMember = new AreaMember(expandedOrigin, teamMember);
+                        var expandedMember = new CrawledAreaMember(expandedOrigin, teamMember);
                         expandedMembers.Add(expandedMember);
                     }
                 }
@@ -111,12 +111,12 @@ internal static class AreaOwnershipLoader
         }
     }
 
-    public static async Task<AreaOwnership> FromTeamsAsync(GitHubAppClient client, string orgName)
+    public static async Task<CrawledAreaOwnership> FromTeamsAsync(GitHubAppClient client, string orgName)
     {
         await client.UseInstallationTokenAsync(orgName);
 
         var teams = await client.InvokeAsync(c => c.Organization.Team.GetAll(orgName));
-        var entries = new List<AreaEntry>();
+        var entries = new List<CrawledAreaEntry>();
 
         foreach (var team in teams)
         {
@@ -125,17 +125,17 @@ internal static class AreaOwnershipLoader
 
             var teamMembers = await client.InvokeAsync(c => c.Organization.Team.GetAllMembers(team.Id));
 
-            var origin = AreaMemberOrigin.FromTeam(orgName, team.Name);
-            var leads = Array.Empty<AreaMember>();
-            var owners = teamMembers.Select(m => new AreaMember(origin, m.Login)).ToArray();
-            var entry = new AreaEntry(area, leads, owners);
+            var origin = new CrawledAreaMemberOrigin.Team(orgName, team.Name);
+            var leads = Array.Empty<CrawledAreaMember>();
+            var owners = teamMembers.Select(m => new CrawledAreaMember(origin, m.Login)).ToArray();
+            var entry = new CrawledAreaEntry(area, leads, owners);
             entries.Add(entry);
         }
 
-        return new AreaOwnership(entries.ToArray());
+        return new CrawledAreaOwnership(entries.ToArray());
     }
 
-    public static async Task<AreaOwnership> FromRepoAsync(string orgName, string repoName)
+    public static async Task<CrawledAreaOwnership> FromRepoAsync(string orgName, string repoName)
     {
         var maxTries = 3;
         var url = $"https://raw.githubusercontent.com/{orgName}/{repoName}/main/{AreaOwnersPath}";
@@ -166,10 +166,10 @@ internal static class AreaOwnershipLoader
         return null;
     }
 
-    private static AreaOwnership Parse(string orgName, string repoName, string path, string contents)
+    private static CrawledAreaOwnership Parse(string orgName, string repoName, string path, string contents)
     {
         var lines = GetLines(contents);
-        var entries = new List<AreaEntry>();
+        var entries = new List<CrawledAreaEntry>();
 
         foreach (var (line, lineIndex) in lines.Select((l, i) => (l, i)))
         {
@@ -185,22 +185,22 @@ internal static class AreaOwnershipLoader
                 continue;
 
             var lineNumber = lineIndex + 1;
-            var origin = AreaMemberOrigin.FromFile(orgName, repoName, path, lineNumber);
+            var origin = new CrawledAreaMemberOrigin.File(orgName, repoName, path, lineNumber);
 
             var leads = GetUntaggedUserNames(leadText, origin);
             var owners = GetUntaggedUserNames(ownerText, origin);
 
-            var entry = new AreaEntry(area, leads, owners);
+            var entry = new CrawledAreaEntry(area, leads, owners);
             entries.Add(entry);
         }
 
-        return new AreaOwnership(entries.ToArray());
+        return new CrawledAreaOwnership(entries.ToArray());
 
-        static AreaMember[] GetUntaggedUserNames(string text, AreaMemberOrigin origin)
+        static CrawledAreaMember[] GetUntaggedUserNames(string text, CrawledAreaMemberOrigin origin)
         {
             return text.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                        .Select(t => GetUntaggedUserName(t.Trim()))
-                       .Select(u => new AreaMember(origin, u))
+                       .Select(u => new CrawledAreaMember(origin, u))
                        .ToArray();
         }
 
@@ -230,13 +230,13 @@ internal static class AreaOwnershipLoader
             QualifiedName = qualifiedName;
             OrgName = orgName;
             TeamName = teamName;
-            Origin = AreaMemberOrigin.FromTeam(orgName, teamName);
+            Origin = new CrawledAreaMemberOrigin.Team(orgName, teamName);
         }
 
         public string QualifiedName { get; }
         public string OrgName { get; }
         public string TeamName { get; }
-        public AreaMemberOrigin Origin { get; }
+        public CrawledAreaMemberOrigin Origin { get; }
         public IReadOnlyList<string> Members { get; set; } = [];
     }
 }

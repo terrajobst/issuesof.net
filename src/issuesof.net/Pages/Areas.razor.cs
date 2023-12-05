@@ -39,13 +39,13 @@ public sealed partial class Areas
         }
     }
 
-    private AreaOwnership AreaOwnership { get; set; } = AreaOwnership.Empty;
+    private CrawledAreaOwnership AreaOwnership { get; set; } = CrawledAreaOwnership.Empty;
 
-    private FrozenDictionary<AreaEntry, AreaQueryInfo> AreaQueryInfos { get; set; } = FrozenDictionary<AreaEntry, AreaQueryInfo>.Empty;
+    private FrozenDictionary<CrawledAreaEntry, AreaQueryInfo> AreaQueryInfos { get; set; } = FrozenDictionary<CrawledAreaEntry, AreaQueryInfo>.Empty;
 
-    private IEnumerable<AreaEntry> Entries => AreaOwnership.Entries.Where(Matches);
+    private IEnumerable<CrawledAreaEntry> Entries => AreaOwnership.Entries.Where(Matches);
 
-    private bool Matches(AreaEntry row)
+    private bool Matches(CrawledAreaEntry row)
     {
         if (string.IsNullOrWhiteSpace(Filter))
             return true;
@@ -89,7 +89,7 @@ public sealed partial class Areas
 
     private sealed class AreaQueryInfo
     {
-        public AreaQueryInfo(AreaEntry entry, CrawledIndex index)
+        public AreaQueryInfo(CrawledAreaEntry entry, CrawledIndex index)
         {
             var searchText = $"is:open area:{entry.Area}";
             var query = IssueQuery.Create(searchText);
@@ -100,7 +100,7 @@ public sealed partial class Areas
             Url = "/?q=" + UrlEncoder.Default.Encode(searchText);
         }
 
-        public AreaEntry Entry { get; }
+        public CrawledAreaEntry Entry { get; }
         public int IssueCount { get; }
         public string Url { get; }
     }

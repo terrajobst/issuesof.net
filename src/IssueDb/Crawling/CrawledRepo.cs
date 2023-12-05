@@ -26,7 +26,7 @@ public sealed class CrawledRepo
     public DateTimeOffset? LastReindex { get; set; }
 
     [JsonIgnore]
-    public AreaOwnership AreaOwnership { get; set; } = AreaOwnership.Empty;
+    public CrawledAreaOwnership AreaOwnership { get; set; } = CrawledAreaOwnership.Empty;
 
     [JsonIgnore]
     public string FullName => $"{Org}/{Name}";
@@ -42,7 +42,7 @@ public sealed class CrawledRepo
         Labels = new();
         Milestones = new();
         LastReindex = null;
-        AreaOwnership = AreaOwnership.Empty;
+        AreaOwnership = CrawledAreaOwnership.Empty;
     }
 
     public static async Task<CrawledRepo> LoadAsync(string path)

@@ -471,7 +471,7 @@ internal static class Program
 
         // Merge area ownerships
 
-        var areaOwnership = AreaOwnership.Empty;
+        var areaOwnership = CrawledAreaOwnership.Empty;
 
         foreach (var repo in repos)
             areaOwnership = areaOwnership.Merge(repo.AreaOwnership);
