@@ -31,11 +31,11 @@ public sealed class AreaOwnership
 
     public AreaOwnership Merge(AreaOwnership other)
     {
+        if (other is null || other == Empty)
+            return this;
+
         if (this == Empty)
             return other;
-
-        if (other == Empty)
-            return this;
 
         var entryByName = new Dictionary<string, AreaEntry>(StringComparer.OrdinalIgnoreCase);
 
