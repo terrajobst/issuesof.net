@@ -1,4 +1,9 @@
-﻿using IssueDb;
+﻿using System.Collections.Frozen;
+using System.Text.Encodings.Web;
+
+using IssueDb;
+using IssueDb.Crawling;
+using IssueDb.Querying;
 
 using IssuesOfDotNet.Data;
 
@@ -34,7 +39,9 @@ public sealed partial class Areas
         }
     }
 
-    private AreaOwnership AreaOwnership => IndexService.Index?.AreaOwnership ?? AreaOwnership.Empty;
+    private AreaOwnership AreaOwnership { get; set; } = AreaOwnership.Empty;
+
+    private FrozenDictionary<AreaEntry, AreaQueryInfo> AreaQueryInfos { get; set; } = FrozenDictionary<AreaEntry, AreaQueryInfo>.Empty;
 
     private IEnumerable<AreaEntry> Entries => AreaOwnership.Entries.Where(Matches);
 
@@ -55,6 +62,15 @@ public sealed partial class Areas
 
         if (parameters.TryGetValue("q", out var filter))
             _filter = filter;
+
+        var index = IndexService.Index;
+        if (index is not null)
+        {
+            AreaOwnership = index.AreaOwnership;
+            AreaQueryInfos = AreaOwnership.Entries
+                .Select(e => new AreaQueryInfo(e, index))
+                .ToFrozenDictionary(e => e.Entry);
+        }
     }
 
     private async void ChangeUrl()
@@ -69,5 +85,23 @@ public sealed partial class Areas
                                         uri.ToString(),
                                         /* forceLoad */ false,
                                         /* replace */ false);
+    }
+
+    private sealed class AreaQueryInfo
+    {
+        public AreaQueryInfo(AreaEntry entry, CrawledIndex index)
+        {
+            var searchText = $"is:open area:{entry.Area}";
+            var query = IssueQuery.Create(searchText);
+            var results = query.Execute(index);
+
+            Entry = entry;
+            IssueCount = results.IssueCount;
+            Url = "/?q=" + UrlEncoder.Default.Encode(searchText);
+        }
+
+        public AreaEntry Entry { get; }
+        public int IssueCount { get; }
+        public string Url { get; }
     }
 }
