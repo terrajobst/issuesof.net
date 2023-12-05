@@ -476,6 +476,9 @@ internal static class Program
         foreach (var repo in repos)
             areaOwnership = areaOwnership.Merge(repo.AreaOwnership);
 
+        Console.WriteLine("Expand teams in area ownership...");
+        areaOwnership = await AreaOwnershipLoader.ExpandTeamsAsync(client, areaOwnership);
+
         foreach (var repo in repos)
             repo.AreaOwnership = areaOwnership;
 
