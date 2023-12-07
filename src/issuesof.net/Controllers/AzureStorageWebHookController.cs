@@ -27,7 +27,7 @@ public class AzureStorageWebHookController : Controller
     [HttpPost]
     public async Task<IActionResult> Post()
     {
-        var contentType = new ContentType(Request.ContentType);
+        var contentType = new ContentType(Request.ContentType ?? string.Empty);
 
         if (contentType.MediaType != MediaTypeNames.Application.Json)
         {
@@ -56,9 +56,9 @@ public class AzureStorageWebHookController : Controller
             if (payloads is not null &&
                 payloads.Length > 0 &&
                 payloads[0].data is not null &&
-                !string.IsNullOrEmpty(payloads[0].data.validationCode))
+                !string.IsNullOrEmpty(payloads[0].data?.validationCode))
             {
-                var validationCode = payloads[0].data.validationCode;
+                var validationCode = payloads[0].data?.validationCode;
                 _logger.LogInformation("Received subscription confirmation request with code {0}", validationCode);
                 return Ok($"{{ \"validationResponse\": \"{validationCode}\" }}");
             }
@@ -74,19 +74,19 @@ public class AzureStorageWebHookController : Controller
 
     public class Payload
     {
-        public string id { get; set; }
-        public string topic { get; set; }
-        public string subject { get; set; }
-        public PayloadData data { get; set; }
-        public string eventType { get; set; }
-        public DateTime eventTime { get; set; }
-        public string metadataVersion { get; set; }
-        public string dataVersion { get; set; }
+        // public string id { get; set; }
+        // public string topic { get; set; }
+        // public string subject { get; set; }
+        public PayloadData? data { get; set; }
+        // public string eventType { get; set; }
+        // public DateTime eventTime { get; set; }
+        // public string metadataVersion { get; set; }
+        // public string dataVersion { get; set; }
     }
 
     public class PayloadData
     {
-        public string validationCode { get; set; }
-        public string validationUrl { get; set; }
+        public string? validationCode { get; set; }
+        public string? validationUrl { get; set; }
     }
 }

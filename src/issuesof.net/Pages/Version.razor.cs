@@ -9,9 +9,9 @@ namespace IssuesOfDotNet.Pages;
 public partial class Version
 {
     [Inject]
-    public IndexService IndexService { get; set; }
+    public required IndexService IndexService { get; set; }
 
-    private string _commit;
+    private string? _commit;
 
     protected override void OnInitialized()
     {

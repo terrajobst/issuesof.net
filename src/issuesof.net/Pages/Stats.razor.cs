@@ -13,27 +13,27 @@ namespace IssuesOfDotNet.Pages;
 
 public sealed partial class Stats
 {
-    private string _filter = string.Empty;
-    private Sort _sortBy = Sort.Default;
+    private string? _filter;
+    private Sort? _sortBy;
 
     [Inject]
-    public IndexService IndexService { get; set; }
+    public required IndexService IndexService { get; set; }
 
     [Inject]
-    public IJSRuntime JSRuntime { get; set; }
+    public required IJSRuntime JSRuntime { get; set; }
 
     [Inject]
-    public IWebHostEnvironment Environment { get; set; }
+    public required IWebHostEnvironment Environment { get; set; }
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; }
+    public required NavigationManager NavigationManager { get; set; }
 
     public int NumberOfTrieNodes { get; set; }
     public int NumberOfTrieStringBytes { get; set; }
     public int NumberOfTrieBytes { get; set; }
     public bool IsDevelopment => Environment.IsDevelopment();
 
-    public string Filter
+    public string? Filter
     {
         get => _filter;
         set
@@ -46,7 +46,7 @@ public sealed partial class Stats
         }
     }
 
-    public Sort SortBy
+    public Sort? SortBy
     {
         get => _sortBy;
         set
@@ -64,7 +64,7 @@ public sealed partial class Stats
                                             ? Enumerable.Empty<RepoStats>()
                                             : IndexService.IndexStats
                                                 .Where(x => string.IsNullOrWhiteSpace(Filter) || x.FullName.Contains(Filter, StringComparison.OrdinalIgnoreCase))
-                                                .OrderBy(x => x, SortBy.Comparer);
+                                                .OrderBy(x => x, (SortBy ?? Sort.Default).Comparer);
 
     protected override void OnInitialized()
     {
@@ -98,10 +98,10 @@ public sealed partial class Stats
 
     private async void ChangeUrl()
     {
-        var query = new Dictionary<string, object>
+        var query = new Dictionary<string, object?>
         {
             ["q"] = string.IsNullOrWhiteSpace(Filter) ? null : Filter,
-            ["sort"] = SortBy == Sort.Default ? null : SortBy.Name
+            ["sort"] = SortBy == Sort.Default ? null : SortBy?.Name
         };
 
         var uri = NavigationManager.GetUriWithQueryParameters(query);
@@ -136,8 +136,11 @@ public sealed partial class Stats
                                                                            .Distinct()
                                                                            .ToArray();
 
-        public static Sort Parse(string text)
+        public static Sort Parse(string? text)
         {
+            if (string.IsNullOrEmpty(text))
+                return Default;
+
             return All.FirstOrDefault(s => string.Equals(s.Name, text, StringComparison.OrdinalIgnoreCase)) ?? NameAscending;
         }
 

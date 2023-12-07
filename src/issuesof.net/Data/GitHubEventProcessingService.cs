@@ -11,7 +11,8 @@ public sealed partial class GitHubEventProcessingService : IHostedService
     private readonly ConcurrentQueue<GitHubEventMessage> _messages = new();
     private readonly AutoResetEvent _dataAvailable = new(false);
     private readonly Processor _processor;
-    private Task _workerTask;
+
+    private Task? _workerTask;
 
     public GitHubEventProcessingService(ILogger<GitHubEventProcessingService> logger, IndexService indexService)
     {
@@ -51,7 +52,7 @@ public sealed partial class GitHubEventProcessingService : IHostedService
     public Task StopAsync(CancellationToken cancellationToken)
     {
         _cts.Cancel();
-        return _workerTask;
+        return _workerTask!;
     }
 
     private void Run(CancellationToken cancellationToken)

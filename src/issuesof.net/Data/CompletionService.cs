@@ -7,7 +7,8 @@ public sealed class CompletionService : IDisposable
 {
     private readonly ILogger<CompletionService> _logger;
     private readonly IndexService _indexService;
-    private CrawledIndexCompletionProvider _provider;
+
+    private CrawledIndexCompletionProvider? _provider;
 
     public CompletionService(ILogger<CompletionService> logger,
                              IndexService indexService)
@@ -40,7 +41,7 @@ public sealed class CompletionService : IDisposable
         });
     }
 
-    private void IndexService_Changed(object sender, EventArgs e)
+    private void IndexService_Changed(object? sender, EventArgs e)
     {
         Reload();
     }

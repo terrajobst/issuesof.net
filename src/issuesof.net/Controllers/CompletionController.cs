@@ -23,7 +23,7 @@ public class CompletionController : Controller
     }
 
     [HttpGet]
-    public CompletionResponse GetCompletions(string q, int pos)
+    public CompletionResponse? GetCompletions(string q, int pos)
     {
         var stopwatch = Stopwatch.StartNew();
         var syntax = QuerySyntax.Parse(q ?? string.Empty);
@@ -49,8 +49,8 @@ public class CompletionController : Controller
 
     public sealed class CompletionResponse
     {
-        public string[] List { get; set; }
-        public int From { get; set; }
-        public int To { get; set; }
+        public required string[] List { get; set; }
+        public required int From { get; set; }
+        public required int To { get; set; }
     }
 }

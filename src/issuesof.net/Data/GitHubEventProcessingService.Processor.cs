@@ -536,7 +536,7 @@ public sealed partial class GitHubEventProcessingService
             _indexService.NotifyIndexChanged();
         }
 
-        private CrawledMilestone GetOrCreateMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
+        private CrawledMilestone? GetOrCreateMilestone(GitHubEventRepository repository, GitHubEventMilestone milestone)
         {
             if (milestone is null)
                 return null;

@@ -24,7 +24,7 @@ public sealed class EventService : GitHubEventProcessor
         _logger = logger;
         _telemetryClient = telemetryClient;
         _processingService = processingService;
-        _store = new GitHubEventStore(configuration["AzureStorageConnectionString"]);
+        _store = new GitHubEventStore(configuration["AzureStorageConnectionString"]!);
 
         // TODO: Hack, this should live somewhere else
         // LoadEventsAsync().Wait();
@@ -63,7 +63,7 @@ public sealed class EventService : GitHubEventProcessor
                 orgName is not null &&
                 repoName is not null)
             {
-                var payload = new GitHubEventPayload(headers.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)kv.Value.ToArray()), body);
+                var payload = new GitHubEventPayload(headers.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)kv.Value.ToArray()!), body);
                 var name = new GitHubEventPayloadName(orgName, repoName, timestamp, delivery);
                 _logger.LogInformation($"Storing event {name}");
                 _store.SaveAsync(name, payload).Wait();

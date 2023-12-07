@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-
+using System.Diagnostics.CodeAnalysis;
 using Azure.Storage.Blobs;
 
 using IssueDb.Crawling;
@@ -13,7 +13,8 @@ public sealed class IndexService
     private readonly ILogger<IndexService> _logger;
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _environment;
-    private string _progress;
+
+    private string? _progress;
 
     public IndexService(ILogger<IndexService> logger,
                         IConfiguration configuration,
@@ -25,6 +26,7 @@ public sealed class IndexService
         Reload();
     }
 
+    [MemberNotNull(nameof(IndexStats))]
     public void Reload()
     {
         Exception = null;
@@ -52,7 +54,7 @@ public sealed class IndexService
                 }
                 else
                 {
-                    var binDirectory = Path.GetDirectoryName(GetType().Assembly.Location);
+                    var binDirectory = Path.GetDirectoryName(GetType().Assembly.Location)!;
                     var indexFile = Path.Combine(binDirectory, indexName);
 
                     if (!File.Exists(indexFile))
@@ -82,7 +84,7 @@ public sealed class IndexService
     {
         IndexStats = CreateIndexStats(Index);
 
-        static IReadOnlyList<RepoStats> CreateIndexStats(CrawledIndex index)
+        static IReadOnlyList<RepoStats> CreateIndexStats(CrawledIndex? index)
         {
             var indexStats = new List<RepoStats>();
 
@@ -108,13 +110,13 @@ public sealed class IndexService
         }
     }
 
-    public Exception Exception { get; private set; }
+    public Exception? Exception { get; private set; }
 
-    public CrawledIndex Index { get; private set; }
+    public CrawledIndex? Index { get; private set; }
 
     public IReadOnlyList<RepoStats> IndexStats { get; private set; }
 
-    public string ProgressText
+    public string? ProgressText
     {
         get => _progress;
         private set
@@ -139,7 +141,7 @@ public sealed class IndexService
         ProgressChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler Changed;
+    public event EventHandler? Changed;
 
-    public event EventHandler ProgressChanged;
+    public event EventHandler? ProgressChanged;
 }

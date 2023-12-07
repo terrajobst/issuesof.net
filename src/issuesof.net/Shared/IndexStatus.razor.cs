@@ -7,10 +7,10 @@ namespace IssuesOfDotNet.Shared;
 public sealed partial class IndexStatus : IDisposable
 {
     [Inject]
-    public IndexService IndexService { get; set; }
+    public required IndexService IndexService { get; set; }
 
     [Inject]
-    public IWebHostEnvironment Environment { get; set; }
+    public required IWebHostEnvironment Environment { get; set; }
 
     protected override void OnInitialized()
     {
@@ -22,7 +22,7 @@ public sealed partial class IndexStatus : IDisposable
         IndexService.ProgressChanged -= IndexService_ProgressChanged;
     }
 
-    private void IndexService_ProgressChanged(object sender, EventArgs e)
+    private void IndexService_ProgressChanged(object? sender, EventArgs e)
     {
         InvokeAsync(StateHasChanged);
     }

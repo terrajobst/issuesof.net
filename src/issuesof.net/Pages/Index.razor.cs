@@ -12,20 +12,20 @@ public sealed partial class Index
 {
     private static readonly string _defaultSearch = "is:open is:issue";
 
-    private string _searchText;
+    private string? _searchText;
     private int _pageNumber;
 
     [Inject]
-    public IJSRuntime JSRuntime { get; set; }
+    public required IJSRuntime JSRuntime { get; set; }
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; }
+    public required NavigationManager NavigationManager { get; set; }
 
     [Inject]
-    public IndexService IndexService { get; set; }
+    public required IndexService IndexService { get; set; }
 
     [Inject]
-    public SearchService SearchService { get; set; }
+    public required SearchService SearchService { get; set; }
 
     public int PageNumber
     {
@@ -103,11 +103,11 @@ public sealed partial class Index
         StateHasChanged();
     }
 
-    private CrawledIssueResults Find(string searchText)
+    private CrawledIssueResults Find(string? searchText)
     {
         _searchText = searchText;
 
-        return SearchService.Search(searchText);
+        return SearchService.Search(searchText ?? string.Empty);
     }
 
     private async void ChangeUrl()
@@ -119,7 +119,7 @@ public sealed partial class Index
         if (isDefaultQuery)
             return;
 
-        var query = $"?q={Uri.EscapeDataString(_searchText)}";
+        var query = $"?q={Uri.EscapeDataString(_searchText ?? string.Empty)}";
 
         if (query.Length > 0 && PageNumber > 1)
             query += $"&page={PageNumber}";

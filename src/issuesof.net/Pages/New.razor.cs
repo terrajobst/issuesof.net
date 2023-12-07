@@ -6,15 +6,15 @@ namespace IssuesOfDotNet.Pages;
 
 public partial class New
 {
-    private string _filter;
+    private string? _filter;
 
     [Inject]
-    public IJSRuntime JSRuntime { get; set; }
+    public required IJSRuntime JSRuntime { get; set; }
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; }
+    public required NavigationManager NavigationManager { get; set; }
 
-    private string Filter
+    private string? Filter
     {
         get => _filter;
         set
@@ -30,7 +30,7 @@ public partial class New
 
     private IEnumerable<RepoEntry> FilteredRepoEntries => RepoEntries.Where(r => r.IsVisible);
 
-    private List<RepoEntry> RepoEntries { get; set; }
+    private IReadOnlyList<RepoEntry> RepoEntries { get; set; } = Array.Empty<RepoEntry>();
 
     protected override void OnInitialized()
     {
@@ -46,7 +46,7 @@ public partial class New
 
     private async void ChangeUrl()
     {
-        var query = new Dictionary<string, object>
+        var query = new Dictionary<string, object?>
         {
             ["q"] = string.IsNullOrWhiteSpace(Filter) ? null : Filter
         };
@@ -89,7 +89,7 @@ public partial class New
 
     private string GetRepoEntriesText()
     {
-        using var stream = GetType().Assembly.GetManifestResourceStream(GetType().FullName + ".razor.txt");
+        using var stream = GetType().Assembly.GetManifestResourceStream(GetType().FullName + ".razor.txt")!;
         using var streamReader = new StreamReader(stream);
         return streamReader.ReadToEnd();
     }
@@ -168,12 +168,12 @@ public partial class New
     }
 
     private sealed class RepoEntry
-    {
+    {      
         public bool IsVisible { get; set; }
         public int Indent { get; set; }
-        public string Name { get; set; }
-        public string Link { get; set; }
-        public string Description { get; set; }
-        public RepoEntry[] Ancestors { get; set; } = Array.Empty<RepoEntry>();
+        public required string Name { get; set; }
+        public string? Link { get; set; }
+        public string? Description { get; set; }
+        public IReadOnlyList<RepoEntry> Ancestors { get; set; } = Array.Empty<RepoEntry>();
     }
 }

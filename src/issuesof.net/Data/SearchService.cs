@@ -12,7 +12,7 @@ public sealed class SearchService : IDisposable
     private readonly TelemetryClient _telemetryClient;
     private readonly IndexService _indexService;
 
-    private CrawledIssueResults _openIssuesResults;
+    private CrawledIssueResults? _openIssuesResults;
 
     public SearchService(TelemetryClient telemetryClient, IndexService indexService)
     {
@@ -51,7 +51,7 @@ public sealed class SearchService : IDisposable
         return results;
     }
 
-    private void IndexService_Changed(object sender, EventArgs e)
+    private void IndexService_Changed(object? sender, EventArgs e)
     {
         _openIssuesResults = null;
     }

@@ -2,8 +2,8 @@
 
 public class RepoStats
 {
-    public string Org { get; set; }
-    public string Repo { get; set; }
+    public required string Org { get; set; }
+    public required string Repo { get; set; }
     public string FullName => $"{Org}/{Repo}";
     public DateTimeOffset? LastUpdatedAt { get; set; }
     public int NumberOfOpenIssues { get; internal set; }

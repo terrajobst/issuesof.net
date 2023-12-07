@@ -15,18 +15,18 @@ namespace IssuesOfDotNet.Pages;
 
 public sealed partial class Areas
 {
-    private string _filter = string.Empty;
+    private string? _filter;
 
     [Inject]
-    public IndexService IndexService { get; set; }
+    public required IndexService IndexService { get; set; }
 
     [Inject]
-    public IJSRuntime JSRuntime { get; set; }
+    public required IJSRuntime JSRuntime { get; set; }
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; }
+    public required NavigationManager NavigationManager { get; set; }
 
-    public string Filter
+    public string? Filter
     {
         get => _filter;
         set
@@ -76,7 +76,7 @@ public sealed partial class Areas
 
     private async void ChangeUrl()
     {
-        var query = new Dictionary<string, object>
+        var query = new Dictionary<string, object?>
         {
             ["q"] = string.IsNullOrWhiteSpace(Filter) ? null : Filter
         };
