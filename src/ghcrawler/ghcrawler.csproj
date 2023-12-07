@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>true</ImplicitUsings>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>IssuesOfDotNet.Crawler</RootNamespace>
     <UserSecretsId>issuesof.net</UserSecretsId>
   </PropertyGroup>
