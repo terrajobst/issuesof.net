@@ -147,7 +147,7 @@ internal static class AreaOwnershipLoader
         return new CrawledAreaOwnership(entries.ToArray());
     }
 
-    public static async Task<CrawledAreaOwnership> FromRepoAsync(string orgName, string repoName)
+    public static async Task<CrawledAreaOwnership?> FromRepoAsync(string orgName, string repoName)
     {
         var maxTries = 3;
         var url = $"https://raw.githubusercontent.com/{orgName}/{repoName}/main/{AreaOwnersPath}";

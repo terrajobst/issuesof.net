@@ -9,7 +9,7 @@ internal sealed class GitHubAppClient : GitHubClient
     private readonly int _appId;
     private readonly string _privateKey;
 
-    private Installation _installation;
+    private Installation? _installation;
 
     public GitHubAppClient(ProductHeaderValue productInformation, string appId, string privateKey)
         : base(productInformation)
@@ -85,7 +85,7 @@ internal sealed class GitHubAppClient : GitHubClient
 
     public Task InvokeAsync(Func<GitHubClient, Task> operation)
     {
-        return InvokeAsync<object>(async c =>
+        return InvokeAsync<object?>(async c =>
         {
             await operation(c);
             return null;

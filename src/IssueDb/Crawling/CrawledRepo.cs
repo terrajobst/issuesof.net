@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -14,6 +15,8 @@ namespace IssueDb.Crawling;
 
 public sealed class CrawledRepo
 {
+    private CrawledAreaOwnership? _areaOwnership;
+
     public long Id { get; set; }
     public string Org { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
@@ -26,7 +29,12 @@ public sealed class CrawledRepo
     public DateTimeOffset? LastReindex { get; set; }
 
     [JsonIgnore]
-    public CrawledAreaOwnership AreaOwnership { get; set; } = CrawledAreaOwnership.Empty;
+    [AllowNull]
+    public CrawledAreaOwnership AreaOwnership
+    {
+         get => _areaOwnership ?? CrawledAreaOwnership.Empty;
+         set => _areaOwnership = value;
+    }
 
     [JsonIgnore]
     public string FullName => $"{Org}/{Name}";

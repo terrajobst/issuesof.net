@@ -42,7 +42,7 @@ internal static class Program
         var pullLatest = true;
         var randomReindex = true;
         var uploadToAzure = true;
-        var startingRepoName = (string)null;
+        var startingRepoName = (string?)null;
         var help = args.Length == 0;
         var useSubscriptions = false;
 
@@ -140,7 +140,7 @@ internal static class Program
         }
     }
 
-    private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool randomReindex, bool uploadToAzure, string startingRepoName, string outputPath)
+    private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool randomReindex, bool uploadToAzure, string? startingRepoName, string outputPath)
     {
         var reindexIntervalInDays = 28;
         var today = DateTime.Today;
@@ -177,7 +177,7 @@ internal static class Program
                 Console.WriteLine($"Downloading {blob.Name}...");
 
                 var localPath = Path.Combine(tempDirectory, blob.Name);
-                var localDirectory = Path.GetDirectoryName(localPath);
+                var localDirectory = Path.GetDirectoryName(localPath)!;
                 Directory.CreateDirectory(localDirectory);
 
                 var blobClient = new BlobClient(connectionString, cacheContainerName, blob.Name);
@@ -255,7 +255,7 @@ internal static class Program
                     if (string.Equals($"{org}/{repo.Name}", startingRepoName, StringComparison.OrdinalIgnoreCase))
                         reachedStartingRepo = true;
 
-                    CrawledRepo crawledRepo;
+                    CrawledRepo? crawledRepo;
                     try
                     {
                         crawledRepo = await CrawledRepo.LoadAsync(repoPath);
@@ -832,7 +832,7 @@ internal static class Program
         return result.ToArray();
     }
 
-    private static CrawledMilestone GetMilestone(Milestone milestone, Dictionary<long, CrawledMilestone> milestones)
+    private static CrawledMilestone? GetMilestone(Milestone milestone, Dictionary<long, CrawledMilestone> milestones)
     {
         if (milestone != null && milestones.TryGetValue(milestone.Id, out var crawledMilestone))
             return crawledMilestone;
@@ -890,11 +890,20 @@ internal static class Program
 
     internal sealed class Secrets
     {
+        public Secrets(string azureStorageConnectionString,
+                       string gitHubAppId,
+                       string gitHubAppPrivateKey)
+        {
+            AzureStorageConnectionString = azureStorageConnectionString;
+            GitHubAppId = gitHubAppId;
+            GitHubAppPrivateKey = gitHubAppPrivateKey;
+        }
+
         public string AzureStorageConnectionString { get; set; }
         public string GitHubAppId { get; set; }
         public string GitHubAppPrivateKey { get; set; }
 
-        public static Secrets Load()
+        public static Secrets? Load()
         {
             var secretsPath = PathHelper.GetSecretsPathFromSecretsId("issuesof.net");
             if (!File.Exists(secretsPath))
