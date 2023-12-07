@@ -119,7 +119,7 @@ public abstract partial class CrawledIssueResults
 
             return result;
 
-            static void Walk(List<CrawledIssueOrGroup> result, HashSet<CrawledIssueGroup> expandedGroups, CrawledIssueGroup parent, CrawledIssueOrGroup item, ref int itemsToSkip)
+            static void Walk(List<CrawledIssueOrGroup> result, HashSet<CrawledIssueGroup> expandedGroups, CrawledIssueGroup? parent, CrawledIssueOrGroup item, ref int itemsToSkip)
             {
                 if (result.Count == ItemsPerPage)
                     return;

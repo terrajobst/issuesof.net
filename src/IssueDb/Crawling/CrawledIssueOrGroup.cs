@@ -28,7 +28,7 @@ public struct CrawledIssueOrGroup : IEquatable<CrawledIssueOrGroup>
         return _value is CrawledIssueGroup group ? group : throw new InvalidOperationException("Not a group");
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is CrawledIssueOrGroup other && Equals(other);
     }

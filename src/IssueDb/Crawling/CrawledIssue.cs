@@ -14,19 +14,19 @@ namespace IssueDb.Crawling;
 
 public sealed class CrawledIssue
 {
-    public CrawledRepo Repo { get; set; }
+    public CrawledRepo Repo { get; set; } = null!;
     public long Id { get; set; }
     public int Number { get; set; }
     public bool IsOpen { get; set; }
     public bool IsPullRequest { get; set; }
     public bool IsDraft { get; set; }
     public bool IsMerged { get; set; }
-    public string Title { get; set; }
-    public string Body { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public DateTimeOffset? ClosedAt { get; set; }
-    public string CreatedBy { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
     public bool IsLocked { get; set; }
     public int Comments { get; set; }
     public int ReactionsPlus1 { get; set; }
@@ -35,9 +35,9 @@ public sealed class CrawledIssue
     public int ReactionsTada { get; set; }
     public int ReactionsThinkingFace { get; set; }
     public int ReactionsHeart { get; set; }
-    public string[] Assignees { get; set; }
-    public CrawledLabel[] Labels { get; set; }
-    public CrawledMilestone Milestone { get; set; }
+    public string[] Assignees { get; set; } = Array.Empty<string>();
+    public CrawledLabel[] Labels { get; set; } = Array.Empty<CrawledLabel>();
+    public CrawledMilestone? Milestone { get; set; }
 
     [JsonIgnore]
     public string Url => IsPullRequest

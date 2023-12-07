@@ -9,11 +9,11 @@ public sealed partial class IssueQuery
 {
     public static IEnumerable<string> SupportedKeys => _keyValueHandlers.Keys.Select(kv => kv.Key).Distinct();
 
-    public static IEnumerable<string> SupportedValues => _keyValueHandlers.Keys.Select(kv => kv.Value).Where(v => v is not null).Distinct();
+    public static IEnumerable<string> SupportedValues => _keyValueHandlers.Keys.Select(kv => kv.Value!).Where(v => v is not null).Distinct();
 
     public static IEnumerable<string> SupportedValuesFor(string key) => _keyValueHandlers.Keys.Where(kv => kv.Value is not null &&
-                                                                                                        string.Equals(kv.Key, key, StringComparison.OrdinalIgnoreCase))
-                                                                                              .Select(kv => kv.Value);
+                                                                                                           string.Equals(kv.Key, key, StringComparison.OrdinalIgnoreCase))
+                                                                                              .Select(kv => kv.Value!);
 
     public IssueQuery(IEnumerable<IssueFilter> filters)
     {

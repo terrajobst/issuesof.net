@@ -31,7 +31,7 @@ public sealed class CrawledSubscriptionList
         Add(org, repo);
     }
 
-    public void Add(string org, string repo)
+    public void Add(string org, string? repo)
     {
         if (!_orgRepos.TryGetValue(org, out var repos))
         {
@@ -59,7 +59,7 @@ public sealed class CrawledSubscriptionList
 
     public IEnumerable<string> Orgs => _orgRepos.Keys;
 
-    public IReadOnlySet<string> GetRepos(string org)
+    public IReadOnlySet<string>? GetRepos(string org)
     {
         if (_orgRepos.TryGetValue(org, out var repos))
             return repos;
@@ -67,7 +67,7 @@ public sealed class CrawledSubscriptionList
         return null;
     }
 
-    private static (string Org, string Repo) ParseOrgAndRepo(string text)
+    private static (string Org, string? Repo) ParseOrgAndRepo(string text)
     {
         var indexOfSlash = text.IndexOf("/");
         if (indexOfSlash < 0)
@@ -84,10 +84,16 @@ public sealed class CrawledSubscriptionList
 
     private sealed class SubscriptionEntry
     {
-        public string Org { get; set; }
-        public string[] Repos { get; set; }
+        public SubscriptionEntry(string org, IReadOnlyList<string> repos)
+        {
+            Org = org;
+            Repos = repos;
+        }
 
-        public static SubscriptionEntry[] Load()
+        public string Org { get; }
+        public IReadOnlyList<string> Repos { get; }
+
+        public static IReadOnlyList<SubscriptionEntry> Load()
         {
             var options = new JsonSerializerOptions
             {
@@ -101,11 +107,11 @@ public sealed class CrawledSubscriptionList
             using (var memoryStream = new MemoryStream())
             using (var stream = typeof(SubscriptionEntry).Assembly.GetManifestResourceStream("IssueDb.subscriptions.json"))
             {
-                stream.CopyTo(memoryStream);
+                stream!.CopyTo(memoryStream);
                 bytes = memoryStream.ToArray();
             }
 
-            return JsonSerializer.Deserialize<SubscriptionEntry[]>(bytes, options);
+            return JsonSerializer.Deserialize<IReadOnlyList<SubscriptionEntry>>(bytes, options)!;
         }
     }
 }

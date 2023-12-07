@@ -6,7 +6,7 @@ public sealed class CrawledAreaOwnership
 {
     public static CrawledAreaOwnership Empty { get; } = new([]);
 
-    private FrozenDictionary<string, CrawledAreaEntry> _entryByName;
+    private FrozenDictionary<string, CrawledAreaEntry>? _entryByName;
 
     public CrawledAreaOwnership(IReadOnlyList<CrawledAreaEntry> entries)
     {

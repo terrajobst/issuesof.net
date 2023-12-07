@@ -21,6 +21,6 @@ public sealed class GitHubEventPayload
 
     public static GitHubEventPayload ParseJson(string json)
     {
-        return JsonSerializer.Deserialize<GitHubEventPayload>(json);
+        return JsonSerializer.Deserialize<GitHubEventPayload>(json)!;
     }
 }

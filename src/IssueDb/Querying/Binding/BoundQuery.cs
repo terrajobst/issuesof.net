@@ -35,13 +35,13 @@ public abstract class BoundQuery
 
     private static BoundQuery CreateTextExpression(TextQuerySyntax node)
     {
-        return new BoundTextQuery(false, node.TextToken.Value);
+        return new BoundTextQuery(false, node.TextToken.Value!);
     }
 
     private static BoundQuery CreateKeyValueExpression(KeyValueQuerySyntax node)
     {
-        var key = node.KeyToken.Value;
-        var value = node.ValueToken.Value;
+        var key = node.KeyToken.Value!;
+        var value = node.ValueToken.Value!;
         return new BoundKeyValueQuery(isNegated: false, key, value);
     }
 

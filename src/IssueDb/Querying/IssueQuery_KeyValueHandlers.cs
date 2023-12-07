@@ -7,11 +7,11 @@ namespace IssueDb.Querying;
 
 public sealed partial class IssueQuery
 {
-    private static readonly Dictionary<(string Key, string Value), Func<IssueFilter, BoundKeyValueQuery, bool>> _keyValueHandlers = CreateKeyValueHandlers();
+    private static readonly Dictionary<(string Key, string? Value), Func<IssueFilter, BoundKeyValueQuery, bool>> _keyValueHandlers = CreateKeyValueHandlers();
 
-    private static Dictionary<(string Key, string Value), Func<IssueFilter, BoundKeyValueQuery, bool>> CreateKeyValueHandlers()
+    private static Dictionary<(string Key, string? Value), Func<IssueFilter, BoundKeyValueQuery, bool>> CreateKeyValueHandlers()
     {
-        var result = new Dictionary<(string Key, string Value), Func<IssueFilter, BoundKeyValueQuery, bool>>();
+        var result = new Dictionary<(string Key, string? Value), Func<IssueFilter, BoundKeyValueQuery, bool>>();
         var methods = typeof(IssueQuery).GetMethods(BindingFlags.Static | BindingFlags.NonPublic);
 
         foreach (var method in methods)
@@ -27,12 +27,12 @@ public sealed partial class IssueQuery
             if (attribute.ConstructorArguments[0].ArgumentType != typeof(string[]))
                 throw new Exception($"Wrong type of arguments for [{nameof(KeyValueHandlerAttribute)}] on {method}");
 
-            var args = (ICollection<CustomAttributeTypedArgument>)attribute.ConstructorArguments[0].Value;
+            var args = (ICollection<CustomAttributeTypedArgument>)attribute.ConstructorArguments[0].Value!;
 
             if (args.Count == 0)
                 throw new Exception($"Wrong number of arguments for [{nameof(KeyValueHandlerAttribute)}] on {method}");
 
-            var strings = args.Select(a => (string)a.Value);
+            var strings = args.Select(a => (string)a.Value!);
             var pairs = GetKeyValues(strings).ToArray();
             var parameters = method.GetParameters();
 
@@ -97,7 +97,7 @@ public sealed partial class IssueQuery
         return result;
     }
 
-    private static IEnumerable<(string Key, string Value)> GetKeyValues(IEnumerable<string> pairs)
+    private static IEnumerable<(string Key, string? Value)> GetKeyValues(IEnumerable<string> pairs)
     {
         foreach (var pair in pairs)
         {

@@ -5,7 +5,7 @@ namespace IssueDb.Crawling;
 public sealed class CrawledTrieNode<T>
 {
     public CrawledTrieNode()
-    {
+    {        
     }
 
     public CrawledTrieNode(string text, IEnumerable<CrawledTrieNode<T>> children, IEnumerable<T> values)
@@ -22,7 +22,7 @@ public sealed class CrawledTrieNode<T>
     private ImmutableArray<CrawledTrieNode<T>> _children = ImmutableArray<CrawledTrieNode<T>>.Empty;
     private ImmutableArray<T> _values = ImmutableArray<T>.Empty;
 
-    public string Text { get; set; }
+    public string Text { get; set; } = string.Empty;
 
     public void InsertChild(int index, CrawledTrieNode<T> child)
     {

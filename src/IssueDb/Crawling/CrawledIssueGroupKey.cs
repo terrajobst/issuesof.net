@@ -1,20 +1,21 @@
-﻿using IssueDb.Querying;
+﻿using System.Diagnostics;
+using IssueDb.Querying;
 
 namespace IssueDb.Crawling;
 
 public sealed class CrawledIssueGroupKey
 {
     private const string None = "(None)";
-    private readonly Func<CrawledIssue, string> _singleGrouper;
-    private readonly Func<CrawledIssue, IEnumerable<string>> _multiGrouper;
+    private readonly Func<CrawledIssue, string?>? _singleGrouper;
+    private readonly Func<CrawledIssue, IEnumerable<string?>>? _multiGrouper;
 
-    public CrawledIssueGroupKey(IssueGroup group, Func<CrawledIssue, string> grouper)
+    public CrawledIssueGroupKey(IssueGroup group, Func<CrawledIssue, string?> grouper)
     {
         Group = group;
         _singleGrouper = grouper;
     }
 
-    public CrawledIssueGroupKey(IssueGroup group, Func<CrawledIssue, IEnumerable<string>> grouper)
+    public CrawledIssueGroupKey(IssueGroup group, Func<CrawledIssue, IEnumerable<string?>> grouper)
     {
         Group = group;
         _multiGrouper = grouper;
@@ -31,6 +32,7 @@ public sealed class CrawledIssueGroupKey
         }
         else
         {
+            Debug.Assert(_multiGrouper is not null);
             return issues.SelectMany(i => _multiGrouper(i).DefaultIfEmpty(), (issue, key) => (Issue: issue, Key: key ?? None))
                          .GroupBy(t => t.Key, t => t.Issue)
                          .OrderBy(g => g.Key);

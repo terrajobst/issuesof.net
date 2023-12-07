@@ -1,4 +1,5 @@
-﻿using IssueDb.Querying.Syntax;
+﻿using System.Diagnostics;
+using IssueDb.Querying.Syntax;
 
 namespace IssueDb.Querying.Completion;
 
@@ -6,7 +7,7 @@ public abstract class QueryCompletionProvider
 {
     public static QueryCompletionProvider Empty { get; } = new EmptyQueryCompletionProvider();
 
-    public QueryCompletionResult Complete(QuerySyntax node, int position)
+    public QueryCompletionResult? Complete(QuerySyntax node, int position)
     {
         if (node is TextQuerySyntax text)
             return GetTextCompletions(text);
@@ -38,12 +39,16 @@ public abstract class QueryCompletionProvider
 
     private QueryCompletionResult GetTextCompletions(TextQuerySyntax text)
     {
+        Debug.Assert(text.TextToken.Value is not null);
+
         var completions = GetCompletionsForText(text.TextToken.Value);
         return new QueryCompletionResult(completions, text.TextToken.Span);
     }
 
     private QueryCompletionResult GetKeyValueCompletions(KeyValueQuerySyntax keyValue, int position)
     {
+        Debug.Assert(keyValue.KeyToken.Value is not null);
+
         if (position < keyValue.ColonToken.Span.End)
         {
             var completions = GetCompletionsForText(keyValue.KeyToken.Value);
@@ -51,6 +56,7 @@ public abstract class QueryCompletionProvider
         }
         else
         {
+            Debug.Assert(keyValue.ValueToken.Value is not null);
             var completions = GetCompletionForKeyValue(keyValue.KeyToken.Value, keyValue.ValueToken.Value);
             return new QueryCompletionResult(completions, keyValue.ValueToken.Span);
         }

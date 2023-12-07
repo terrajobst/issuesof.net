@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace IssueDb.Crawling;
 
@@ -64,7 +65,7 @@ public sealed class CrawledTrie<T>
 
     public void Add(string text, T value)
     {
-        var current = Walk(text, addNodes: true);
+        var current = Walk(text, addNodes: true)!;
         current.AddValue(value);
     }
 
@@ -84,7 +85,7 @@ public sealed class CrawledTrie<T>
         return node.Values;
     }
 
-    private CrawledTrieNode<T> Walk(string text, bool addNodes)
+    private CrawledTrieNode<T>? Walk(string text, [NotNullWhen(true)] bool addNodes)
     {
         text = text.ToLowerInvariant();
 
@@ -118,7 +119,7 @@ public sealed class CrawledTrie<T>
             {
                 var prefixChild = new CrawledTrieNode<T>()
                 {
-                    Text = previousChild.Text.Substring(0, commonPrefixLength)
+                    Text = previousChild!.Text.Substring(0, commonPrefixLength)
                 };
 
                 previousChild.Text = previousChild.Text.Substring(commonPrefixLength);
@@ -141,7 +142,7 @@ public sealed class CrawledTrie<T>
                 {
                     var prefixChild = new CrawledTrieNode<T>()
                     {
-                        Text = nextChild.Text.Substring(0, commonPrefixLength)
+                        Text = nextChild!.Text.Substring(0, commonPrefixLength)
                     };
 
                     nextChild.Text = nextChild.Text.Substring(commonPrefixLength);
@@ -167,7 +168,7 @@ public sealed class CrawledTrie<T>
         return current;
     }
 
-    private static int GetCommonPrefix(string text1, string text2)
+    private static int GetCommonPrefix(string? text1, string? text2)
     {
         var prefixLength = 0;
 

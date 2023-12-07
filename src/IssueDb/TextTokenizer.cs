@@ -1,4 +1,5 @@
-﻿using Humanizer;
+﻿using System.Diagnostics.CodeAnalysis;
+using Humanizer;
 
 namespace IssueDb;
 
@@ -132,7 +133,7 @@ public static class TextTokenizer
         return result;
     }
 
-    public static bool TryParseArea(string label, out string area)
+    public static bool TryParseArea(string label, [MaybeNullWhen(false)] out string area)
     {
         const string AreaPrefix = "area-";
 

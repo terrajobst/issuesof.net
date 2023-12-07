@@ -2,7 +2,7 @@
 
 public sealed class QueryToken : QueryNodeOrToken
 {
-    public QueryToken(QuerySyntaxKind kind, string queryText, TextSpan span, string value)
+    public QueryToken(QuerySyntaxKind kind, string queryText, TextSpan span, string? value)
     {
         Kind = kind;
         QueryText = queryText;
@@ -20,7 +20,7 @@ public sealed class QueryToken : QueryNodeOrToken
 
     public string QueryText { get; }
     public string Text => QueryText.Substring(Span.Start, Span.Length);
-    public string Value { get; }
+    public string? Value { get; }
 
     public override string ToString()
     {

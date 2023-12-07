@@ -9,11 +9,11 @@ public sealed class CrawledLabel
     private Color? _color;
 
     public long Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     [JsonPropertyName("BackgroundColor")]
-    public string ColorText { get; set; }
+    public string ColorText { get; set; } = string.Empty;
 
     [JsonIgnore]
     public Color Color

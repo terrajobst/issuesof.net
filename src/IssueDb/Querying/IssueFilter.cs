@@ -19,8 +19,8 @@ public sealed class IssueFilter
     public bool? NoAreaOwner { get; set; }
     public bool? NoMilestone { get; set; }
 
-    public string Author { get; set; }
-    public string Milestone { get; set; }
+    public string? Author { get; set; }
+    public string? Milestone { get; set; }
 
     public List<string> IncludedOrgs { get; } = new List<string>();
     public List<string> IncludedRepos { get; } = new List<string>();
@@ -44,13 +44,13 @@ public sealed class IssueFilter
     public List<string> ExcludedMilestones { get; } = new List<string>();
     public List<string> ExcludedTerms { get; } = new List<string>();
 
-    public RangeSyntax<DateTimeOffset> Created { get; set; }
-    public RangeSyntax<DateTimeOffset> Updated { get; set; }
-    public RangeSyntax<DateTimeOffset> Closed { get; set; }
+    public RangeSyntax<DateTimeOffset>? Created { get; set; }
+    public RangeSyntax<DateTimeOffset>? Updated { get; set; }
+    public RangeSyntax<DateTimeOffset>? Closed { get; set; }
 
-    public RangeSyntax<int> Comments { get; set; }
-    public RangeSyntax<int> Reactions { get; set; }
-    public RangeSyntax<int> Interactions { get; set; }
+    public RangeSyntax<int>? Comments { get; set; }
+    public RangeSyntax<int>? Reactions { get; set; }
+    public RangeSyntax<int>? Interactions { get; set; }
 
     public List<IssueSort> Sort { get; } = new List<IssueSort>();
     public List<IssueGroup> Groups { get; } = new List<IssueGroup>();
@@ -168,7 +168,7 @@ public sealed class IssueFilter
                 lines.Add($"{name} = {value}");
         }
 
-        static void AddStringFilter(List<string> lines, string value, string name)
+        static void AddStringFilter(List<string> lines, string? value, string name)
         {
             if (value is not null)
                 lines.Add($"{name} = {value}");
@@ -180,7 +180,7 @@ public sealed class IssueFilter
                 lines.Add($"{name} = {string.Join(",", value)}");
         }
 
-        static void AddRangeFilter<T>(List<string> lines, RangeSyntax<T> range, string name)
+        static void AddRangeFilter<T>(List<string> lines, RangeSyntax<T>? range, string name)
             where T : IComparable<T>
         {
             if (range is not null)

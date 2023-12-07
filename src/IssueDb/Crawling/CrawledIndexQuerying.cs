@@ -9,7 +9,7 @@ public static partial class CrawledIndexQuerying
 
     public static CrawledIssueResults Execute(this IssueQuery query, CrawledIndex index)
     {
-        var result = (HashSet<CrawledIssue>)null;
+        var result = (HashSet<CrawledIssue>?)null;
 
         foreach (var filter in query.Filters)
         {
@@ -50,7 +50,7 @@ public static partial class CrawledIndexQuerying
 
     private static HashSet<CrawledIssue> Execute(CrawledIndex index, IssueFilter filter)
     {
-        var result = (HashSet<CrawledIssue>)null;
+        var result = (HashSet<CrawledIssue>?)null;
 
         foreach (var term in filter.IncludedTerms)
             ApplyTerm(ref result, index.Trie, term);
@@ -194,7 +194,7 @@ public static partial class CrawledIndexQuerying
 
         return result ?? new HashSet<CrawledIssue>();
 
-        static void ApplyTerm(ref HashSet<CrawledIssue> result, CrawledTrie<CrawledIssue> trie, string term)
+        static void ApplyTerm(ref HashSet<CrawledIssue>? result, CrawledTrie<CrawledIssue> trie, string term)
         {
             var issues = trie.Lookup(term);
             if (result is null)
@@ -203,7 +203,7 @@ public static partial class CrawledIndexQuerying
                 result.IntersectWith(issues);
         }
 
-        static void ApplyNegatedTerm(ref HashSet<CrawledIssue> result, CrawledIndex index, string term)
+        static void ApplyNegatedTerm(ref HashSet<CrawledIssue>? result, CrawledIndex index, string term)
         {
             if (result is null)
                 result = new HashSet<CrawledIssue>(index.Repos.SelectMany(r => r.Issues.Values));
@@ -212,7 +212,7 @@ public static partial class CrawledIndexQuerying
             result.ExceptWith(issues);
         }
 
-        static void ApplyPredicate(ref HashSet<CrawledIssue> result, CrawledIndex index, Func<CrawledIssue, bool> predicate)
+        static void ApplyPredicate(ref HashSet<CrawledIssue>? result, CrawledIndex index, Func<CrawledIssue, bool> predicate)
         {
             if (result is null)
                 result = new HashSet<CrawledIssue>(index.Repos.SelectMany(r => r.Issues.Values).Where(predicate));

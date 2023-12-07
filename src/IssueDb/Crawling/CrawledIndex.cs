@@ -293,7 +293,7 @@ public sealed class CrawledIndex
             // Read strings
 
             var stringCount = reader.ReadInt32();
-            var stringIndex = new Dictionary<int, string>()
+            var stringIndex = new Dictionary<int, string?>()
             {
                 { -1, null }
             };
@@ -311,21 +311,21 @@ public sealed class CrawledIndex
 
             for (var i = 0; i < areaEntryCount; i++)
             {
-                var area = stringIndex[reader.ReadInt32()];
+                var area = stringIndex[reader.ReadInt32()]!;
                 var leads = ReadAreaMembers(reader, stringIndex);
                 var owners = ReadAreaMembers(reader, stringIndex);
                 var entry = new CrawledAreaEntry(area, leads, owners);
                 areaEntries.Add(entry);
 
                 static CrawledAreaMember[] ReadAreaMembers(BinaryReader reader,
-                                                    Dictionary<int, string> stringIndex)
+                                                    Dictionary<int, string?> stringIndex)
                 {
                     var memberCount = reader.ReadInt32();
                     var members = new List<CrawledAreaMember>(memberCount);
 
                     for (var i = 0; i < memberCount; i++)
                     {
-                        var userName = stringIndex[reader.ReadInt32()];
+                        var userName = stringIndex[reader.ReadInt32()]!;
                         var origin = ReadAreaOrigin(reader, stringIndex);
                         var member = new CrawledAreaMember(origin, userName);
                         members.Add(member);
@@ -335,7 +335,7 @@ public sealed class CrawledIndex
                 }
 
                 static CrawledAreaMemberOrigin ReadAreaOrigin(BinaryReader reader,
-                                                       Dictionary<int, string> stringIndex)
+                                                       Dictionary<int, string?> stringIndex)
                 {
                     var kind = reader.ReadInt32();
 
@@ -354,16 +354,16 @@ public sealed class CrawledIndex
                             }
                         case 1: // File
                             {
-                                var orgName = stringIndex[reader.ReadInt32()];
-                                var repoName = stringIndex[reader.ReadInt32()];
-                                var path = stringIndex[reader.ReadInt32()];
+                                var orgName = stringIndex[reader.ReadInt32()]!;
+                                var repoName = stringIndex[reader.ReadInt32()]!;
+                                var path = stringIndex[reader.ReadInt32()]!;
                                 var lineNumber = reader.ReadInt32();
                                 return new CrawledAreaMemberOrigin.File(orgName, repoName, path, lineNumber);
                             }
                         case 2: // Teams
                             {
-                                var orgName = stringIndex[reader.ReadInt32()];
-                                var teamName = stringIndex[reader.ReadInt32()];
+                                var orgName = stringIndex[reader.ReadInt32()]!;
+                                var teamName = stringIndex[reader.ReadInt32()]!;
                                 return new CrawledAreaMemberOrigin.Team(orgName, teamName);
                             }
                         default:
@@ -382,8 +382,8 @@ public sealed class CrawledIndex
             for (var i = 0; i < repoCount; i++)
             {
                 var repoId = reader.ReadInt64();
-                var org = stringIndex[reader.ReadInt32()];
-                var name = stringIndex[reader.ReadInt32()];
+                var org = stringIndex[reader.ReadInt32()]!;
+                var name = stringIndex[reader.ReadInt32()]!;
                 var isArchived = reader.ReadBoolean();
                 var size = reader.ReadInt64();
                 var lastReindex = ToNullableDateTime(reader.ReadInt64());
@@ -409,9 +409,9 @@ public sealed class CrawledIndex
                     var label = new CrawledLabel
                     {
                         Id = reader.ReadInt64(),
-                        Name = stringIndex[reader.ReadInt32()],
-                        Description = stringIndex[reader.ReadInt32()],
-                        ColorText = stringIndex[reader.ReadInt32()]
+                        Name = stringIndex[reader.ReadInt32()]!,
+                        Description = stringIndex[reader.ReadInt32()]!,
+                        ColorText = stringIndex[reader.ReadInt32()]!
                     };
                     labelIndex.Add(labelId, label);
                     repo.Labels = repo.Labels.CopyAndAdd(label);
@@ -420,7 +420,7 @@ public sealed class CrawledIndex
                 // Read milestones
 
                 var milestoneCount = reader.ReadInt32();
-                var milestoneIndex = new Dictionary<int, CrawledMilestone>
+                var milestoneIndex = new Dictionary<int, CrawledMilestone?>
                 {
                     { -1, null }
                 };
@@ -431,8 +431,8 @@ public sealed class CrawledIndex
                     {
                         Id = reader.ReadInt64(),
                         Number = reader.ReadInt32(),
-                        Title = stringIndex[reader.ReadInt32()],
-                        Description = stringIndex[reader.ReadInt32()],
+                        Title = stringIndex[reader.ReadInt32()]!,
+                        Description = stringIndex[reader.ReadInt32()]!,
                     };
                     milestoneIndex.Add(milestoneId, milestone);
                     repo.Milestones = repo.Milestones.CopyAndAdd(milestone);
@@ -455,12 +455,12 @@ public sealed class CrawledIndex
                         IsPullRequest = reader.ReadBoolean(),
                         IsDraft = reader.ReadBoolean(),
                         IsMerged = reader.ReadBoolean(),
-                        Title = stringIndex[reader.ReadInt32()],
+                        Title = stringIndex[reader.ReadInt32()]!,
                         // Body : ignored because we don't need here
                         CreatedAt = new DateTime(reader.ReadInt64()),
                         UpdatedAt = ToNullableDateTime(reader.ReadInt64()),
                         ClosedAt = ToNullableDateTime(reader.ReadInt64()),
-                        CreatedBy = stringIndex[reader.ReadInt32()],
+                        CreatedBy = stringIndex[reader.ReadInt32()]!,
                         IsLocked = reader.ReadBoolean(),
                         Comments = reader.ReadInt32(),
                         ReactionsPlus1 = reader.ReadInt32(),
@@ -474,7 +474,7 @@ public sealed class CrawledIndex
                     var assigneeCount = reader.ReadInt32();
                     var assignees = new List<string>(assigneeCount);
                     while (assigneeCount-- > 0)
-                        assignees.Add(stringIndex[reader.ReadInt32()]);
+                        assignees.Add(stringIndex[reader.ReadInt32()]!);
                     issue.Assignees = assignees.ToArray();
 
                     var assignedLabelCount = reader.ReadInt32();
@@ -513,10 +513,10 @@ public sealed class CrawledIndex
         }
 
         static CrawledTrieNode<CrawledIssue> ReadNode(BinaryReader reader,
-                                                      Dictionary<int, string> stringIndex,
+                                                      Dictionary<int, string?> stringIndex,
                                                       Dictionary<int, CrawledIssue> issueIndex)
         {
-            var text = stringIndex[reader.ReadInt32()];
+            var text = stringIndex[reader.ReadInt32()]!;
 
             var issueCount = reader.ReadInt32();
             var issues = new List<CrawledIssue>(issueCount);

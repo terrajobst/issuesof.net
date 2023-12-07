@@ -70,7 +70,7 @@ public abstract partial class CrawledIssueResults
             return topLevel;
         }
 
-        static CrawledIssueOrGroup[] GroupFirst(CrawledIssueGroup parent, IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey key)
+        static CrawledIssueOrGroup[] GroupFirst(CrawledIssueGroup? parent, IEnumerable<CrawledIssue> issues, CrawledIssueGroupKey key)
         {
             return key.Apply(issues)
                       .Select(g => (CrawledIssueOrGroup)new CrawledIssueGroup(CombineKeys(parent, g.Key), g.Select(i => (CrawledIssueOrGroup)i).ToArray()))
@@ -96,7 +96,7 @@ public abstract partial class CrawledIssueResults
             }
         }
 
-        static string[] CombineKeys(CrawledIssueGroup parent, string key)
+        static string[] CombineKeys(CrawledIssueGroup? parent, string key)
         {
             if (parent is null)
                 return new[] { key };

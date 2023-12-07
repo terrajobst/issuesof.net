@@ -5,7 +5,7 @@ public abstract class RangeSyntax<T>
 {
     public delegate bool ScalarParser(string text, out T result);
 
-    public static RangeSyntax<T> Parse(string text, ScalarParser scalarParser)
+    public static RangeSyntax<T>? Parse(string text, ScalarParser scalarParser)
     {
         if (text is null)
             return null;

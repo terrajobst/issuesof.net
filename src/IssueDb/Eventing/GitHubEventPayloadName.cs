@@ -44,7 +44,7 @@ public sealed class GitHubEventPayloadName : IComparable, IComparable<GitHubEven
         return new GitHubEventPayloadName(org, repo, timestamp, delivery);
     }
 
-    public int CompareTo(GitHubEventPayloadName other)
+    public int CompareTo(GitHubEventPayloadName? other)
     {
         if (other is null)
             return 1;
@@ -52,7 +52,7 @@ public sealed class GitHubEventPayloadName : IComparable, IComparable<GitHubEven
         return Timestamp.CompareTo(other.Timestamp);
     }
 
-    int IComparable.CompareTo(object obj)
+    int IComparable.CompareTo(object? obj)
     {
         return CompareTo(obj as GitHubEventPayloadName);
     }

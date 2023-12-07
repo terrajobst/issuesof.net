@@ -15,8 +15,8 @@ namespace IssueDb.Crawling;
 public sealed class CrawledRepo
 {
     public long Id { get; set; }
-    public string Org { get; set; }
-    public string Name { get; set; }
+    public string Org { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public bool IsArchived { get; set; }
     public long Size { get; set; }
     public Dictionary<int, CrawledIssue> Issues { get; set; } = new();
@@ -45,7 +45,7 @@ public sealed class CrawledRepo
         AreaOwnership = CrawledAreaOwnership.Empty;
     }
 
-    public static async Task<CrawledRepo> LoadAsync(string path)
+    public static async Task<CrawledRepo?> LoadAsync(string path)
     {
         if (!File.Exists(path))
             return null;
