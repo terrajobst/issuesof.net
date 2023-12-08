@@ -246,7 +246,8 @@ internal static class AreaOwnershipLoader
 
         static CrawledAreaMember[] GetUntaggedUserNames(string text, CrawledAreaMemberOrigin origin)
         {
-            return text.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            var separators = new[] { ' ', ',' };
+            return text.Split(separators, StringSplitOptions.RemoveEmptyEntries)
                        .Select(t => GetUntaggedUserName(t.Trim()))
                        .Select(u => new CrawledAreaMember(origin, u))
                        .ToArray();
