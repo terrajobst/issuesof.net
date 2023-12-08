@@ -54,6 +54,15 @@ public sealed class CrawledIssueGroupKey
             IssueGroup.AreaUnder => AreaUnder,
             IssueGroup.AreaLead => AreaLead,
             IssueGroup.AreaOwner => AreaOwner,
+            IssueGroup.OperatingSystem => OperatingSystem,
+            IssueGroup.OperatingSystemLead => OperatingSystemLead,
+            IssueGroup.OperatingSystemOwner => OperatingSystemOwner,
+            IssueGroup.Architecture => Architecture,
+            IssueGroup.ArchitectureLead => ArchitectureLead,
+            IssueGroup.ArchitectureOwner => ArchitectureOwner,
+            IssueGroup.Lead => Lead,
+            IssueGroup.Owner => Owner,
+
             _ => throw new Exception($"Unexpected group {group}"),
         };
     }
@@ -79,4 +88,20 @@ public sealed class CrawledIssueGroupKey
     public static CrawledIssueGroupKey AreaLead => new(IssueGroup.AreaLead, i => i.AreaLeads);
 
     public static CrawledIssueGroupKey AreaOwner => new(IssueGroup.AreaOwner, i => i.AreaOwners);
+
+    public static CrawledIssueGroupKey OperatingSystem => new(IssueGroup.OperatingSystem, i => i.OperatingSystems.Distinct(StringComparer.OrdinalIgnoreCase));
+
+    public static CrawledIssueGroupKey OperatingSystemLead => new(IssueGroup.OperatingSystemLead, i => i.OperatingSystemLeads);
+
+    public static CrawledIssueGroupKey OperatingSystemOwner => new(IssueGroup.OperatingSystemOwner, i => i.OperatingSystemOwners);
+
+    public static CrawledIssueGroupKey Architecture => new(IssueGroup.Architecture, i => i.Architectures.Distinct(StringComparer.OrdinalIgnoreCase));
+
+    public static CrawledIssueGroupKey ArchitectureLead => new(IssueGroup.ArchitectureLead, i => i.ArchitectureLeads);
+
+    public static CrawledIssueGroupKey ArchitectureOwner => new(IssueGroup.ArchitectureOwner, i => i.ArchitectureOwners);
+
+    public static CrawledIssueGroupKey Lead => new(IssueGroup.Lead, i => i.Leads);
+
+    public static CrawledIssueGroupKey Owner => new(IssueGroup.Owner, i => i.Owners);
 }

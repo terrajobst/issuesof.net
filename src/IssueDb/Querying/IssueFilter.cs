@@ -17,6 +17,14 @@ public sealed class IssueFilter
     public bool? NoArea { get; set; }
     public bool? NoAreaLead { get; set; }
     public bool? NoAreaOwner { get; set; }
+    public bool? NoOperatingSystem { get; set; }
+    public bool? NoOperatingSystemLead { get; set; }
+    public bool? NoOperatingSystemOwner { get; set; }
+    public bool? NoArchitecture { get; set; }
+    public bool? NoArchitectureLead { get; set; }
+    public bool? NoArchitectureOwner { get; set; }
+    public bool? NoLead { get; set; }
+    public bool? NoOwner { get; set; }
     public bool? NoMilestone { get; set; }
 
     public string? Author { get; set; }
@@ -30,6 +38,14 @@ public sealed class IssueFilter
     public List<string> IncludedAreaNodes { get; } = new List<string>();
     public List<string> IncludedAreaLeads { get; } = new List<string>();
     public List<string> IncludedAreaOwners { get; } = new List<string>();
+    public List<string> IncludedOperatingSystems { get; } = new List<string>();
+    public List<string> IncludedOperatingSystemLeads { get; } = new List<string>();
+    public List<string> IncludedOperatingSystemOwners { get; } = new List<string>();
+    public List<string> IncludedArchitectures { get; } = new List<string>();
+    public List<string> IncludedArchitectureLeads { get; } = new List<string>();
+    public List<string> IncludedArchitectureOwners { get; } = new List<string>();
+    public List<string> IncludedLeads { get; } = new List<string>();
+    public List<string> IncludedOwners { get; } = new List<string>();
     public List<string> IncludedTerms { get; } = new List<string>();
 
     public List<string> ExcludedOrgs { get; } = new List<string>();
@@ -41,6 +57,14 @@ public sealed class IssueFilter
     public List<string> ExcludedAreaNodes { get; } = new List<string>();
     public List<string> ExcludedAreaLeads { get; } = new List<string>();
     public List<string> ExcludedAreaOwners { get; } = new List<string>();
+    public List<string> ExcludedOperatingSystems { get; } = new List<string>();
+    public List<string> ExcludedOperatingSystemLeads { get; } = new List<string>();
+    public List<string> ExcludedOperatingSystemOwners { get; } = new List<string>();
+    public List<string> ExcludedArchitectures { get; } = new List<string>();
+    public List<string> ExcludedArchitectureLeads { get; } = new List<string>();
+    public List<string> ExcludedArchitectureOwners { get; } = new List<string>();
+    public List<string> ExcludedLeads { get; } = new List<string>();
+    public List<string> ExcludedOwners { get; } = new List<string>();
     public List<string> ExcludedMilestones { get; } = new List<string>();
     public List<string> ExcludedTerms { get; } = new List<string>();
 
@@ -84,6 +108,14 @@ public sealed class IssueFilter
         AddBooleanFilter(lines, NoArea, nameof(NoArea));
         AddBooleanFilter(lines, NoAreaLead, nameof(NoAreaLead));
         AddBooleanFilter(lines, NoAreaOwner, nameof(NoAreaOwner));
+        AddBooleanFilter(lines, NoOperatingSystem, nameof(NoOperatingSystem));
+        AddBooleanFilter(lines, NoOperatingSystemLead, nameof(NoOperatingSystemLead));
+        AddBooleanFilter(lines, NoOperatingSystemOwner, nameof(NoOperatingSystemOwner));
+        AddBooleanFilter(lines, NoArchitecture, nameof(NoArchitecture));
+        AddBooleanFilter(lines, NoArchitectureLead, nameof(NoArchitectureLead));
+        AddBooleanFilter(lines, NoArchitectureOwner, nameof(NoArchitectureOwner));
+        AddBooleanFilter(lines, NoLead, nameof(NoLead));
+        AddBooleanFilter(lines, NoOwner, nameof(NoOwner));
         AddBooleanFilter(lines, NoMilestone, nameof(NoMilestone));
 
         AddStringFilter(lines, Author, nameof(Author));
@@ -97,6 +129,14 @@ public sealed class IssueFilter
         AddListFilter(lines, IncludedAreaNodes, nameof(IncludedAreaNodes));
         AddListFilter(lines, IncludedAreaLeads, nameof(IncludedAreaLeads));
         AddListFilter(lines, IncludedAreaOwners, nameof(IncludedAreaOwners));
+        AddListFilter(lines, IncludedOperatingSystems, nameof(IncludedOperatingSystems));
+        AddListFilter(lines, IncludedOperatingSystemLeads, nameof(IncludedOperatingSystemLeads));
+        AddListFilter(lines, IncludedOperatingSystemOwners, nameof(IncludedOperatingSystemOwners));
+        AddListFilter(lines, IncludedArchitectures, nameof(IncludedArchitectures));
+        AddListFilter(lines, IncludedArchitectureLeads, nameof(IncludedArchitectureLeads));
+        AddListFilter(lines, IncludedArchitectureOwners, nameof(IncludedArchitectureOwners));
+        AddListFilter(lines, IncludedLeads, nameof(IncludedLeads));
+        AddListFilter(lines, IncludedOwners, nameof(IncludedOwners));
         AddListFilter(lines, IncludedTerms, nameof(IncludedTerms));
 
         AddListFilter(lines, ExcludedOrgs, nameof(ExcludedOrgs));
@@ -108,6 +148,14 @@ public sealed class IssueFilter
         AddListFilter(lines, ExcludedAreaNodes, nameof(ExcludedAreaNodes));
         AddListFilter(lines, ExcludedAreaLeads, nameof(ExcludedAreaLeads));
         AddListFilter(lines, ExcludedAreaOwners, nameof(ExcludedAreaOwners));
+        AddListFilter(lines, ExcludedOperatingSystems, nameof(ExcludedOperatingSystems));
+        AddListFilter(lines, ExcludedOperatingSystemLeads, nameof(ExcludedOperatingSystemLeads));
+        AddListFilter(lines, ExcludedOperatingSystemOwners, nameof(ExcludedOperatingSystemOwners));
+        AddListFilter(lines, ExcludedArchitectures, nameof(ExcludedArchitectures));
+        AddListFilter(lines, ExcludedArchitectureLeads, nameof(ExcludedArchitectureLeads));
+        AddListFilter(lines, ExcludedArchitectureOwners, nameof(ExcludedArchitectureOwners));
+        AddListFilter(lines, ExcludedLeads, nameof(ExcludedLeads));
+        AddListFilter(lines, ExcludedOwners, nameof(ExcludedOwners));
         AddListFilter(lines, ExcludedMilestones, nameof(ExcludedMilestones));
         AddListFilter(lines, ExcludedTerms, nameof(ExcludedTerms));
 

@@ -44,28 +44,87 @@ public sealed class CrawledIssue
                             ? $"https://github.com/{Repo.Org}/{Repo.Name}/pull/{Number}"
                             : $"https://github.com/{Repo.Org}/{Repo.Name}/issues/{Number}";
 
+    // Areas
+
     [JsonIgnore]
     public IEnumerable<string> Areas => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name));
 
     [JsonIgnore]
     public IEnumerable<string> AreaNodes => Labels.SelectMany(l => TextTokenizer.GetAreaPaths(l.Name, segmentsOnly: true));
 
-
     [JsonIgnore]
     public IEnumerable<string> DirectAreaNodes => Labels.Where(l => l.Name.StartsWith("area-", StringComparison.OrdinalIgnoreCase))
                                                         .Select(l => l.Name.Substring(5));
 
     [JsonIgnore]
-    public IEnumerable<string> AreaLeads => DirectAreaNodes.Where(r => Repo.AreaOwnership.EntryByName.ContainsKey(r) == true)
-                                                           .SelectMany(r => Repo.AreaOwnership.EntryByName[r].Leads)
+    public IEnumerable<string> AreaLeads => Labels.Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
+                                                  .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Leads)
+                                                  .Select(e => e.UserName)
+                                                  .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public IEnumerable<string> AreaOwners => Labels.Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
+                                                   .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Owners)
+                                                   .Select(e => e.UserName)
+                                                   .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    // Operating Systems
+
+    [JsonIgnore]
+    public IEnumerable<string> OperatingSystems => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
+                                                         .Select(l => l.Name.Substring(3));
+
+    [JsonIgnore]
+    public IEnumerable<string> OperatingSystemLeads => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
+                                                             .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
+                                                             .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Leads)
+                                                             .Select(e => e.UserName)
+                                                             .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public IEnumerable<string> OperatingSystemOwners => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
+                                                              .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
+                                                              .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Owners)
+                                                              .Select(e => e.UserName)
+                                                              .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    // Arch
+
+    [JsonIgnore]
+    public IEnumerable<string> Architectures => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
+                                                      .Select(l => l.Name.Substring(5));
+
+    [JsonIgnore]
+    public IEnumerable<string> ArchitectureLeads => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
+                                                          .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
+                                                          .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Leads)
+                                                          .Select(m => m.UserName)
+                                                          .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public IEnumerable<string> ArchitectureOwners => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
+                                                           .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
+                                                           .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Owners)
                                                            .Select(m => m.UserName)
                                                            .Distinct(StringComparer.OrdinalIgnoreCase);
 
+    // Leads and Owners
+
     [JsonIgnore]
-    public IEnumerable<string> AreaOwners => DirectAreaNodes.Where(r => Repo.AreaOwnership.EntryByName.ContainsKey(r) == true)
-                                                            .SelectMany(r => Repo.AreaOwnership.EntryByName[r].Owners)
-                                                            .Select(m => m.UserName)
-                                                            .Distinct(StringComparer.OrdinalIgnoreCase);
+    public IEnumerable<string> Leads => ArchitectureLeads.Any()
+                                            ? ArchitectureLeads
+                                            : OperatingSystemLeads.Any()
+                                                ? OperatingSystemLeads
+                                                : AreaLeads;
+
+    [JsonIgnore]
+    public IEnumerable<string> Owners => ArchitectureOwners.Any()
+                                            ? ArchitectureOwners
+                                            : OperatingSystemOwners.Any()
+                                                ? OperatingSystemOwners
+                                                : AreaOwners;
+
+    // Reactions
 
     [JsonIgnore]
     public int Reactions => ReactionsPlus1

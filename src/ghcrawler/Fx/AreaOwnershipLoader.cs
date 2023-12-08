@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 
 using IssueDb;
@@ -51,10 +52,11 @@ internal static class AreaOwnershipLoader
 
         foreach (var entry in ownership.Entries)
         {
+            var label = entry.Label;
             var area = entry.Area;
             var expandedLeads = ExpandMembers(expandedTeams, entry.Leads);
             var expandedOwners = ExpandMembers(expandedTeams, entry.Owners);
-            var expandedEntry = new CrawledAreaEntry(entry.Area, expandedLeads, expandedOwners);
+            var expandedEntry = new CrawledAreaEntry(label, area, expandedLeads, expandedOwners);
             entries.Add(expandedEntry);
         }
 
@@ -132,7 +134,8 @@ internal static class AreaOwnershipLoader
 
         foreach (var team in teams)
         {
-            if (!TextTokenizer.TryParseArea(team.Name, out var area))
+            var label = team.Name;
+            if (!TryParseArea(label, out var area))
                 continue;
 
             var teamMembers = await client.InvokeAsync(c => c.Organization.Team.GetAllMembers(team.Id));
@@ -140,7 +143,7 @@ internal static class AreaOwnershipLoader
             var origin = new CrawledAreaMemberOrigin.Team(orgName, team.Name);
             var leads = Array.Empty<CrawledAreaMember>();
             var owners = teamMembers.Select(m => new CrawledAreaMember(origin, m.Login)).ToArray();
-            var entry = new CrawledAreaEntry(area, leads, owners);
+            var entry = new CrawledAreaEntry(label, area, leads, owners);
             entries.Add(entry);
         }
 
@@ -184,7 +187,7 @@ internal static class AreaOwnershipLoader
         var entries = new List<CrawledAreaEntry>();
 
         var hasSeenHeaders = false;
-        var indexOfArea = -1;
+        var indexOfLabel = -1;
         var indexOfLead = -1;
         var indexOfOwners = -1;
 
@@ -203,22 +206,30 @@ internal static class AreaOwnershipLoader
 
             if (!hasSeenHeaders)
             {
-                indexOfArea = Array.FindIndex(cells, x => x.Contains("Area", StringComparison.OrdinalIgnoreCase));
+                Span<string> labelHeaders = ["Area", "Operating System", "Architecture"];
+
+                foreach (var labelHeader in labelHeaders)
+                {
+                    indexOfLabel = Array.FindIndex(cells, x => x.Contains(labelHeader, StringComparison.OrdinalIgnoreCase));
+                    if (indexOfLabel >= 0)
+                        break;
+                }
+
                 indexOfLead = Array.FindIndex(cells, x => x.Contains("Lead", StringComparison.OrdinalIgnoreCase));
                 indexOfOwners = Array.FindIndex(cells, x => x.Contains("Owner", StringComparison.OrdinalIgnoreCase));
                 hasSeenHeaders = true;
             }
 
-            if (indexOfArea < 0 || indexOfArea >= cells.Length ||
+            if (indexOfLabel < 0 || indexOfLabel >= cells.Length ||
                 indexOfLead < 0 || indexOfLead >= cells.Length ||
                 indexOfOwners < 0 || indexOfOwners >= cells.Length)
                 continue;
 
-            var areaText = cells[indexOfArea];
+            var labelText = cells[indexOfLabel];
             var leadText = cells[indexOfLead];
             var ownerText = cells[indexOfOwners];
 
-            if (!TextTokenizer.TryParseArea(areaText, out var area))
+            if (!TryParseArea(labelText, out var area))
                 continue;
 
             var lineNumber = lineIndex + 1;
@@ -227,7 +238,7 @@ internal static class AreaOwnershipLoader
             var leads = GetUntaggedUserNames(leadText, origin);
             var owners = GetUntaggedUserNames(ownerText, origin);
 
-            var entry = new CrawledAreaEntry(area, leads, owners);
+            var entry = new CrawledAreaEntry(labelText, area, leads, owners);
             entries.Add(entry);
         }
 
@@ -258,6 +269,26 @@ internal static class AreaOwnershipLoader
                 yield return line;
             }
         }
+    }
+
+    private static bool TryParseArea(string label, [MaybeNullWhen(false)] out string area)
+    {
+        Span<string> prefixes = ["area-", "os-", "arch-"];
+
+        if (label is not null)
+        {
+            foreach (var prefix in prefixes)
+            {
+                if (label.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    area = label[prefix.Length..];
+                    return true;
+                }
+            }
+        }
+
+        area = null;
+        return false;
     }
 
     private sealed class ParsedTeam

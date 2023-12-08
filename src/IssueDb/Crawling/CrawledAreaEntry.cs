@@ -6,16 +6,19 @@
 
 public sealed class CrawledAreaEntry
 {
-    public CrawledAreaEntry(string area,
+    public CrawledAreaEntry(string label,
+                            string area,
                             IReadOnlyList<CrawledAreaMember> leads,
                             IReadOnlyList<CrawledAreaMember> owners)
     {
+        Label = label;
         Area = area;
         Leads = leads;
         Owners = owners;
         Definitions = GetDefinitions();
     }
 
+    public string Label { get; }
     public string Area { get; }
     public IReadOnlyList<CrawledAreaMember> Leads { get; }
     public IReadOnlyList<CrawledAreaMember> Owners { get; }

@@ -215,6 +215,54 @@ public sealed partial class IssueQuery
         filter.NoAreaOwner = !query.IsNegated;
     }
 
+    [KeyValueHandler("no:os")]
+    private static void ApplyNoOperatingSystem(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoOperatingSystem = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:os-lead")]
+    private static void ApplyNoOperatingSystemLead(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoOperatingSystemLead = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:os-owner")]
+    private static void ApplyNoOperatingSystemOwner(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoOperatingSystemOwner = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:arch")]
+    private static void ApplyNoArchitecture(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoArchitecture = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:arch-lead")]
+    private static void ApplyNoArchitectureLead(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoArchitectureLead = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:arch-owner")]
+    private static void ApplyNoArchitectureOwner(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoArchitectureOwner = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:lead")]
+    private static void ApplyNoLead(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoLead = !query.IsNegated;
+    }
+
+    [KeyValueHandler("no:owner")]
+    private static void ApplyNoOwner(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        filter.NoOwner = !query.IsNegated;
+    }
+
     [KeyValueHandler("no:milestone")]
     private static void ApplyNoMilestone(IssueFilter filter, BoundKeyValueQuery query)
     {
@@ -318,6 +366,78 @@ public sealed partial class IssueQuery
             filter.ExcludedAreaOwners.Add(query.Value);
         else
             filter.IncludedAreaOwners.Add(query.Value);
+    }
+
+    [KeyValueHandler("os")]
+    private static void ApplyOperatingSystem(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedOperatingSystems.Add(query.Value);
+        else
+            filter.IncludedOperatingSystems.Add(query.Value);
+    }
+
+    [KeyValueHandler("os-lead")]
+    private static void ApplyOperatingSystemLead(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedOperatingSystemLeads.Add(query.Value);
+        else
+            filter.IncludedOperatingSystemLeads.Add(query.Value);
+    }
+
+    [KeyValueHandler("os-owner")]
+    private static void ApplyOperatingSystemOwner(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedOperatingSystemOwners.Add(query.Value);
+        else
+            filter.IncludedOperatingSystemOwners.Add(query.Value);
+    }
+
+    [KeyValueHandler("arch")]
+    private static void ApplyArchitecture(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedArchitectures.Add(query.Value);
+        else
+            filter.IncludedArchitectures.Add(query.Value);
+    }
+
+    [KeyValueHandler("arch-lead")]
+    private static void ApplyArchitectureLead(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedArchitectureLeads.Add(query.Value);
+        else
+            filter.IncludedArchitectureLeads.Add(query.Value);
+    }
+
+    [KeyValueHandler("arch-owner")]
+    private static void ApplyArchitectureOwner(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedArchitectureOwners.Add(query.Value);
+        else
+            filter.IncludedArchitectureOwners.Add(query.Value);
+    }
+
+    [KeyValueHandler("lead")]
+    private static void ApplyLead(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedLeads.Add(query.Value);
+        else
+            filter.IncludedLeads.Add(query.Value);
+    }
+
+    [KeyValueHandler("owner")]
+    private static void ApplyOwner(IssueFilter filter, BoundKeyValueQuery query)
+    {
+        if (query.IsNegated)
+            filter.ExcludedOwners.Add(query.Value);
+        else
+            filter.IncludedOwners.Add(query.Value);
     }
 
     [KeyValueHandler("created")]
@@ -552,6 +672,54 @@ public sealed partial class IssueQuery
     private static void ApplyGroupAreaOwner(IssueFilter filter)
     {
         filter.Groups.Add(IssueGroup.AreaOwner);
+    }
+
+    [KeyValueHandler("group:os")]
+    private static void ApplyGroupOperatingSystem(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.OperatingSystem);
+    }
+
+    [KeyValueHandler("group:os-lead")]
+    private static void ApplyGroupOperatingSystemLead(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.OperatingSystemLead);
+    }
+
+    [KeyValueHandler("group:os-owner")]
+    private static void ApplyGroupOperatingSystemOwner(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.OperatingSystemOwner);
+    }
+
+    [KeyValueHandler("group:arch")]
+    private static void ApplyGroupArchitecture(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.Architecture);
+    }
+
+    [KeyValueHandler("group:arch-lead")]
+    private static void ApplyGroupArchitectureLead(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.ArchitectureLead);
+    }
+
+    [KeyValueHandler("group:arch-owner")]
+    private static void ApplyGroupArchitectureOwner(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.ArchitectureOwner);
+    }
+
+    [KeyValueHandler("group:lead")]
+    private static void ApplyGroupLead(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.Lead);
+    }
+
+    [KeyValueHandler("group:owner")]
+    private static void ApplyGroupOwner(IssueFilter filter)
+    {
+        filter.Groups.Add(IssueGroup.Owner);
     }
 
     [KeyValueHandler("group-sort:key", "group-sort:key-asc")]

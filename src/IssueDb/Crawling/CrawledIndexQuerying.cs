@@ -79,6 +79,30 @@ public static partial class CrawledIndexQuerying
         foreach (var areaOwner in filter.IncludedAreaOwners)
             ApplyTerm(ref result, index.Trie, $"area-owner:{areaOwner}");
 
+        foreach (var os in filter.IncludedOperatingSystems)
+            ApplyTerm(ref result, index.Trie, $"os:{os}");
+
+        foreach (var osLead in filter.IncludedOperatingSystemLeads)
+            ApplyTerm(ref result, index.Trie, $"os-lead:{osLead}");
+
+        foreach (var osOwner in filter.IncludedOperatingSystemOwners)
+            ApplyTerm(ref result, index.Trie, $"os-owner:{osOwner}");
+
+        foreach (var arch in filter.IncludedArchitectures)
+            ApplyTerm(ref result, index.Trie, $"arch:{arch}");
+
+        foreach (var archLead in filter.IncludedArchitectureLeads)
+            ApplyTerm(ref result, index.Trie, $"arch-lead:{archLead}");
+
+        foreach (var archOwner in filter.IncludedArchitectureOwners)
+            ApplyTerm(ref result, index.Trie, $"arch-owner:{archOwner}");
+
+        foreach (var lead in filter.IncludedLeads)
+            ApplyTerm(ref result, index.Trie, $"lead:{lead}");
+
+        foreach (var owner in filter.IncludedOwners)
+            ApplyTerm(ref result, index.Trie, $"owner:{owner}");
+
         if (filter.Author != null)
             ApplyTerm(ref result, index.Trie, $"author:{filter.Author}");
 
@@ -140,6 +164,46 @@ public static partial class CrawledIndexQuerying
         else if (filter.NoAreaOwner == false)
             ApplyPredicate(ref result, index, i => i.AreaOwners.Any());
 
+        if (filter.NoOperatingSystem == true)
+            ApplyPredicate(ref result, index, i => !i.OperatingSystems.Any());
+        else if (filter.NoOperatingSystem == false)
+            ApplyPredicate(ref result, index, i => i.OperatingSystems.Any());
+
+        if (filter.NoOperatingSystemLead == true)
+            ApplyPredicate(ref result, index, i => !i.OperatingSystemLeads.Any());
+        else if (filter.NoOperatingSystemLead == false)
+            ApplyPredicate(ref result, index, i => i.OperatingSystemLeads.Any());
+
+        if (filter.NoOperatingSystemOwner == true)
+            ApplyPredicate(ref result, index, i => !i.OperatingSystemOwners.Any());
+        else if (filter.NoOperatingSystemOwner == false)
+            ApplyPredicate(ref result, index, i => i.OperatingSystemOwners.Any());
+
+        if (filter.NoArchitecture == true)
+            ApplyPredicate(ref result, index, i => !i.Architectures.Any());
+        else if (filter.NoArchitecture == false)
+            ApplyPredicate(ref result, index, i => i.Architectures.Any());
+
+        if (filter.NoArchitectureLead == true)
+            ApplyPredicate(ref result, index, i => !i.ArchitectureLeads.Any());
+        else if (filter.NoArchitectureLead == false)
+            ApplyPredicate(ref result, index, i => i.ArchitectureLeads.Any());
+
+        if (filter.NoArchitectureOwner == true)
+            ApplyPredicate(ref result, index, i => !i.ArchitectureOwners.Any());
+        else if (filter.NoArchitectureOwner == false)
+            ApplyPredicate(ref result, index, i => i.ArchitectureOwners.Any());
+
+        if (filter.NoLead == true)
+            ApplyPredicate(ref result, index, i => !i.Leads.Any());
+        else if (filter.NoLead == false)
+            ApplyPredicate(ref result, index, i => i.Leads.Any());
+
+        if (filter.NoOwner == true)
+            ApplyPredicate(ref result, index, i => !i.Owners.Any());
+        else if (filter.NoOwner == false)
+            ApplyPredicate(ref result, index, i => i.Owners.Any());
+
         if (filter.NoMilestone == true)
             ApplyPredicate(ref result, index, i => i.Milestone is null);
         else if (filter.NoMilestone == false)
@@ -188,6 +252,30 @@ public static partial class CrawledIndexQuerying
 
         foreach (var areaOwner in filter.ExcludedAreaOwners)
             ApplyNegatedTerm(ref result, index, $"area-owner:{areaOwner}");
+
+        foreach (var os in filter.ExcludedOperatingSystems)
+            ApplyNegatedTerm(ref result, index, $"os:{os}");
+
+        foreach (var osLead in filter.ExcludedOperatingSystemLeads)
+            ApplyNegatedTerm(ref result, index, $"os-lead:{osLead}");
+
+        foreach (var osOwner in filter.ExcludedOperatingSystemOwners)
+            ApplyNegatedTerm(ref result, index, $"os-owner:{osOwner}");
+
+        foreach (var arch in filter.ExcludedArchitectures)
+            ApplyNegatedTerm(ref result, index, $"arch:{arch}");
+
+        foreach (var archLead in filter.ExcludedArchitectureLeads)
+            ApplyNegatedTerm(ref result, index, $"arch-lead:{archLead}");
+
+        foreach (var archOwner in filter.ExcludedArchitectureOwners)
+            ApplyNegatedTerm(ref result, index, $"arch-owner:{archOwner}");
+
+        foreach (var lead in filter.ExcludedLeads)
+            ApplyNegatedTerm(ref result, index, $"lead:{lead}");
+
+        foreach (var owner in filter.ExcludedOwners)
+            ApplyNegatedTerm(ref result, index, $"owner:{owner}");
 
         foreach (var milestone in filter.ExcludedMilestones)
             ApplyNegatedTerm(ref result, index, $"milestone:{milestone}");

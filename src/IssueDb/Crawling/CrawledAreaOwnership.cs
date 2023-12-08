@@ -6,7 +6,7 @@ public sealed class CrawledAreaOwnership
 {
     public static CrawledAreaOwnership Empty { get; } = new([]);
 
-    private FrozenDictionary<string, CrawledAreaEntry>? _entryByName;
+    private FrozenDictionary<string, CrawledAreaEntry>? _entryByLabel;
 
     public CrawledAreaOwnership(IReadOnlyList<CrawledAreaEntry> entries)
     {
@@ -15,17 +15,17 @@ public sealed class CrawledAreaOwnership
 
     public IReadOnlyList<CrawledAreaEntry> Entries { get; }
 
-    public FrozenDictionary<string, CrawledAreaEntry> EntryByName
+    public FrozenDictionary<string, CrawledAreaEntry> EntryByLabel
     {
         get
         {
-            if (_entryByName is null)
+            if (_entryByLabel is null)
             {
-                var entryByName = Entries.ToFrozenDictionary(e => e.Area);
-                Interlocked.CompareExchange(ref _entryByName, entryByName, null);
+                var entryByLabel = Entries.ToFrozenDictionary(e => e.Label);
+                Interlocked.CompareExchange(ref _entryByLabel, entryByLabel, null);
             }
 
-            return _entryByName;
+            return _entryByLabel;
         }
     }
 
@@ -37,31 +37,31 @@ public sealed class CrawledAreaOwnership
         if (this == Empty)
             return other;
 
-        var entryByName = new Dictionary<string, CrawledAreaEntry>(StringComparer.OrdinalIgnoreCase);
+        var entryByLabel = new Dictionary<string, CrawledAreaEntry>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var entry in Entries)
-            entryByName.Add(entry.Area, entry);
+            entryByLabel.Add(entry.Label, entry);
 
         foreach (var otherEntry in other.Entries)
         {
-            if (entryByName.TryGetValue(otherEntry.Area, out var entry))
+            if (entryByLabel.TryGetValue(otherEntry.Label, out var entry))
             {
-                entryByName[entry.Area] = MergeEntries(entry, otherEntry);
+                entryByLabel[entry.Label] = MergeEntries(entry, otherEntry);
             }
             else
             {
-                entryByName.Add(otherEntry.Area, otherEntry);
+                entryByLabel.Add(otherEntry.Label, otherEntry);
             }
         }
 
-        var mergedEntries = entryByName.Values.OrderBy(e => e.Area).ToArray();
+        var mergedEntries = entryByLabel.Values.OrderBy(e => e.Label).ToArray();
         return new CrawledAreaOwnership(mergedEntries);
 
         static CrawledAreaEntry MergeEntries(CrawledAreaEntry entry, CrawledAreaEntry otherEntry)
         {
             var mergedLeads = MergeMembers(entry.Leads, otherEntry.Leads);
             var mergedOwners = MergeMembers(entry.Owners, otherEntry.Owners);
-            return new CrawledAreaEntry(entry.Area, mergedLeads, mergedOwners);
+            return new CrawledAreaEntry(entry.Label, entry.Area, mergedLeads, mergedOwners);
         }
 
         static CrawledAreaMember[] MergeMembers(IReadOnlyList<CrawledAreaMember> members, IReadOnlyList<CrawledAreaMember> otherMembers)

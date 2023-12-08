@@ -12,5 +12,13 @@ public enum IssueGroup
     AreaNode,
     AreaUnder,
     AreaLead,
-    AreaOwner
+    AreaOwner,
+    OperatingSystem,
+    OperatingSystemLead,
+    OperatingSystemOwner,
+    Architecture,
+    ArchitectureLead,
+    ArchitectureOwner,
+    Lead,
+    Owner
 }

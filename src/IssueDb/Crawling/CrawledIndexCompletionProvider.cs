@@ -12,6 +12,8 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
     private readonly string[] _milestones;
     private readonly string[] _areaPaths;
     private readonly string[] _areaNodes;
+    private readonly string[] _operatingSystems;
+    private readonly string[] _architectures;
 
     public CrawledIndexCompletionProvider(CrawledIndex index)
     {
@@ -54,6 +56,21 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
                        .SelectMany(l => TextTokenizer.GetAreaPaths(l.Name, segmentsOnly: true)),
             StringComparer.OrdinalIgnoreCase
         ).ToArray();
+
+        _operatingSystems = new SortedSet<string>(
+            index.Repos.SelectMany(r => r.Labels)
+                       .Where(l => l.Name.StartsWith("os-"))
+                       .Select(l => l.Name.Substring(3)),
+            StringComparer.OrdinalIgnoreCase
+        ).ToArray();
+
+        _architectures = new SortedSet<string>(
+            index.Repos.SelectMany(r => r.Labels)
+                       .Where(l => l.Name.StartsWith("arch-"))
+                       .Select(l => l.Name.Substring(5)),
+            StringComparer.OrdinalIgnoreCase
+        ).ToArray();
+
     }
 
     public override IEnumerable<string> GetCompletionForKeyValue(string key, string value)
@@ -62,12 +79,18 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
         {
             "org" => _orgs,
             "repo" => _repos,
-            "author" or "area-lead" or "area-owner" => _users,
+            "author" or
+            "area-lead" or "area-owner" or
+            "os-lead" or "os-owner" or
+            "arch-lead" or "arch-owner" or
+            "lead" or "owner" => _users,
             "assignee" => _users,
             "label" => _labels,
             "milestone" => _milestones,
             "area" or "area-under" => _areaPaths,
             "area-node" => _areaNodes,
+            "os" => _operatingSystems,
+            "arch" => _architectures,
             _ => IssueQuery.SupportedValuesFor(key)
                            .OrderBy(x => x)
                            .ToArray()
