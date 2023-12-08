@@ -78,6 +78,21 @@ internal static class Program
 
         try
         {
+            static void ApplyEnvironment(string variable, bool negated, ref bool setting)
+            {
+                var valueText = Environment.GetEnvironmentVariable(variable);
+                if (!string.IsNullOrEmpty(valueText) && bool.TryParse(valueText, out var value))
+                {
+                    if (negated)
+                        value = !value;
+
+                    setting = value;
+                }
+            }
+
+            ApplyEnvironment("GHCRAWLER_NO_PULL_LATEST", negated: true, ref pullLatest);
+            ApplyEnvironment("GHCRAWLER_NO_RANDOM_REINDEX", negated: true, ref randomReindex);
+
             var parameters = options.Parse(args).ToArray();
 
             if (help)

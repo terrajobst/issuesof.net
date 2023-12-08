@@ -7,7 +7,7 @@ namespace IssueDb.Crawling;
 public sealed class CrawledIndex
 {
     private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
-    private static readonly short _currentFormatVersion = 11;
+    private static readonly short _currentFormatVersion = 12;
     private static readonly short _minSupportedFormatVersion = 11;
 
     public int Version { get; set; } = _currentFormatVersion;
@@ -98,6 +98,7 @@ public sealed class CrawledIndex
                                    CrawledAreaEntry entry,
                                    Func<string, int> stringIndexer)
         {
+            writer.Write(stringIndexer(entry.Label));
             writer.Write(stringIndexer(entry.Area));
             WriteAreaMembers(writer, entry.Leads, stringIndexer);
             WriteAreaMembers(writer, entry.Owners, stringIndexer);
@@ -311,10 +312,23 @@ public sealed class CrawledIndex
 
             for (var i = 0; i < areaEntryCount; i++)
             {
-                var area = stringIndex[reader.ReadInt32()]!;
+                string label;
+                string area;
+
+                if (formatVersion == 11)
+                {
+                    area = stringIndex[reader.ReadInt32()]!;
+                    label = "area-" + area;
+                }
+                else
+                {
+                    label = stringIndex[reader.ReadInt32()]!;
+                    area = stringIndex[reader.ReadInt32()]!;
+                }
+
                 var leads = ReadAreaMembers(reader, stringIndex);
                 var owners = ReadAreaMembers(reader, stringIndex);
-                var entry = new CrawledAreaEntry(area, leads, owners);
+                var entry = new CrawledAreaEntry(label, area, leads, owners);
                 areaEntries.Add(entry);
 
                 static CrawledAreaMember[] ReadAreaMembers(BinaryReader reader,

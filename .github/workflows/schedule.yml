@@ -2,6 +2,15 @@ name: Refresh Index
 
 on:  
   workflow_dispatch:
+    inputs:
+      no-pull-latest:
+        description: 'Do not pull latest issues'
+        required: false
+        type: boolean
+      no-random-reindex:
+        description: 'Do not perform random re-indexing'
+        required: false
+        type: boolean
   schedule:
     - cron: '21 12 * * *' # every day at 12:21 PM UTC (5:21 AM PT)
 
@@ -23,6 +32,8 @@ jobs:
         GitHubAppId: ${{ secrets.CRAWLER_GITHUB_APP_ID }}
         GitHubAppPrivateKey: ${{ secrets.CRAWLER_GITHUB_APP_PRIVATE_KEY }}
         AzureStorageConnectionString: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        GHCRAWLER_NO_PULL_LATEST: ${{ inputs.no-pull-latest }}
+        GHCRAWLER_NO_RANDOM_REINDEX: ${{ inputs.no-random-reindex }}
       run: |
         cd src/ghcrawler
         dotnet run -- --subscriptions
