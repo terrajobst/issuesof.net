@@ -8,11 +8,13 @@ public sealed class CrawledAreaMember
         Origin = origin;
         UserName = userName;
         IsPrimary = ComputeIsPrimary(origin);
+        IsTeam = userName.Contains('/');
     }
 
     public CrawledAreaMemberOrigin Origin { get; }
     public string UserName { get; }
     public bool IsPrimary { get; }
+    public bool IsTeam { get; }
 
     private static bool ComputeIsPrimary(CrawledAreaMemberOrigin origin)
     {

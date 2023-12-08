@@ -29,7 +29,15 @@ public sealed class CrawledIndexCompletionProvider : QueryCompletionProvider
 
         _users = new SortedSet<string>(
              index.Repos.SelectMany(r => r.Issues.Values)
-                        .SelectMany(i => new[] { i.CreatedBy }.Concat(i.Assignees)),
+                        .SelectMany(i => (string[])
+                        [
+                            i.CreatedBy,
+                            ..i.Assignees,
+                            ..i.AreaLeads, ..i.AreaOwners,
+                            ..i.OperatingSystemLeads, ..i.OperatingSystemOwners,
+                            ..i.ArchitectureLeads, ..i.ArchitectureOwners,
+                            ..i.Leads, ..i.Owners
+                        ]),
              StringComparer.OrdinalIgnoreCase
         ).ToArray();
 

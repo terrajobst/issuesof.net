@@ -59,13 +59,15 @@ public sealed class CrawledIssue
     [JsonIgnore]
     public IEnumerable<string> AreaLeads => Labels.Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
                                                   .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Leads)
-                                                  .Select(e => e.UserName)
+                                                  .Where(m => !m.IsTeam)
+                                                  .Select(m => m.UserName)
                                                   .Distinct(StringComparer.OrdinalIgnoreCase);
 
     [JsonIgnore]
     public IEnumerable<string> AreaOwners => Labels.Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
                                                    .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Owners)
-                                                   .Select(e => e.UserName)
+                                                   .Where(m => !m.IsTeam)
+                                                   .Select(m => m.UserName)
                                                    .Distinct(StringComparer.OrdinalIgnoreCase);
 
     // Operating Systems
@@ -78,14 +80,16 @@ public sealed class CrawledIssue
     public IEnumerable<string> OperatingSystemLeads => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
                                                              .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
                                                              .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Leads)
-                                                             .Select(e => e.UserName)
+                                                             .Where(m => !m.IsTeam)
+                                                             .Select(m => m.UserName)
                                                              .Distinct(StringComparer.OrdinalIgnoreCase);
 
     [JsonIgnore]
     public IEnumerable<string> OperatingSystemOwners => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
                                                               .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
                                                               .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Owners)
-                                                              .Select(e => e.UserName)
+                                                              .Where(m => !m.IsTeam)
+                                                              .Select(m => m.UserName)
                                                               .Distinct(StringComparer.OrdinalIgnoreCase);
 
     // Arch
@@ -98,6 +102,7 @@ public sealed class CrawledIssue
     public IEnumerable<string> ArchitectureLeads => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
                                                           .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
                                                           .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Leads)
+                                                          .Where(m => !m.IsTeam)
                                                           .Select(m => m.UserName)
                                                           .Distinct(StringComparer.OrdinalIgnoreCase);
 
@@ -105,6 +110,7 @@ public sealed class CrawledIssue
     public IEnumerable<string> ArchitectureOwners => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
                                                            .Where(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name))
                                                            .SelectMany(l => Repo.AreaOwnership.EntryByLabel[l.Name].Owners)
+                                                           .Where(m => !m.IsTeam)
                                                            .Select(m => m.UserName)
                                                            .Distinct(StringComparer.OrdinalIgnoreCase);
 

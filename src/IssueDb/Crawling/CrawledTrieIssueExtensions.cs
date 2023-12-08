@@ -61,14 +61,17 @@ public static class CrawledTrieIssueExtensions
         foreach (var areaOwner in issue.AreaOwners)
             result.Add($"area-owner:{areaOwner}");
 
+        foreach (var os in issue.OperatingSystems)
+            result.Add($"os:{os}");
+
         foreach (var osLead in issue.OperatingSystemLeads)
             result.Add($"os-lead:{osLead}");
 
         foreach (var osOwner in issue.OperatingSystemOwners)
             result.Add($"os-owner:{osOwner}");
 
-        foreach (var os in issue.OperatingSystems)
-            result.Add($"os:{os}");
+        foreach (var arch in issue.Architectures)
+            result.Add($"arch:{arch}");
 
         foreach (var archLead in issue.ArchitectureLeads)
             result.Add($"arch-lead:{archLead}");
@@ -76,8 +79,11 @@ public static class CrawledTrieIssueExtensions
         foreach (var archOwner in issue.ArchitectureOwners)
             result.Add($"arch-owner:{archOwner}");
 
-        foreach (var arch in issue.Architectures)
-            result.Add($"arch:{arch}");
+        foreach (var lead in issue.Leads)
+            result.Add($"lead:{lead}");
+
+        foreach (var owner in issue.Owners)
+            result.Add($"owner:{owner}");
 
         if (issue.Milestone is not null)
             result.Add($"milestone:{issue.Milestone.Title}");
