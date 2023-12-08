@@ -117,16 +117,16 @@ public sealed class CrawledIssue
     // Leads and Owners
 
     [JsonIgnore]
-    public IEnumerable<string> Leads => ArchitectureLeads.Any()
+    public IEnumerable<string> Leads => Architectures.Any()
                                             ? ArchitectureLeads
-                                            : OperatingSystemLeads.Any()
+                                            : OperatingSystems.Any()
                                                 ? OperatingSystemLeads
                                                 : AreaLeads;
 
     [JsonIgnore]
-    public IEnumerable<string> Owners => ArchitectureOwners.Any()
+    public IEnumerable<string> Owners => Architectures.Any()
                                             ? ArchitectureOwners
-                                            : OperatingSystemOwners.Any()
+                                            : OperatingSystems.Any()
                                                 ? OperatingSystemOwners
                                                 : AreaOwners;
 
