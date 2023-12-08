@@ -8,7 +8,7 @@ public sealed class CrawledIndex
 {
     private static readonly byte[] _formatMagicNumbers = new byte[] { (byte)'G', (byte)'H', (byte)'C', (byte)'T' };
     private static readonly short _currentFormatVersion = 12;
-    private static readonly short _minSupportedFormatVersion = 11;
+    private static readonly short _minSupportedFormatVersion = 12;
 
     public int Version { get; set; } = _currentFormatVersion;
 
@@ -312,19 +312,8 @@ public sealed class CrawledIndex
 
             for (var i = 0; i < areaEntryCount; i++)
             {
-                string label;
-                string area;
-
-                if (formatVersion == 11)
-                {
-                    area = stringIndex[reader.ReadInt32()]!;
-                    label = "area-" + area;
-                }
-                else
-                {
-                    label = stringIndex[reader.ReadInt32()]!;
-                    area = stringIndex[reader.ReadInt32()]!;
-                }
+                var label = stringIndex[reader.ReadInt32()]!;
+                var area = stringIndex[reader.ReadInt32()]!;
 
                 var leads = ReadAreaMembers(reader, stringIndex);
                 var owners = ReadAreaMembers(reader, stringIndex);
@@ -332,7 +321,7 @@ public sealed class CrawledIndex
                 areaEntries.Add(entry);
 
                 static CrawledAreaMember[] ReadAreaMembers(BinaryReader reader,
-                                                    Dictionary<int, string?> stringIndex)
+                                                           Dictionary<int, string?> stringIndex)
                 {
                     var memberCount = reader.ReadInt32();
                     var members = new List<CrawledAreaMember>(memberCount);
@@ -349,7 +338,7 @@ public sealed class CrawledIndex
                 }
 
                 static CrawledAreaMemberOrigin ReadAreaOrigin(BinaryReader reader,
-                                                       Dictionary<int, string?> stringIndex)
+                                                              Dictionary<int, string?> stringIndex)
                 {
                     var kind = reader.ReadInt32();
 
