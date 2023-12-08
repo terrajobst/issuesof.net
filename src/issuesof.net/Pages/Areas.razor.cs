@@ -50,7 +50,8 @@ public sealed partial class Areas
         if (string.IsNullOrWhiteSpace(Filter))
             return true;
 
-        return row.Area.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
+        return row.Label.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
+               row.Area.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
                row.Leads.Any(l => l.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
                row.Owners.Any(o => o.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
                row.Definitions.Any(d => $"{d.OrgName}/{d.RepoName}".Contains(Filter, StringComparison.OrdinalIgnoreCase));
