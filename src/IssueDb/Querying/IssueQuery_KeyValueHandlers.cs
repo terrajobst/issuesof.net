@@ -302,7 +302,18 @@ public sealed partial class IssueQuery
     [KeyValueHandler("repo")]
     private static void ApplyRepo(IssueFilter filter, BoundKeyValueQuery query)
     {
-        AddTerm(filter, "repo:" + query.Value, query.IsNegated);
+        var indexOfSlash = query.Value.IndexOf('/');
+        if (indexOfSlash < 0)
+        {
+            AddTerm(filter, "repo:" + query.Value, query.IsNegated);
+        }
+        else
+        {
+            var org = query.Value.Substring(0, indexOfSlash);
+            var repo = query.Value.Substring(indexOfSlash + 1);
+            AddTerm(filter, "org:" + org, query.IsNegated);
+            AddTerm(filter, "repo:" + repo, query.IsNegated);
+        }
     }
 
     [KeyValueHandler("author")]
