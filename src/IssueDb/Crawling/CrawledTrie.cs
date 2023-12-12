@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace IssueDb.Crawling;
@@ -76,13 +77,13 @@ public sealed class CrawledTrie<T>
             current.RemoveValue(value);
     }
 
-    public IEnumerable<T> Lookup(string text)
+    public ImmutableArray<T> Lookup(string text)
     {
-        var node = Walk(text, addNodes: false);
-        if (node is null)
-            return Enumerable.Empty<T>();
-
-        return node.Values;
+       var node = Walk(text, addNodes: false);
+       if (node is null)
+           return ImmutableArray<T>.Empty;
+    
+       return node.Values;
     }
 
     public int GetCount(string text)

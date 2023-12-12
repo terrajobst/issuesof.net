@@ -174,7 +174,11 @@ public static partial class CrawledIndexQuerying
                 result = new HashSet<CrawledIssue>(index.Repos.SelectMany(r => r.Issues.Values));
 
             var issues = index.Trie.Lookup(term);
-            result.ExceptWith(issues);
+
+            // NOTE: Don't use ExceptWith() as it's more efficient to enumerate the issues straight
+            //       from the immutable array rather than going through IEnumerable<T>.
+            foreach (var issue in issues)
+                result.Remove(issue);
         }
 
         static void ApplyPredicate(ref HashSet<CrawledIssue>? result, CrawledIndex index, Func<CrawledIssue, bool> predicate)
