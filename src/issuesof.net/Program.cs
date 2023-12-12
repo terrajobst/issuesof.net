@@ -11,6 +11,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddHostedService(p => p.GetRequiredService<GitHubEventProcessingService>());
 builder.Services.AddActivatedSingleton<IndexService>();
 builder.Services.AddActivatedSingleton<CompletionService>();
+builder.Services.AddActivatedSingleton<AreaInfoService>();
 builder.Services.AddActivatedSingleton<GitHubEventProcessingService>();
 builder.Services.AddSingleton<GitHubEventProcessor, EventService>();
 builder.Services.AddSingleton<SearchService>();

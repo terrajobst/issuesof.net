@@ -21,8 +21,10 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var entry in Entries)
+        @foreach (var info in Entries)
         {
+            var entry = info.Entry;
+
             void WriteDefinitions(CrawledAreaEntry entry)
             {
                 if (!entry.Definitions.Any())
@@ -96,9 +98,6 @@
                     </div>
                 </td>
                 <td>
-                    @{
-                        var info = AreaQueryInfos[entry];
-                    }
                     <a href="@info.Url">
                         <div class="d-flex flex-row align-items-center">
                             <span class="iconify mr-2" data-icon="octicon:issue-opened-16" data-inline="false" title="Open Issues"></span>

@@ -1,11 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Text.Encodings.Web;
-
-using IssueDb;
-using IssueDb.Crawling;
-using IssueDb.Querying;
-
-using IssuesOfDotNet.Data;
+﻿using IssuesOfDotNet.Data;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
@@ -18,13 +11,13 @@ public sealed partial class Areas
     private string? _filter;
 
     [Inject]
-    public required IndexService IndexService { get; set; }
-
-    [Inject]
     public required IJSRuntime JSRuntime { get; set; }
 
     [Inject]
     public required NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public required AreaInfoService AreaInfoService { get; set; }
 
     public string? Filter
     {
@@ -39,22 +32,18 @@ public sealed partial class Areas
         }
     }
 
-    private CrawledAreaOwnership AreaOwnership { get; set; } = CrawledAreaOwnership.Empty;
+    private IEnumerable<AreaInfoService.AreaInfo> Entries => AreaInfoService.AreaInfos.Where(Matches);
 
-    private FrozenDictionary<CrawledAreaEntry, AreaQueryInfo> AreaQueryInfos { get; set; } = FrozenDictionary<CrawledAreaEntry, AreaQueryInfo>.Empty;
-
-    private IEnumerable<CrawledAreaEntry> Entries => AreaOwnership.Entries.Where(Matches);
-
-    private bool Matches(CrawledAreaEntry row)
+    private bool Matches(AreaInfoService.AreaInfo info)
     {
         if (string.IsNullOrWhiteSpace(Filter))
             return true;
 
-        return row.Label.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
-               row.Area.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
-               row.Leads.Any(l => l.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
-               row.Owners.Any(o => o.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
-               row.Definitions.Any(d => $"{d.OrgName}/{d.RepoName}".Contains(Filter, StringComparison.OrdinalIgnoreCase));
+        return info.Entry.Label.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
+               info.Entry.Area.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
+               info.Entry.Leads.Any(l => l.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
+               info.Entry.Owners.Any(o => o.UserName.Contains(Filter, StringComparison.OrdinalIgnoreCase)) ||
+               info.Entry.Definitions.Any(d => $"{d.OrgName}/{d.RepoName}".Contains(Filter, StringComparison.OrdinalIgnoreCase));
     }
 
     protected override void OnInitialized()
@@ -64,15 +53,6 @@ public sealed partial class Areas
 
         if (parameters.TryGetValue("q", out var filter))
             _filter = filter;
-
-        var index = IndexService.Index;
-        if (index is not null)
-        {
-            AreaOwnership = index.AreaOwnership;
-            AreaQueryInfos = AreaOwnership.Entries
-                .Select(e => new AreaQueryInfo(e, index))
-                .ToFrozenDictionary(e => e.Entry);
-        }
     }
 
     private async void ChangeUrl()
@@ -87,23 +67,5 @@ public sealed partial class Areas
                                         uri.ToString(),
                                         /* forceLoad */ false,
                                         /* replace */ false);
-    }
-
-    private sealed class AreaQueryInfo
-    {
-        public AreaQueryInfo(CrawledAreaEntry entry, CrawledIndex index)
-        {
-            var searchText = $"is:open area:{entry.Area}";
-            var query = IssueQuery.Create(searchText);
-            var results = query.Execute(index);
-
-            Entry = entry;
-            IssueCount = results.IssueCount;
-            Url = "/?q=" + UrlEncoder.Default.Encode(searchText);
-        }
-
-        public CrawledAreaEntry Entry { get; }
-        public int IssueCount { get; }
-        public string Url { get; }
     }
 }
