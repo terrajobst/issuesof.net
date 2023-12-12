@@ -9,6 +9,7 @@ namespace IssuesOfDotNet.Pages;
 public sealed partial class Areas
 {
     private string? _filter;
+    private bool _showUnmapped;
 
     [Inject]
     public required IJSRuntime JSRuntime { get; set; }
@@ -18,6 +19,19 @@ public sealed partial class Areas
 
     [Inject]
     public required AreaInfoService AreaInfoService { get; set; }
+
+    public bool ShowUnmapped
+    {
+        get => _showUnmapped;
+        set
+        {
+            if (_showUnmapped!= value)
+            {
+                _showUnmapped = value;
+                ChangeUrl();
+            }
+        }
+    }
 
     public string? Filter
     {
@@ -34,6 +48,8 @@ public sealed partial class Areas
 
     private IEnumerable<AreaInfoService.AreaInfo> Entries => AreaInfoService.AreaInfos.Where(Matches);
 
+    private IEnumerable<AreaInfoService.UnmappedAreaInfo> UnmappedEntries => AreaInfoService.UnmappedAreaInfos.Where(Matches);
+
     private bool Matches(AreaInfoService.AreaInfo info)
     {
         if (string.IsNullOrWhiteSpace(Filter))
@@ -46,10 +62,22 @@ public sealed partial class Areas
                info.Entry.Definitions.Any(d => $"{d.OrgName}/{d.RepoName}".Contains(Filter, StringComparison.OrdinalIgnoreCase));
     }
 
+    private bool Matches(AreaInfoService.UnmappedAreaInfo info)
+    {
+        if (string.IsNullOrWhiteSpace(Filter))
+            return true;
+
+        return info.Label.Contains(Filter, StringComparison.OrdinalIgnoreCase) ||
+               info.Repos.Any(r => r.Contains(Filter, StringComparison.OrdinalIgnoreCase));
+    }
+
     protected override void OnInitialized()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var parameters = QueryHelpers.ParseQuery(uri.Query);
+
+        if (parameters.TryGetValue("unmapped", out var unmappedText) && bool.TryParse(unmappedText, out var showUnmapped))
+            _showUnmapped = showUnmapped;
 
         if (parameters.TryGetValue("q", out var filter))
             _filter = filter;
@@ -59,6 +87,7 @@ public sealed partial class Areas
     {
         var query = new Dictionary<string, object?>
         {
+            ["unmapped"] = ShowUnmapped ? true : null,
             ["q"] = string.IsNullOrWhiteSpace(Filter) ? null : Filter
         };
 

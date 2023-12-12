@@ -10,6 +10,38 @@
     </div>
 </form>
 
+@{
+    var mappedCss = ShowUnmapped ? "" : "active";
+    var unmappedCss = AreaInfoService.UnmappedAreaInfos.IsEmpty
+                            ? "disabled"
+                            : ShowUnmapped
+                                ? "active"
+                                : "";
+}
+
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link @mappedCss" href="#" @onclick:preventDefault="true" @onclick="() => ShowUnmapped = false">Mapped</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link @unmappedCss" href="#" @onclick:preventDefault="true" @onclick="() => ShowUnmapped = true">Unmapped</a>
+  </li>
+</ul>
+
+@{
+    void WriteOpenLink(int issueCount, string url)
+    {
+        <a href="@url">
+            <div class="d-flex flex-row align-items-center">
+                <span class="iconify mr-2" data-icon="octicon:issue-opened-16" data-inline="false" title="Open Issues"></span>
+                @issueCount
+            </div>
+        </a>        
+    }
+}
+
+@if (!ShowUnmapped)
+{
 <table class="table table-hover table-striped">
     <thead>
         <tr>
@@ -98,12 +130,7 @@
                     </div>
                 </td>
                 <td>
-                    <a href="@info.Url">
-                        <div class="d-flex flex-row align-items-center">
-                            <span class="iconify mr-2" data-icon="octicon:issue-opened-16" data-inline="false" title="Open Issues"></span>
-                            @info.IssueCount
-                        </div>
-                    </a>
+                    @{ WriteOpenLink(info.IssueCount, info.Url); }
                 </td>
                 <td>
                     @{ WriteUserListGrouped(entry.Leads); }
@@ -118,3 +145,37 @@
         }
     </tbody>
 </table>
+}
+else
+{
+<table class="table table-hover table-striped">
+    <thead>
+        <tr>
+            <th>Label</th>
+            <th>Open</th>
+            <th>Repos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var info in UnmappedEntries)
+        {
+            <tr>
+                <td>
+                    @info.Label
+                </td>
+                <td>
+                    @{ WriteOpenLink(info.IssueCount, info.Url); }
+                </td>
+                <td>
+                    <div class="d-flex flex-wrap" style="gap: .3rem;">
+                        @foreach (var repo in info.Repos)
+                        {
+                            <a href="https://github.com/@repo">@repo</a>
+                        }
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>    
+}
