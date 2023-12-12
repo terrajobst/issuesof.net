@@ -21,7 +21,7 @@ public sealed class CrawledAreaOwnership
         {
             if (_entryByLabel is null)
             {
-                var entryByLabel = Entries.ToFrozenDictionary(e => e.Label);
+                var entryByLabel = Entries.ToFrozenDictionary(e => e.Label, StringComparer.OrdinalIgnoreCase);
                 Interlocked.CompareExchange(ref _entryByLabel, entryByLabel, null);
             }
 
