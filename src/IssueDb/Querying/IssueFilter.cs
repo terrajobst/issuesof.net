@@ -6,11 +6,8 @@ namespace IssueDb.Querying;
 
 public sealed class IssueFilter
 {
-    public bool? IsOpen { get; set; }
     public bool? IsLocked { get; set; }
     public bool? IsPullRequest { get; set; }
-    public bool? IsMerged { get; set; }
-    public bool? IsDraft { get; set; }
     public bool? IsArchived { get; set; }
     public bool? NoAssignees { get; set; }
     public bool? NoLabels { get; set; }
@@ -97,11 +94,8 @@ public sealed class IssueFilter
     {
         var lines = new List<string>();
 
-        AddBooleanFilter(lines, IsOpen, nameof(IsOpen));
         AddBooleanFilter(lines, IsLocked, nameof(IsLocked));
         AddBooleanFilter(lines, IsPullRequest, nameof(IsPullRequest));
-        AddBooleanFilter(lines, IsMerged, nameof(IsMerged));
-        AddBooleanFilter(lines, IsDraft, nameof(IsDraft));
         AddBooleanFilter(lines, IsArchived, nameof(IsArchived));
         AddBooleanFilter(lines, NoAssignees, nameof(NoAssignees));
         AddBooleanFilter(lines, NoLabels, nameof(NoLabels));

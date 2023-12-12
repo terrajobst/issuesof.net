@@ -109,11 +109,6 @@ public static partial class CrawledIndexQuerying
         if (filter.Milestone != null)
             ApplyTerm(ref result, index.Trie, $"milestone:{filter.Milestone}");
 
-        if (filter.IsOpen == true)
-            ApplyPredicate(ref result, index, i => i.IsOpen);
-        else if (filter.IsOpen == false)
-            ApplyPredicate(ref result, index, i => !i.IsOpen);
-
         if (filter.IsLocked == true)
             ApplyPredicate(ref result, index, i => i.IsLocked);
         else if (filter.IsLocked == false)
@@ -123,16 +118,6 @@ public static partial class CrawledIndexQuerying
             ApplyPredicate(ref result, index, i => i.IsPullRequest);
         else if (filter.IsPullRequest == false)
             ApplyPredicate(ref result, index, i => !i.IsPullRequest);
-
-        if (filter.IsMerged == true)
-            ApplyPredicate(ref result, index, i => i.IsMerged);
-        else if (filter.IsMerged == false)
-            ApplyPredicate(ref result, index, i => i.IsPullRequest && !i.IsMerged);
-
-        if (filter.IsDraft == true)
-            ApplyPredicate(ref result, index, i => i.IsDraft);
-        else if (filter.IsDraft == false)
-            ApplyPredicate(ref result, index, i => i.IsPullRequest && !i.IsDraft);
 
         if (filter.IsArchived == true)
             ApplyPredicate(ref result, index, i => i.Repo.IsArchived);

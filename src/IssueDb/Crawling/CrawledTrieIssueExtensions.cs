@@ -38,6 +38,16 @@ public static class CrawledTrieIssueExtensions
         //
         // AddTermsFromMarkdown(result, issue.Body);
 
+
+        if (issue.IsOpen)
+            result.Add("is:open");
+
+        if (issue.IsPullRequest && !issue.IsMerged)
+            result.Add("is:unmerged");
+
+        if (issue.IsPullRequest && issue.IsDraft)
+            result.Add("is:draft");
+
         result.Add($"org:{issue.Repo.Org}");
         result.Add($"repo:{issue.Repo.Name}");
         result.Add($"repo:{issue.Repo.FullName}");

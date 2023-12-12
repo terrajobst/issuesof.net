@@ -116,13 +116,19 @@ public sealed partial class IssueQuery
     [KeyValueHandler("is:open", "state:open")]
     private static void ApplyIsOpen(IssueFilter filter, BoundKeyValueQuery query)
     {
-        filter.IsOpen = !query.IsNegated;
+        if (query.IsNegated)
+            filter.ExcludedTerms.Add("is:open");
+        else
+            filter.IncludedTerms.Add("is:open");
     }
 
     [KeyValueHandler("is:closed", "state:closed")]
     private static void ApplyIsClosed(IssueFilter filter, BoundKeyValueQuery query)
     {
-        filter.IsOpen = query.IsNegated;
+        if (query.IsNegated)
+            filter.IncludedTerms.Add("is:open");
+        else
+            filter.ExcludedTerms.Add("is:open");
     }
 
     [KeyValueHandler("is:locked")]
@@ -152,25 +158,37 @@ public sealed partial class IssueQuery
     [KeyValueHandler("is:merged", "state:merged")]
     private static void ApplyIsMerged(IssueFilter filter, BoundKeyValueQuery query)
     {
-        filter.IsMerged = !query.IsNegated;
+        if (query.IsNegated)
+            filter.IncludedTerms.Add("is:unmerged");
+        else
+            filter.ExcludedTerms.Add("is:unmerged");
     }
 
     [KeyValueHandler("is:unmerged", "state:unmerged")]
     private static void ApplyIsUnmerged(IssueFilter filter, BoundKeyValueQuery query)
     {
-        filter.IsMerged = query.IsNegated;
+        if (query.IsNegated)
+            filter.ExcludedTerms.Add("is:unmerged");
+        else
+            filter.IncludedTerms.Add("is:unmerged");
     }
 
     [KeyValueHandler("is:draft", "draft:true")]
     private static void ApplyIsDraft(IssueFilter filter, BoundKeyValueQuery query)
     {
-        filter.IsDraft = !query.IsNegated;
+        if (query.IsNegated)
+            filter.ExcludedTerms.Add("is:draft");
+        else
+            filter.IncludedTerms.Add("is:draft");
     }
 
     [KeyValueHandler("draft:false")]
     private static void ApplyDraftFalse(IssueFilter filter, BoundKeyValueQuery query)
     {
-        filter.IsDraft = query.IsNegated;
+        if (query.IsNegated)
+            filter.IncludedTerms.Add("is:draft");
+        else
+            filter.ExcludedTerms.Add("is:draft");
     }
 
     [KeyValueHandler("archived:true")]

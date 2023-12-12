@@ -241,3 +241,59 @@ And out of the 151k words stemming only reduces it to 142k.
 | Keys  | 243,198 |
 | Words | 151,672 |
 | Stems | 142,170 |
+
+## Trie terms vs predicates
+
+When searching for issues we use both trie lookups as well as simple predicates
+(i.e. a sequential scan through all issues).
+
+In some cases, a predicate is necessary, for example for range-based lookups
+such as `comments:>=100`. In other cases we could either store a term in the
+trie or use a predicate such as `is:open` or `is:issue`.
+
+Looking up issues via a term in the trie is really beneficial if it only applies
+to small number of issues.
+
+If it applies to a large number, it becomes less ideal because it will bloat the
+trie and in the end we still have process a large number of issues. If we define
+"small number of issues" as less than 20%, then these terms would be very
+useful:
+
+| Term        | Selectivity |
+| ----------- | ----------- |
+| is:draft    | 0.7%        |
+| is:unmerged | 6.8%        |
+| is:open     | 8.3%        |
+| is:archived | 14.6%       |
+
+> [!NOTE]
+>
+> `is:archived` isn't used because it's not a function of the issue itself but
+> of the repo. When an repo archival status changes, we'd have to potentially
+> update many issues. Since querying for archival state is practically rare, a
+> predicate scan is easier.
+
+These would be less useful:
+
+| Term          | Selectivity |
+| ------------- | ----------- |
+| is:locked     | 32.5%       |
+| is:issue      | 43.7%       |
+| no:labels     | 44.0%       |
+| is:merged     | 49.5%       |
+| is:pr         | 56.3%       |
+| is:unlocked   | 67.5%       |
+| no:milestone  | 70.7%       |
+| no:area       | 73.0%       |
+| no:assignees  | 77.3%       |
+| no:area-lead  | 84.7%       |
+| no:lead       | 85.6%       |
+| no:area-owner | 85.8%       |
+| no:owner      | 86.6%       |
+| is:closed     | 91.7%       |
+| no:arch       | 96.4%       |
+| no:os         | 96.6%       |
+| no:arch-lead  | 99.3%       |
+| no:arch-owner | 99.3%       |
+| no:os-lead    | 99.9%       |
+| no:os-owner   | 99.9%       |
