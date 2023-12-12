@@ -85,6 +85,15 @@ public sealed class CrawledTrie<T>
         return node.Values;
     }
 
+    public int GetCount(string text)
+    {
+        var node = Walk(text, addNodes: false);
+        if (node is null)
+            return 0;
+
+        return node.Values.Length;
+    }
+
     private CrawledTrieNode<T>? Walk(string text, [NotNullWhen(true)] bool addNodes)
     {
         text = text.ToLowerInvariant();

@@ -52,7 +52,7 @@ public static partial class CrawledIndexQuerying
     {
         var result = (HashSet<CrawledIssue>?)null;
 
-        foreach (var term in filter.IncludedTerms)
+        foreach (var term in filter.IncludedTerms.OrderBy(t => index.Trie.GetCount(t)))
             ApplyTerm(ref result, index.Trie, term);
 
         if (filter.IsLocked == true)
