@@ -12,6 +12,7 @@
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.AutoActivation" />
     <PackageReference Include="Terrajobst.GitHubEvents.AspNetCore" />
   </ItemGroup>
 

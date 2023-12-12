@@ -9,18 +9,13 @@ builder.Services.AddApplicationInsightsTelemetry(builder.Configuration["APPINSIG
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHostedService(p => p.GetRequiredService<GitHubEventProcessingService>());
-builder.Services.AddSingleton<IndexService>();
-builder.Services.AddSingleton<CompletionService>();
+builder.Services.AddActivatedSingleton<IndexService>();
+builder.Services.AddActivatedSingleton<CompletionService>();
+builder.Services.AddActivatedSingleton<GitHubEventProcessingService>();
 builder.Services.AddSingleton<GitHubEventProcessor, EventService>();
-builder.Services.AddSingleton<GitHubEventProcessingService>();
 builder.Services.AddSingleton<SearchService>();
 
 var app = builder.Build();
-
-// Warm up key services
-app.Services.GetService<IndexService>();
-app.Services.GetService<CompletionService>();
-app.Services.GetService<GitHubEventProcessingService>();
 
 var gitHubWebHookSecret = app.Configuration["GitHubWebHookSecret"];
 
