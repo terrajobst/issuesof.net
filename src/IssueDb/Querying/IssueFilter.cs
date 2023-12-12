@@ -24,45 +24,7 @@ public sealed class IssueFilter
     public bool? NoOwner { get; set; }
     public bool? NoMilestone { get; set; }
 
-    public string? Author { get; set; }
-    public string? Milestone { get; set; }
-
-    public List<string> IncludedOrgs { get; } = new List<string>();
-    public List<string> IncludedRepos { get; } = new List<string>();
-    public List<string> IncludedAssignees { get; } = new List<string>();
-    public List<string> IncludedLabels { get; } = new List<string>();
-    public List<string> IncludedAreas { get; } = new List<string>();
-    public List<string> IncludedAreaNodes { get; } = new List<string>();
-    public List<string> IncludedAreaLeads { get; } = new List<string>();
-    public List<string> IncludedAreaOwners { get; } = new List<string>();
-    public List<string> IncludedOperatingSystems { get; } = new List<string>();
-    public List<string> IncludedOperatingSystemLeads { get; } = new List<string>();
-    public List<string> IncludedOperatingSystemOwners { get; } = new List<string>();
-    public List<string> IncludedArchitectures { get; } = new List<string>();
-    public List<string> IncludedArchitectureLeads { get; } = new List<string>();
-    public List<string> IncludedArchitectureOwners { get; } = new List<string>();
-    public List<string> IncludedLeads { get; } = new List<string>();
-    public List<string> IncludedOwners { get; } = new List<string>();
     public List<string> IncludedTerms { get; } = new List<string>();
-
-    public List<string> ExcludedOrgs { get; } = new List<string>();
-    public List<string> ExcludedRepos { get; } = new List<string>();
-    public List<string> ExcludedAssignees { get; } = new List<string>();
-    public List<string> ExcludedAuthors { get; } = new List<string>();
-    public List<string> ExcludedLabels { get; } = new List<string>();
-    public List<string> ExcludedAreas { get; } = new List<string>();
-    public List<string> ExcludedAreaNodes { get; } = new List<string>();
-    public List<string> ExcludedAreaLeads { get; } = new List<string>();
-    public List<string> ExcludedAreaOwners { get; } = new List<string>();
-    public List<string> ExcludedOperatingSystems { get; } = new List<string>();
-    public List<string> ExcludedOperatingSystemLeads { get; } = new List<string>();
-    public List<string> ExcludedOperatingSystemOwners { get; } = new List<string>();
-    public List<string> ExcludedArchitectures { get; } = new List<string>();
-    public List<string> ExcludedArchitectureLeads { get; } = new List<string>();
-    public List<string> ExcludedArchitectureOwners { get; } = new List<string>();
-    public List<string> ExcludedLeads { get; } = new List<string>();
-    public List<string> ExcludedOwners { get; } = new List<string>();
-    public List<string> ExcludedMilestones { get; } = new List<string>();
     public List<string> ExcludedTerms { get; } = new List<string>();
 
     public RangeSyntax<DateTimeOffset>? Created { get; set; }
@@ -112,45 +74,7 @@ public sealed class IssueFilter
         AddBooleanFilter(lines, NoOwner, nameof(NoOwner));
         AddBooleanFilter(lines, NoMilestone, nameof(NoMilestone));
 
-        AddStringFilter(lines, Author, nameof(Author));
-        AddStringFilter(lines, Milestone, nameof(Milestone));
-
-        AddListFilter(lines, IncludedOrgs, nameof(IncludedOrgs));
-        AddListFilter(lines, IncludedRepos, nameof(IncludedRepos));
-        AddListFilter(lines, IncludedAssignees, nameof(IncludedAssignees));
-        AddListFilter(lines, IncludedLabels, nameof(IncludedLabels));
-        AddListFilter(lines, IncludedAreas, nameof(IncludedAreas));
-        AddListFilter(lines, IncludedAreaNodes, nameof(IncludedAreaNodes));
-        AddListFilter(lines, IncludedAreaLeads, nameof(IncludedAreaLeads));
-        AddListFilter(lines, IncludedAreaOwners, nameof(IncludedAreaOwners));
-        AddListFilter(lines, IncludedOperatingSystems, nameof(IncludedOperatingSystems));
-        AddListFilter(lines, IncludedOperatingSystemLeads, nameof(IncludedOperatingSystemLeads));
-        AddListFilter(lines, IncludedOperatingSystemOwners, nameof(IncludedOperatingSystemOwners));
-        AddListFilter(lines, IncludedArchitectures, nameof(IncludedArchitectures));
-        AddListFilter(lines, IncludedArchitectureLeads, nameof(IncludedArchitectureLeads));
-        AddListFilter(lines, IncludedArchitectureOwners, nameof(IncludedArchitectureOwners));
-        AddListFilter(lines, IncludedLeads, nameof(IncludedLeads));
-        AddListFilter(lines, IncludedOwners, nameof(IncludedOwners));
         AddListFilter(lines, IncludedTerms, nameof(IncludedTerms));
-
-        AddListFilter(lines, ExcludedOrgs, nameof(ExcludedOrgs));
-        AddListFilter(lines, ExcludedRepos, nameof(ExcludedRepos));
-        AddListFilter(lines, ExcludedAssignees, nameof(ExcludedAssignees));
-        AddListFilter(lines, ExcludedAuthors, nameof(ExcludedAuthors));
-        AddListFilter(lines, ExcludedLabels, nameof(ExcludedLabels));
-        AddListFilter(lines, ExcludedAreas, nameof(ExcludedAreas));
-        AddListFilter(lines, ExcludedAreaNodes, nameof(ExcludedAreaNodes));
-        AddListFilter(lines, ExcludedAreaLeads, nameof(ExcludedAreaLeads));
-        AddListFilter(lines, ExcludedAreaOwners, nameof(ExcludedAreaOwners));
-        AddListFilter(lines, ExcludedOperatingSystems, nameof(ExcludedOperatingSystems));
-        AddListFilter(lines, ExcludedOperatingSystemLeads, nameof(ExcludedOperatingSystemLeads));
-        AddListFilter(lines, ExcludedOperatingSystemOwners, nameof(ExcludedOperatingSystemOwners));
-        AddListFilter(lines, ExcludedArchitectures, nameof(ExcludedArchitectures));
-        AddListFilter(lines, ExcludedArchitectureLeads, nameof(ExcludedArchitectureLeads));
-        AddListFilter(lines, ExcludedArchitectureOwners, nameof(ExcludedArchitectureOwners));
-        AddListFilter(lines, ExcludedLeads, nameof(ExcludedLeads));
-        AddListFilter(lines, ExcludedOwners, nameof(ExcludedOwners));
-        AddListFilter(lines, ExcludedMilestones, nameof(ExcludedMilestones));
         AddListFilter(lines, ExcludedTerms, nameof(ExcludedTerms));
 
         AddRangeFilter(lines, Created, nameof(Created));
@@ -205,12 +129,6 @@ public sealed class IssueFilter
         }
 
         static void AddBooleanFilter(List<string> lines, bool? value, string name)
-        {
-            if (value is not null)
-                lines.Add($"{name} = {value}");
-        }
-
-        static void AddStringFilter(List<string> lines, string? value, string name)
         {
             if (value is not null)
                 lines.Add($"{name} = {value}");

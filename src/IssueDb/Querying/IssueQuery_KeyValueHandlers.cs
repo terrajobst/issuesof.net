@@ -111,6 +111,12 @@ public sealed partial class IssueQuery
         }
     }
 
+    private static void AddTerm(IssueFilter filter, string term, bool isNegated)
+    {
+        var terms = isNegated ? filter.ExcludedTerms : filter.IncludedTerms;
+        terms.Add(term);
+    }
+
 #pragma warning disable IDE0051 // Remove unused private members
 
     [KeyValueHandler("is:open", "state:open")]
@@ -290,172 +296,115 @@ public sealed partial class IssueQuery
     [KeyValueHandler("org")]
     private static void ApplyOrg(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedOrgs.Add(query.Value);
-        else
-            filter.IncludedOrgs.Add(query.Value);
+        AddTerm(filter, "org:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("repo")]
     private static void ApplyRepo(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedRepos.Add(query.Value);
-        else
-            filter.IncludedRepos.Add(query.Value);
+        AddTerm(filter, "repo:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("author")]
     private static void ApplyAuthor(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedAuthors.Add(query.Value);
-        else
-            filter.Author = query.Value;
+        AddTerm(filter, "author:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("assignee")]
     private static void ApplyAssignee(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedAssignees.Add(query.Value);
-        else
-            filter.IncludedAssignees.Add(query.Value);
+        AddTerm(filter, "assignee:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("label")]
     private static void ApplyLabel(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedLabels.Add(query.Value);
-        else
-            filter.IncludedLabels.Add(query.Value);
+        AddTerm(filter, "label:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("milestone")]
     private static void ApplyMilestone(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedMilestones.Add(query.Value);
-        else
-            filter.Milestone = query.Value;
+        AddTerm(filter, "milestone:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("area")]
     private static void ApplyArea(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedLabels.Add($"area-{query.Value}");
-        else
-            filter.IncludedLabels.Add($"area-{query.Value}");
+        AddTerm(filter, "label:area-" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("area-under")]
     private static void ApplyAreaUnder(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedAreas.Add(query.Value);
-        else
-            filter.IncludedAreas.Add(query.Value);
+        AddTerm(filter, "area-under:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("area-node")]
     private static void ApplyAreaNode(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedAreaNodes.Add(query.Value);
-        else
-            filter.IncludedAreaNodes.Add(query.Value);
+        AddTerm(filter, "area-node:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("area-lead")]
     private static void ApplyAreaLead(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedAreaLeads.Add(query.Value);
-        else
-            filter.IncludedAreaLeads.Add(query.Value);
+        AddTerm(filter, "area-lead:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("area-owner")]
     private static void ApplyAreaOwner(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedAreaOwners.Add(query.Value);
-        else
-            filter.IncludedAreaOwners.Add(query.Value);
+        AddTerm(filter, "area-owner:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("os")]
     private static void ApplyOperatingSystem(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedOperatingSystems.Add(query.Value);
-        else
-            filter.IncludedOperatingSystems.Add(query.Value);
+        AddTerm(filter, "os:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("os-lead")]
     private static void ApplyOperatingSystemLead(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedOperatingSystemLeads.Add(query.Value);
-        else
-            filter.IncludedOperatingSystemLeads.Add(query.Value);
+        AddTerm(filter, "os-lead:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("os-owner")]
     private static void ApplyOperatingSystemOwner(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedOperatingSystemOwners.Add(query.Value);
-        else
-            filter.IncludedOperatingSystemOwners.Add(query.Value);
+        AddTerm(filter, "os-owner:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("arch")]
     private static void ApplyArchitecture(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedArchitectures.Add(query.Value);
-        else
-            filter.IncludedArchitectures.Add(query.Value);
+        AddTerm(filter, "arch:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("arch-lead")]
     private static void ApplyArchitectureLead(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedArchitectureLeads.Add(query.Value);
-        else
-            filter.IncludedArchitectureLeads.Add(query.Value);
+        AddTerm(filter, "arch-lead:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("arch-owner")]
     private static void ApplyArchitectureOwner(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedArchitectureOwners.Add(query.Value);
-        else
-            filter.IncludedArchitectureOwners.Add(query.Value);
+        AddTerm(filter, "arch-owner:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("lead")]
     private static void ApplyLead(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedLeads.Add(query.Value);
-        else
-            filter.IncludedLeads.Add(query.Value);
+        AddTerm(filter, "lead:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("owner")]
     private static void ApplyOwner(IssueFilter filter, BoundKeyValueQuery query)
     {
-        if (query.IsNegated)
-            filter.ExcludedOwners.Add(query.Value);
-        else
-            filter.IncludedOwners.Add(query.Value);
+        AddTerm(filter, "owner:" + query.Value, query.IsNegated);
     }
 
     [KeyValueHandler("created")]

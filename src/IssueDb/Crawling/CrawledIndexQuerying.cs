@@ -55,60 +55,6 @@ public static partial class CrawledIndexQuerying
         foreach (var term in filter.IncludedTerms)
             ApplyTerm(ref result, index.Trie, term);
 
-        foreach (var org in filter.IncludedOrgs)
-            ApplyTerm(ref result, index.Trie, $"org:{org}");
-
-        foreach (var repo in filter.IncludedRepos)
-            ApplyTerm(ref result, index.Trie, $"repo:{repo}");
-
-        foreach (var assignee in filter.IncludedAssignees)
-            ApplyTerm(ref result, index.Trie, $"assignee:{assignee}");
-
-        foreach (var label in filter.IncludedLabels)
-            ApplyTerm(ref result, index.Trie, $"label:{label}");
-
-        foreach (var area in filter.IncludedAreas)
-            ApplyTerm(ref result, index.Trie, $"area-under:{area}");
-
-        foreach (var areaNode in filter.IncludedAreaNodes)
-            ApplyTerm(ref result, index.Trie, $"area-node:{areaNode}");
-
-        foreach (var areaLead in filter.IncludedAreaLeads)
-            ApplyTerm(ref result, index.Trie, $"area-lead:{areaLead}");
-
-        foreach (var areaOwner in filter.IncludedAreaOwners)
-            ApplyTerm(ref result, index.Trie, $"area-owner:{areaOwner}");
-
-        foreach (var os in filter.IncludedOperatingSystems)
-            ApplyTerm(ref result, index.Trie, $"os:{os}");
-
-        foreach (var osLead in filter.IncludedOperatingSystemLeads)
-            ApplyTerm(ref result, index.Trie, $"os-lead:{osLead}");
-
-        foreach (var osOwner in filter.IncludedOperatingSystemOwners)
-            ApplyTerm(ref result, index.Trie, $"os-owner:{osOwner}");
-
-        foreach (var arch in filter.IncludedArchitectures)
-            ApplyTerm(ref result, index.Trie, $"arch:{arch}");
-
-        foreach (var archLead in filter.IncludedArchitectureLeads)
-            ApplyTerm(ref result, index.Trie, $"arch-lead:{archLead}");
-
-        foreach (var archOwner in filter.IncludedArchitectureOwners)
-            ApplyTerm(ref result, index.Trie, $"arch-owner:{archOwner}");
-
-        foreach (var lead in filter.IncludedLeads)
-            ApplyTerm(ref result, index.Trie, $"lead:{lead}");
-
-        foreach (var owner in filter.IncludedOwners)
-            ApplyTerm(ref result, index.Trie, $"owner:{owner}");
-
-        if (filter.Author != null)
-            ApplyTerm(ref result, index.Trie, $"author:{filter.Author}");
-
-        if (filter.Milestone != null)
-            ApplyTerm(ref result, index.Trie, $"milestone:{filter.Milestone}");
-
         if (filter.IsLocked == true)
             ApplyPredicate(ref result, index, i => i.IsLocked);
         else if (filter.IsLocked == false)
@@ -208,62 +154,8 @@ public static partial class CrawledIndexQuerying
         if (filter.Interactions is not null)
             ApplyPredicate(ref result, index, i => filter.Interactions.Contains(i.Interactions));
 
-        foreach (var org in filter.ExcludedOrgs)
-            ApplyNegatedTerm(ref result, index, $"org:{org}");
-
-        foreach (var repo in filter.ExcludedRepos)
-            ApplyNegatedTerm(ref result, index, $"repo:{repo}");
-
         foreach (var term in filter.ExcludedTerms)
             ApplyNegatedTerm(ref result, index, term);
-
-        foreach (var assignee in filter.ExcludedAssignees)
-            ApplyNegatedTerm(ref result, index, $"assignee:{assignee}");
-
-        foreach (var author in filter.ExcludedAuthors)
-            ApplyNegatedTerm(ref result, index, $"author:{author}");
-
-        foreach (var label in filter.ExcludedLabels)
-            ApplyNegatedTerm(ref result, index, $"label:{label}");
-
-        foreach (var area in filter.ExcludedAreas)
-            ApplyNegatedTerm(ref result, index, $"area-under:{area}");
-
-        foreach (var areaNode in filter.ExcludedAreaNodes)
-            ApplyNegatedTerm(ref result, index, $"area-node:{areaNode}");
-
-        foreach (var areaLead in filter.ExcludedAreaLeads)
-            ApplyNegatedTerm(ref result, index, $"area-lead:{areaLead}");
-
-        foreach (var areaOwner in filter.ExcludedAreaOwners)
-            ApplyNegatedTerm(ref result, index, $"area-owner:{areaOwner}");
-
-        foreach (var os in filter.ExcludedOperatingSystems)
-            ApplyNegatedTerm(ref result, index, $"os:{os}");
-
-        foreach (var osLead in filter.ExcludedOperatingSystemLeads)
-            ApplyNegatedTerm(ref result, index, $"os-lead:{osLead}");
-
-        foreach (var osOwner in filter.ExcludedOperatingSystemOwners)
-            ApplyNegatedTerm(ref result, index, $"os-owner:{osOwner}");
-
-        foreach (var arch in filter.ExcludedArchitectures)
-            ApplyNegatedTerm(ref result, index, $"arch:{arch}");
-
-        foreach (var archLead in filter.ExcludedArchitectureLeads)
-            ApplyNegatedTerm(ref result, index, $"arch-lead:{archLead}");
-
-        foreach (var archOwner in filter.ExcludedArchitectureOwners)
-            ApplyNegatedTerm(ref result, index, $"arch-owner:{archOwner}");
-
-        foreach (var lead in filter.ExcludedLeads)
-            ApplyNegatedTerm(ref result, index, $"lead:{lead}");
-
-        foreach (var owner in filter.ExcludedOwners)
-            ApplyNegatedTerm(ref result, index, $"owner:{owner}");
-
-        foreach (var milestone in filter.ExcludedMilestones)
-            ApplyNegatedTerm(ref result, index, $"milestone:{milestone}");
 
         return result ?? new HashSet<CrawledIssue>();
 
