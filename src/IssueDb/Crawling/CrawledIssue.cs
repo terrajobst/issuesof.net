@@ -73,6 +73,10 @@ public sealed class CrawledIssue
     // Operating Systems
 
     [JsonIgnore]
+    public bool HasOwnedOperatingSystems => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
+                                                  .Any(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name));
+
+    [JsonIgnore]
     public IEnumerable<string> OperatingSystems => Labels.Where(l => l.Name.StartsWith("os-", StringComparison.OrdinalIgnoreCase))
                                                          .Select(l => l.Name.Substring(3));
 
@@ -93,6 +97,10 @@ public sealed class CrawledIssue
                                                               .Distinct(StringComparer.OrdinalIgnoreCase);
 
     // Arch
+
+    [JsonIgnore]
+    public bool HasOwnedArchitectures => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
+                                               .Any(l => Repo.AreaOwnership.EntryByLabel.ContainsKey(l.Name));
 
     [JsonIgnore]
     public IEnumerable<string> Architectures => Labels.Where(l => l.Name.StartsWith("arch-", StringComparison.OrdinalIgnoreCase))
@@ -117,16 +125,16 @@ public sealed class CrawledIssue
     // Leads and Owners
 
     [JsonIgnore]
-    public IEnumerable<string> Leads => Architectures.Any()
+    public IEnumerable<string> Leads => HasOwnedArchitectures
                                             ? ArchitectureLeads
-                                            : OperatingSystems.Any()
+                                            : HasOwnedOperatingSystems
                                                 ? OperatingSystemLeads
                                                 : AreaLeads;
 
     [JsonIgnore]
-    public IEnumerable<string> Owners => Architectures.Any()
+    public IEnumerable<string> Owners => HasOwnedArchitectures
                                             ? ArchitectureOwners
-                                            : OperatingSystems.Any()
+                                            : HasOwnedOperatingSystems
                                                 ? OperatingSystemOwners
                                                 : AreaOwners;
 
