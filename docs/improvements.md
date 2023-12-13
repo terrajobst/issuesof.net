@@ -9,6 +9,11 @@
 - Use a mutable trie during construction
 - Don't index stop words
 
+## Sentiment
+
+- Would be good to identify "hot issues", number of comments, negative
+  sentiment, number of negative reactions
+
 ## Queries
 
 - Support `,` as a value separator and expand it in the binder, e.g.
