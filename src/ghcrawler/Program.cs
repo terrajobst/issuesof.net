@@ -41,6 +41,7 @@ internal static class Program
         var reindex = false;
         var pullLatest = true;
         var randomReindex = true;
+        var pullComments = false;
         var uploadToAzure = true;
         var startingRepoName = (string?)null;
         var help = args.Length == 0;
@@ -69,6 +70,7 @@ internal static class Program
             { "out=", "The output {path} the index should be written to", v => outputPath = v },
             { "reindex", "Specifies that the repo should be reindexed", v => reindex = true },
             { "starting-repo=", "The starting {repo} to re-index", v => startingRepoName = v },
+            { "pull-comments", "Also pulls issue and PR comments", v => pullComments = true },
             { "no-pull-latest", null, v => pullLatest = false, true },
             { "no-random-reindex", null, v => randomReindex = false, true },
             { "no-upload", null, v => uploadToAzure = false, true },
@@ -92,6 +94,7 @@ internal static class Program
 
             ApplyEnvironment("GHCRAWLER_NO_PULL_LATEST", negated: true, ref pullLatest);
             ApplyEnvironment("GHCRAWLER_NO_RANDOM_REINDEX", negated: true, ref randomReindex);
+            ApplyEnvironment("GHCRAWLER_PULL_COMMENTS", negated: false, ref pullComments);
 
             var parameters = options.Parse(args).ToArray();
 
@@ -145,7 +148,7 @@ internal static class Program
 
         try
         {
-            await RunAsync(subscriptionList, reindex, pullLatest, randomReindex, uploadToAzure, startingRepoName, outputPath);
+            await RunAsync(subscriptionList, reindex, pullLatest, pullComments, randomReindex, uploadToAzure, startingRepoName, outputPath);
             return 0;
         }
         catch (Exception ex) when (!Debugger.IsAttached)
@@ -155,7 +158,7 @@ internal static class Program
         }
     }
 
-    private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool randomReindex, bool uploadToAzure, string? startingRepoName, string outputPath)
+    private static async Task RunAsync(CrawledSubscriptionList subscriptionList, bool reindex, bool pullLatest, bool pullComments, bool randomReindex, bool uploadToAzure, string? startingRepoName, string outputPath)
     {
         var reindexIntervalInDays = 28;
         var today = DateTime.Today;
@@ -173,6 +176,9 @@ internal static class Program
         var cacheContainerName = "cache";
         var cacheContainerClient = new BlobContainerClient(connectionString, cacheContainerName);
 
+        var commentsContainerName = "comments";
+        var commentsContainerClient = new BlobContainerClient(connectionString, commentsContainerName);
+
         if (!reindex || startingRepoName is not null)
         {
             var startingBlobName = $"{startingRepoName}.crcache";
@@ -187,7 +193,7 @@ internal static class Program
                     reachedStartingBlob = true;
 
                 if (reachedStartingBlob)
-                    continue;
+                    break;
 
                 Console.WriteLine($"Downloading {blob.Name}...");
 
@@ -200,19 +206,23 @@ internal static class Program
             }
         }
 
+        var commentBlobNames = new Dictionary<string, DateTimeOffset>(StringComparer.OrdinalIgnoreCase);
+
+        if (pullComments)
+        {
+            Console.WriteLine("Loading comment blobs...");
+            await foreach (var blob in commentsContainerClient.GetBlobsAsync())
+                commentBlobNames.Add(blob.Name, blob.Properties.LastModified!.Value);
+            Console.WriteLine($"Found {commentBlobNames.Count:N0} comment blobs.");
+        }
+
         var client = CreateGitHubAppClient();
 
         // Loading repos
 
         await client.UseInstallationTokenAsync("dotnet");
 
-        var jsonOptions = new JsonSerializerOptions()
-        {
-            WriteIndented = true
-        };
-
         var repos = new List<CrawledRepo>();
-
         var reachedStartingRepo = reindex && startingRepoName is null;
 
         foreach (var org in subscriptionList.Orgs)
@@ -256,6 +266,20 @@ internal static class Program
                     {
                         Console.WriteLine($"Deleting Azure blob {blobName}...");
                         await cacheContainerClient.DeleteBlobAsync(blobName);
+                    }
+
+                    var commentDirectoryName = Path.Join(tempDirectory, $"{org}/{deletedRepo}");
+                    if (Directory.Exists(commentDirectoryName))
+                    {
+                        foreach (var file in Directory.GetFiles(commentDirectoryName, "*.ciccache"))
+                        {
+                            var commentBlobName = $"{org}/{deletedRepo}/{Path.GetFileName(file)}";
+                            Console.WriteLine($"Deleting local file {commentBlobName}...");
+                            File.Delete(file);
+
+                            if (uploadToAzure)
+                                commentsContainerClient.DeleteBlobIfExists(commentBlobName);
+                        }
                     }
                 }
 
@@ -453,6 +477,10 @@ internal static class Program
                 {
                     var crawledIssue = ConvertIssue(crawledRepo, issue, labelById, milestoneById);
                     crawledRepo.Issues[issue.Number] = crawledIssue;
+
+                    if (pullComments)
+                        await LoadCommentsAsync(client, commentBlobNames, crawledRepo, issue.Number, since, tempDirectory,
+                                                uploadToAzure, connectionString, commentsContainerName);
                 }
 
                 foreach (var pullRequest in await RequestPullRequestsAsync(client, crawledRepo.Org, crawledRepo.Name, since))
@@ -463,6 +491,10 @@ internal static class Program
                     // TODO: Get PR reviews
                     // TODO: Get PR commits
                     // TODO: Get PR status
+
+                    if (pullComments)
+                        await LoadCommentsAsync(client, commentBlobNames, crawledRepo, pullRequest.Number, since, tempDirectory,
+                                                uploadToAzure, connectionString, commentsContainerName);
                 }
 
                 await crawledRepo.SaveAsync(repoPath);
@@ -480,6 +512,45 @@ internal static class Program
 
                     Console.WriteLine($"Deleting {eventsToBeDeleted.Length:N0} events for {crawledRepo.FullName}...");
                     await eventStore.DeleteAsync(eventsToBeDeleted);
+                }
+            }
+        }
+
+        // Pull missing comments
+
+        if (pullComments)
+        {
+            foreach (var repo in repos.OrderBy(r => r.Org).ThenBy(r => r.Name))
+            {
+                foreach (var issue in repo.Issues.Values.OrderBy(i => i.Number))
+                {
+                    var commentBlobName = $"{repo.FullName}/{issue.Number}.ciccache";
+
+                    if (!commentBlobNames.TryGetValue(commentBlobName, out var commentsTime))
+                    {
+                        Console.WriteLine("Downloading missing comments...");
+                    }
+                    else
+                    {
+                        // OK, we already have comments for this issue.
+                        //
+                        // Let's make sure that the comments aren't older than the last time
+                        // the issue was updated. If they are, we need to update the comments.
+
+                        var issueTime = issue.UpdatedAt ?? issue.CreatedAt;
+                        if (commentsTime >= issueTime + TimeSpan.FromMinutes(1))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Comments outdated.");
+                            commentBlobNames.Remove(commentBlobName);
+                        }
+                    }
+
+                    await LoadCommentsAsync(client, commentBlobNames, repo, issue.Number, since: null, tempDirectory,
+                                            uploadToAzure, connectionString, commentsContainerName);
                 }
             }
         }
@@ -660,6 +731,16 @@ internal static class Program
         return result.ToArray();
     }
 
+    private static async Task<IReadOnlyList<IssueComment>> RequestIssueCommentsAsync(GitHubAppClient client, string org, string repo, int number, DateTimeOffset? since)
+    {
+        var request = new IssueCommentRequest()
+        {
+            Since = since
+        };
+
+        return await client.InvokeAsync(c => c.Issue.Comment.GetAllForIssue(org, repo, number, request));
+    }
+
     private static void SyncLabels(CrawledRepo crawledRepo, IReadOnlyList<Label> gitHubLabels, out Dictionary<long, CrawledLabel> labelById)
     {
         // TODO: This logic feels similar to what we do in the web site. Should we reconcile this?
@@ -835,6 +916,69 @@ internal static class Program
                         .ToArray();
     }
 
+    private static IReadOnlyList<CrawledIssueComment> ConvertIssueComments(IReadOnlyList<IssueComment> comments)
+    {
+        var result = new List<CrawledIssueComment>(comments.Count);
+        foreach (var comment in comments)
+        {
+            var convertedComment = ConvertIssueComment(comment);
+            result.Add(convertedComment);
+        }
+
+        return result.ToArray();
+    }
+
+    private static CrawledIssueComment ConvertIssueComment(IssueComment comment)
+    {
+        return new CrawledIssueComment
+        {
+            Id = comment.Id,
+            Body = comment.Body,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt,
+            CreatedBy = comment.User.Login,
+            CreatedByAssociation = comment.AuthorAssociation.StringValue,
+            ReactionsPlus1 = comment.Reactions?.Plus1 ?? 0,
+            ReactionsMinus1 = comment.Reactions?.Minus1 ?? 0,
+            ReactionsSmile = comment.Reactions?.Laugh ?? 0,
+            ReactionsTada = comment.Reactions?.Hooray ?? 0,
+            ReactionsThinkingFace = comment.Reactions?.Confused ?? 0,
+            ReactionsHeart = comment.Reactions?.Heart ?? 0
+            // TODO: RocketShip and Eyes are missing
+        };
+    }
+
+    private static IReadOnlyList<CrawledIssueComment> MergeComments(IReadOnlyList<CrawledIssueComment> existingComments, IReadOnlyList<CrawledIssueComment> comments)
+    {
+        var commentById = comments.ToDictionary(c => c.Id);
+        var totalComments = existingComments.Count(e => !commentById.ContainsKey(e.Id)) + comments.Count;
+        var result = new List<CrawledIssueComment>(totalComments);
+        var updatedComments = new HashSet<CrawledIssueComment>();
+
+        foreach (var existingComment in existingComments)
+        {
+            if (!commentById.TryGetValue(existingComment.Id, out var updatedComment))
+            {
+                result.Add(existingComment);
+            }
+            else
+            {
+                result.Add(updatedComment);
+                updatedComments.Add(updatedComment);
+            }
+        }
+
+        foreach (var comment in comments)
+        {
+            if (updatedComments.Contains(comment))
+                continue;
+
+            result.Add(comment);
+        }
+
+        return result.ToArray();
+    }
+
     private static CrawledLabel[] GetLabels(IReadOnlyList<Label> labels, Dictionary<long, CrawledLabel> crawledLabels)
     {
         var result = new List<CrawledLabel>();
@@ -865,6 +1009,70 @@ internal static class Program
         // TODO: pullRequest.Head?.Ref
         // TODO: pullRequest.RequestedReviewers
         // TODO: pullRequest.RequestedTeams
+    }
+
+    private static async Task LoadCommentsAsync(GitHubAppClient client,
+                                                Dictionary<string, DateTimeOffset> commentBlobNames,
+                                                CrawledRepo repo,
+                                                int number,
+                                                DateTimeOffset? since,
+                                                string tempDirectory,
+                                                bool uploadToAzure,
+                                                string connectionString,
+                                                string commentsContainerName)
+    {
+        var blobName = $"{repo.Org}/{repo.Name}/{number}.ciccache";
+        var commentFileName = Path.Join(tempDirectory, blobName);
+        var commentDirectory = Path.GetDirectoryName(commentFileName)!;
+        Directory.CreateDirectory(commentDirectory);
+
+        if (commentBlobNames.ContainsKey(blobName))
+        {
+            try
+            {
+                Console.WriteLine($"Downloading {blobName}...");
+                var blobClient = new BlobClient(connectionString, commentsContainerName, blobName);
+                await blobClient.DownloadToAsync(commentFileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"error: {ex.Message}");
+            }
+        }
+
+        var existingComments = await CrawledIssueComment.LoadAsync(commentFileName);
+        var commentSince = File.Exists(commentFileName)
+            ? since
+            : null;
+
+        if (commentSince is null)
+            Console.WriteLine($"Crawling comments for {repo.Org}/{repo.Name}/{number}...");
+        else
+            Console.WriteLine($"Crawling comments for {repo.Org}/{repo.Name}/{number} since {commentSince}...");
+
+        IReadOnlyList<IssueComment> comments;
+        try
+        {
+            comments = await RequestIssueCommentsAsync(client, repo.Org, repo.Name, number, commentSince);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"error: {ex.Message}");
+            return;
+        }
+
+        var crawledComments = ConvertIssueComments(comments);
+        var mergedComments = MergeComments(existingComments, crawledComments);
+
+        await CrawledIssueComment.SaveAsync(commentFileName, mergedComments);
+        commentBlobNames.Add(blobName, DateTimeOffset.UtcNow);
+
+        if (uploadToAzure)
+        {
+            Console.WriteLine($"Uploading {blobName} to Azure...");
+            var commentClient = new BlobClient(connectionString, commentsContainerName, blobName);
+            await commentClient.UploadAsync(commentFileName, overwrite: true);
+        }
     }
 
     private static string GetAzureStorageConnectionString()

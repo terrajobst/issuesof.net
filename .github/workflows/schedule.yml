@@ -11,6 +11,10 @@ on:
         description: 'Do not perform random re-indexing'
         required: false
         type: boolean
+      pull-comments:
+        description: 'Pull issue and PR comments'
+        required: false
+        type: boolean
   schedule:
     - cron: '21 12 * * *' # every day at 12:21 PM UTC (5:21 AM PT)
 
@@ -34,6 +38,7 @@ jobs:
         AzureStorageConnectionString: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
         GHCRAWLER_NO_PULL_LATEST: ${{ inputs.no-pull-latest }}
         GHCRAWLER_NO_RANDOM_REINDEX: ${{ inputs.no-random-reindex }}
+        GHCRAWLER_PULL_COMMENTS: ${{ inputs.pull-comments }}
       run: |
         cd src/ghcrawler
         dotnet run -- --subscriptions
