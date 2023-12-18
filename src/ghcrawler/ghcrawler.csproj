@@ -11,8 +11,10 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Dapper" />
     <PackageReference Include="GitHubJwt" />
     <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="Octokit" />

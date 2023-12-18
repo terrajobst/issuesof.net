@@ -2,11 +2,12 @@
 using System.Text.Json;
 
 using Azure.Storage.Blobs;
-
+using Dapper;
 using IssueDb;
 using IssueDb.Crawling;
 using IssueDb.Eventing;
 
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Primitives;
 
@@ -20,7 +21,443 @@ namespace IssuesOfDotNet.Crawler;
 
 internal static class Program
 {
-    private static async Task<int> Main(string[] args)
+    [Flags]
+    private enum CrawledIssueFlags : byte
+    {
+        None        = 0x00,
+        Open        = 0x01,
+        PullRequest = 0x02,
+        Draft       = 0x04,
+        Merged      = 0x08
+    }
+
+    private static async Task Main()
+    {
+        var directoryRoot = @"C:\Users\immol\Downloads\issuesofdotnet";
+        var commentsPath = Path.Join(directoryRoot, "comments");
+        var reposPath = Path.Join(directoryRoot, "repos");
+        var dbPath = Path.Join(directoryRoot, "issuesofdotnet.db");
+
+        static async Task DownloadReposAsync(string dbPath)
+        {
+            var connectionString = GetAzureStorageConnectionString();
+            var containerClient = new BlobContainerClient(connectionString, "cache");
+
+            await foreach (var blob in containerClient.GetBlobsAsync())
+            {
+                var localPath = Path.Combine(dbPath, blob.Name);
+                if (File.Exists(localPath))
+                    continue;
+
+                var localDirectory = Path.GetDirectoryName(localPath)!;
+                Directory.CreateDirectory(localDirectory);
+
+                Console.WriteLine($"Downloading {blob.Name}...");
+                var blobClient = containerClient.GetBlobClient(blob.Name);
+                await blobClient.DownloadToAsync(localPath);
+            }
+        }
+        
+        // await DownloadReposAsync(reposPath);
+
+        if (File.Exists(dbPath))
+            File.Delete(dbPath);
+
+        var connectionString = new SqliteConnectionStringBuilder
+        {
+            DataSource = dbPath,
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            Pooling = false
+        }.ToString();
+
+        await using var connection = new SqliteConnection(connectionString);
+        await connection.OpenAsync();
+        await connection.ExecuteAsync("PRAGMA JOURNAL_MODE = OFF");
+        await connection.ExecuteAsync("PRAGMA SYNCHRONOUS = OFF");
+
+        var schema = """
+            CREATE TABLE Orgs
+            (
+                OrgId INTEGER NOT NULL PRIMARY KEY,
+                Name  TEXT NOT NULL
+            );
+            CREATE TABLE Repos
+            (
+                RepoId INTEGER NOT NULL PRIMARY KEY,
+                OrgId  INTEGER REFERENCES Orgs,
+                Name   TEXT NOT NULL
+            );
+            CREATE INDEX IX_Repos_OrgId ON Repos(OrgId);
+            CREATE TABLE Issues
+            (
+                IssueId     INTEGER NOT NULL PRIMARY KEY,
+                RepoId      INTEGER NOT NULL REFERENCES Repos,
+                Number      INTEGER NOT NULL,
+                Title       TEXT NOT NULL,
+                Body        TEXT NOT NULL,
+                Flags       INTEGER NOT NULL,
+                AuthorId    INTEGER NOT NULL REFERENCES Users,
+
+                CreatedAt   TEXT NOT NULL,
+                UpdatedAt   TEXT,
+                ClosedAt    TEXT,
+
+                MilestoneId INTEGER REFERENCES Milestones,
+
+                ReactionsPlus1         INTEGER NOT NULL,
+                ReactionsMinus1        INTEGER NOT NULL,
+                ReactionsSmile         INTEGER NOT NULL,
+                ReactionsTada          INTEGER NOT NULL,
+                ReactionsThinkingFace  INTEGER NOT NULL,
+                ReactionsHeart         INTEGER NOT NULL
+            );
+            CREATE INDEX IX_Issues_RepoId ON Issues(RepoId);
+            CREATE TABLE IssueLabels
+            (
+                IssueId     INTEGER NOT NULL REFERENCES Issues,
+                LabelId     INTEGER NOT NULL REFERENCES Labels
+            );
+            CREATE INDEX IX_IssueLabels_IssueId ON IssueLabels(IssueId);
+            CREATE TABLE IssueAssignees
+            (
+                IssueId     INTEGER NOT NULL REFERENCES Issues,
+                UserId      INTEGER NOT NULL REFERENCES Users
+            );
+            CREATE INDEX IX_IssueAssignees_IssueId ON IssueAssignees(IssueId);
+            CREATE TABLE Labels
+            (
+                LabelId     INTEGER NOT NULL PRIMARY KEY,
+                RepoId      INTEGER NOT NULL REFERENCES Repos,
+                Name        TEXT NOT NULL,
+                Description TEXT,
+                Color       TEXT
+            );
+            CREATE INDEX IX_Labels_RepoId ON Labels(RepoId);
+            CREATE TABLE Milestones
+            (
+                MilestoneId INTEGER NOT NULL PRIMARY KEY,
+                RepoId      INTEGER NOT NULL REFERENCES Repos,
+                Number      INTEGER NOT NULL,
+                Name        TEXT NOT NULL,
+                Description TEXT
+            );
+            CREATE INDEX IX_Milestones_RepoId ON Milestones(RepoId);
+            CREATE TABLE Users
+            (
+                UserId      INTEGER NOT NULL PRIMARY KEY,
+                Name        TEXT NOT NULL
+            );
+            CREATE TABLE IssueComments
+            (
+                IssueCommentId         INTEGER NOT NULL PRIMARY KEY,
+                IssueId                INTEGER NOT NULL REFERENCES Issues,
+                Body                   TEXT NOT NULL,
+                CreatedAt              TEXT NOT NULL,
+                UpdatedAt              TEXT,
+                AuthorId               INTEGER NOT NULL REFERENCES Users,
+                ReactionsPlus1         INTEGER NOT NULL,
+                ReactionsMinus1        INTEGER NOT NULL,
+                ReactionsSmile         INTEGER NOT NULL,
+                ReactionsTada          INTEGER NOT NULL,
+                ReactionsThinkingFace  INTEGER NOT NULL,
+                ReactionsHeart         INTEGER NOT NULL
+            );
+            CREATE INDEX IX_IssueComments_IssueId ON IssueComments(IssueId);
+            """;
+
+        await connection.ExecuteAsync(schema);
+
+        Console.WriteLine("Loading repos...");
+
+        var repos = new List<CrawledRepo>();
+
+        foreach (var file in Directory.GetFiles(reposPath, "*.crcache", SearchOption.AllDirectories).WithProgress())
+        {
+            var repo = await CrawledRepo.LoadAsync(file);
+            if (repo is not null)
+                repos.Add(repo);
+        }
+
+        Console.WriteLine("Inserting orgs...");
+
+        var orgs = repos.Select(r => r.Org).Distinct().Order();
+        var orgIds = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var org in orgs)
+        {
+            var orgId = orgIds.Count + 1;
+            await connection.ExecuteAsync("""
+                INSERT INTO Orgs (OrgId, Name)
+                VALUES           (@OrgId, @Name)
+                """, new { OrgId = orgId, Name = org });
+            orgIds.Add(org, orgId);
+        }
+
+        Console.WriteLine("Inserting repos...");
+
+        var repoIds = new Dictionary<CrawledRepo, int>();
+
+        foreach (var repo in repos)
+        {
+            var orgId = orgIds[repo.Org];
+            var repoId = repoIds.Count + 1;
+            await connection.ExecuteAsync("""
+                INSERT INTO Repos (RepoId, OrgId, Name)
+                VALUES            (@RepoId, @OrgId, @Name)
+                """, new { RepoId = repoId, OrgId = orgId, Name = repo.Name });
+            repoIds.Add(repo, repoId);
+        }
+
+        Console.WriteLine("Inserting labels...");
+
+        var labelIds = new Dictionary<CrawledLabel, int>();
+
+        foreach (var repo in repos)
+        {
+            foreach (var label in repo.Labels)
+            {
+                var labelId = labelIds.Count + 1;
+                var repoId = repoIds[repo];
+                await connection.ExecuteAsync("""
+                    INSERT INTO Labels (LabelId, RepoId, Name, Description, Color)
+                    VALUES              (@LabelId, @RepoId, @Name, @Description, @Color)
+                    """, new { LabelId = labelId, RepoId = repoId, Name = label.Name, Description = label.Description, Color=label.ColorText });
+                labelIds.Add(label, labelId);
+            }
+        }
+
+        Console.WriteLine("Inserting milestones...");
+
+        var milestoneIds = new Dictionary<CrawledMilestone, int>();
+
+        foreach (var repo in repos)
+        {
+            foreach (var milestone in repo.Milestones)
+            {
+                var milestoneId = milestoneIds.Count + 1;
+                var repoId = repoIds[repo];
+                await connection.ExecuteAsync("""
+                    INSERT INTO Milestones (MilestoneId, RepoId, Number, Name, Description)
+                    VALUES                 (@MilestoneId, @RepoId, @Number, @Name, @Description)
+                    """, new { MilestoneId = milestoneId, RepoId = repoId, Number = milestone.Number, Name = milestone.Title, Description=milestone.Description });
+                milestoneIds.Add(milestone, milestoneId);
+            }
+        }
+
+        Console.WriteLine("Inserting users...");
+
+        var authors = repos.SelectMany(r => r.Issues.Values).Select(r => r.CreatedBy);
+        var assignees = repos.SelectMany(r => r.Issues.Values).SelectMany(r => r.Assignees);
+        var users = authors.Concat(assignees).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var userIds = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var user in users)
+        {
+            if (userIds.ContainsKey(user))
+                continue;
+
+            var userId = userIds.Count + 1;
+            await connection.ExecuteAsync("""
+                INSERT INTO Users (UserId, Name)
+                VALUES            (@UserId, @Name)
+                """, new { UserId = userId, Name = user });
+            userIds.Add(user, userId);
+        }
+
+        Console.WriteLine("Inserting issues...");
+
+        var issueIds = new Dictionary<CrawledIssue, int>();
+
+        foreach (var repo in repos.WithProgress())
+        {
+            foreach (var issue in repo.Issues.Values)
+            {
+                var issueId = issueIds.Count + 1;
+                var repoId = repoIds[repo];
+                var authorId = userIds[issue.CreatedBy];
+                var issueFlags = CrawledIssueFlags.None;
+                var milestoneId = issue.Milestone is null ? (int?) null : milestoneIds[issue.Milestone];
+
+                if (issue.IsOpen) issueFlags |= CrawledIssueFlags.Open;
+                if (issue.IsPullRequest) issueFlags |= CrawledIssueFlags.PullRequest;
+                if (issue.IsDraft) issueFlags |= CrawledIssueFlags.Draft;
+                if (issue.IsMerged) issueFlags |= CrawledIssueFlags.Merged;
+
+                await connection.ExecuteAsync("""
+                    INSERT INTO Issues (
+                        IssueId,
+                        RepoId,
+                        Number,
+                        Title,
+                        Body,
+                        Flags,
+                        AuthorId,
+                        CreatedAt,
+                        UpdatedAt,
+                        ClosedAt,
+                        MilestoneId,
+                        ReactionsPlus1,
+                        ReactionsMinus1,
+                        ReactionsSmile,
+                        ReactionsTada,
+                        ReactionsThinkingFace,
+                        ReactionsHeart
+                    ) VALUES (
+                        @IssueId,
+                        @RepoId,
+                        @Number,
+                        @Title,
+                        @Body,
+                        @Flags,
+                        @AuthorId,
+                        @CreatedAt,
+                        @UpdatedAt,
+                        @ClosedAt,
+                        @MilestoneId,
+                        @ReactionsPlus1,
+                        @ReactionsMinus1,
+                        @ReactionsSmile,
+                        @ReactionsTada,
+                        @ReactionsThinkingFace,
+                        @ReactionsHeart
+                    )
+                    """, new { 
+                        IssueId = issueId,
+                        RepoId = repoId,
+                        Number = issue.Number,
+                        Title = issue.Title,
+                        Body = issue.Body ?? "",
+                        Flags = (byte)issueFlags,
+                        AuthorId = authorId,
+                        CreatedAt = issue.CreatedAt,
+                        UpdatedAt = issue.UpdatedAt,
+                        ClosedAt = issue.ClosedAt,
+                        MilestoneId = milestoneId,
+                        ReactionsPlus1 = issue.ReactionsPlus1,
+                        ReactionsMinus1 = issue.ReactionsMinus1,
+                        ReactionsSmile = issue.ReactionsSmile,
+                        ReactionsTada = issue.ReactionsTada,
+                        ReactionsThinkingFace = issue.ReactionsThinkingFace,
+                        ReactionsHeart = issue.ReactionsHeart
+                    });
+                issueIds.Add(issue, issueId);
+            }
+        }
+
+        Console.WriteLine("Inserting issue labels...");
+
+        foreach (var repo in repos.WithProgress())
+        {
+            foreach (var issue in repo.Issues.Values)
+            {
+                var issueId = issueIds[issue];
+
+                foreach (var label in issue.Labels)
+                {
+                    var labelId = labelIds[label];
+                    await connection.ExecuteAsync("""
+                        INSERT INTO IssueLabels (IssueId, LabelId)
+                        VALUES                  (@IssueId, @LabelId)
+                        """, new { IssueId = issueId, LabelId = labelId });
+                }
+            }
+        }
+
+        Console.WriteLine("Inserting assignees...");
+
+        foreach (var repo in repos.WithProgress())
+        {
+            foreach (var issue in repo.Issues.Values)
+            {
+                var issueId = issueIds[issue];
+
+                foreach (var user in issue.Assignees)
+                {
+                    var userId = userIds[user];
+                    await connection.ExecuteAsync("""
+                        INSERT INTO IssueAssignees (IssueId, UserId)
+                        VALUES                     (@IssueId, @UserId)
+                        """, new { IssueId = issueId, UserId = userId });
+                }
+            }
+        }
+
+        Console.WriteLine("Inserting comments...");
+
+        var issueCommentId = 1;
+
+        foreach (var repo in repos.WithProgress())
+        {
+            foreach (var issue in repo.Issues.Values)
+            {
+                var commentsFileName = Path.Join(commentsPath, repo.Org, repo.Name, $"{issue.Number}.ciccache");
+                var comments = await CrawledIssueComment.LoadAsync(commentsFileName);
+
+                foreach (var comment in comments)
+                {
+                    var issueId = issueIds[issue];
+
+                    var author = comment.CreatedBy;
+                    if (!userIds.TryGetValue(author, out var authorId))
+                    {
+                        authorId = userIds.Count + 1;
+                        await connection.ExecuteAsync("""
+                            INSERT INTO Users (UserId, Name)
+                            VALUES            (@UserId, @Name)
+                            """, new { UserId = authorId, Name = author });
+                        userIds.Add(author, authorId);
+                    }
+
+                    await connection.ExecuteAsync("""
+                        INSERT INTO IssueComments (
+                            IssueCommentId,
+                            IssueId,
+                            Body,
+                            CreatedAt,
+                            UpdatedAt,
+                            AuthorId,
+                            ReactionsPlus1,
+                            ReactionsMinus1,
+                            ReactionsSmile,
+                            ReactionsTada,
+                            ReactionsThinkingFace,
+                            ReactionsHeart
+                        ) VALUES (
+                            @IssueCommentId,
+                            @IssueId,
+                            @Body,
+                            @CreatedAt,
+                            @UpdatedAt,
+                            @AuthorId,
+                            @ReactionsPlus1,
+                            @ReactionsMinus1,
+                            @ReactionsSmile,
+                            @ReactionsTada,
+                            @ReactionsThinkingFace,
+                            @ReactionsHeart
+                        )
+                        """, new { 
+                            IssueCommentId = issueCommentId,
+                            IssueId = issueId,
+                            Body = comment.Body,
+                            CreatedAt = comment.CreatedAt,
+                            UpdatedAt = comment.UpdatedAt,
+                            AuthorId = authorId,
+                            ReactionsPlus1 = comment.ReactionsPlus1,
+                            ReactionsMinus1 = comment.ReactionsMinus1,
+                            ReactionsSmile = comment.ReactionsSmile,
+                            ReactionsTada = comment.ReactionsTada,
+                            ReactionsThinkingFace = comment.ReactionsThinkingFace,
+                            ReactionsHeart = comment.ReactionsHeart
+                        });
+
+                    issueCommentId++;
+                }
+            }
+        }
+    }
+
+    private static async Task<int> Main2(string[] args)
     {
         //args = new[]
         //{
@@ -1134,6 +1571,24 @@ internal static class Program
 
             var secretsJson = File.ReadAllText(secretsPath);
             return JsonSerializer.Deserialize<Secrets>(secretsJson)!;
+        }
+    }
+}
+
+static class ProgressExtensions
+{
+    public static IEnumerable<T> WithProgress<T>(this IReadOnlyList<T> data)
+    {
+        var lastPercentage = 0;
+
+        for (var i = 0; i < data.Count; i++)
+        {
+            var percentage = (int) float.Round((float) i / data.Count * 10, 0);
+            if (percentage != lastPercentage)
+                Console.WriteLine($"{percentage * 10}%...");
+
+            yield return data[i];
+            lastPercentage = percentage;
         }
     }
 }
