@@ -297,3 +297,82 @@ These would be less useful:
 | no:arch-owner | 99.3%       |
 | no:os-lead    | 99.9%       |
 | no:os-owner   | 99.9%       |
+
+## Comments
+
+Trie storing comments but associating them with comment ids rather than issue
+ids (no issue title nor body):
+
+Strings : 1,377,123
+Keys    : 3,079,890
+Nodes   : 3,802,281
+Size    : 599.04 MB
+
+Trie storing comments but using issue ids (no issue title nor body):
+
+Strings : 1,377,123
+Keys    : 3,079,890
+Nodes   : 3,802,281
+Size    : 437.53 MB
+
+Trie storing comments but using issue ids (no issue title nor body) but with stemmed tokens:
+
+Strings : 1,377,150
+Keys    : 3,037,697
+Nodes   : 3,761,508
+Size    : 425.77 MB
+
+Trie storing issue titles, stemmed:
+
+Strings : 101,860
+Keys    : 233,605
+Nodes   : 301,126
+Size    : 63.90MB
+
+Trie storing issue titles and bodies, stemmed:
+
+Strings : 1,226,439
+Keys    : 2,998,336
+Nodes   : 3,681,937
+Size    : 563.11MB
+
+Trie storing issue titles, bodies and comments, stemmed:
+
+> [!NOTE]
+>
+> The mutable trie OOM'ed on a 16 GB machine. There are many leaves and as we
+> learned above their value collections is where most of the memory use is
+> coming from. The standard list growing algorithm exacerbate that further.
+> Maybe we should offer a `TrimExcess()` method on the trie that calls that on
+> all nodes. We could call it every 1000 issues or so.
+
+Strings : NA
+Keys    : NA
+Nodes   : NA
+Size    : NA
+
+Trie storing issue titles, stemmed, (no bodies or comments) and `mentions`,
+`team`, `commenter`:
+
+Strings : 150,217
+Keys    : 416,445
+Nodes   : 545,776
+Size    : 84.29MB
+
+Trie storing issue titles, stemmed, (no bodies or comments) and `mentions`,
+`team`, `commenter`, and `involves`:
+
+Strings : 154,595
+Keys    : 564,225
+Nodes   : 741,811
+Size    : 101.92MB
+
+> [!NOTE]
+>
+> Explicitly storing `involves:` doesn't seem to be worth it. These queries
+> aren't that frequent and it would increase the trie by 20% and the number of
+> nodes by 35%.
+
+## Compress ints
+
+Trie out the library that compresses ints

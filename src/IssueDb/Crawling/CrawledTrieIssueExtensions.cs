@@ -1,4 +1,7 @@
-﻿using Markdig;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+using Markdig;
+using Snowball;
 
 namespace IssueDb.Crawling;
 
@@ -15,7 +18,13 @@ public static class CrawledTrieIssueExtensions
     public static IEnumerable<string> GetTrieTerms(this CrawledIssue issue)
     {
         var result = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-        AddTermsFromMarkdown(result, issue.Title);
+        GetTrieTerms(issue, result);
+        return result;
+    }
+
+    public static void GetTrieTerms(this CrawledIssue issue, ISet<string> target, bool withBody = false)
+    {
+        AddTermsFromMarkdown(target, issue.Title);
 
         // In a perfect world, we'd also index the body. Sadly, this is increases
         // the trie significantly.
@@ -36,86 +45,124 @@ public static class CrawledTrieIssueExtensions
         // likely even worse. This is unfortunate, because it would be amazing
         // to use the in-modifier like in:title,body,comment :-(
         //
-        // AddTermsFromMarkdown(result, issue.Body);
 
+        if (TryGetPlainText(issue.Body, out var bodyPlainText))
+        {
+            if (withBody)
+                AddTermsFromPlainText(target, bodyPlainText);
+
+            AddMentions(target, bodyPlainText);
+        }
 
         if (issue.IsOpen)
-            result.Add("is:open");
+            target.Add("is:open");
 
         if (issue.IsPullRequest && !issue.IsMerged)
-            result.Add("is:unmerged");
+            target.Add("is:unmerged");
 
         if (issue.IsPullRequest && issue.IsDraft)
-            result.Add("is:draft");
+            target.Add("is:draft");
 
-        result.Add($"org:{issue.Repo.Org}");
-        result.Add($"repo:{issue.Repo.Name}");
-        result.Add($"author:{issue.CreatedBy}");
+        target.Add($"org:{issue.Repo.Org}");
+        target.Add($"repo:{issue.Repo.Name}");
+        target.Add($"author:{issue.CreatedBy}");
 
         foreach (var assignee in issue.Assignees)
-            result.Add($"assignee:{assignee}");
+            target.Add($"assignee:{assignee}");
 
         foreach (var label in issue.Labels)
-            result.Add($"label:{label.Name}");
+            target.Add($"label:{label.Name}");
 
         foreach (var area in issue.Areas)
-            result.Add($"area-under:{area}");
+            target.Add($"area-under:{area}");
 
         foreach (var areaNode in issue.AreaNodes)
-            result.Add($"area-node:{areaNode}");
+            target.Add($"area-node:{areaNode}");
 
         foreach (var areaLead in issue.AreaLeads)
-            result.Add($"area-lead:{areaLead}");
+            target.Add($"area-lead:{areaLead}");
 
         foreach (var areaOwner in issue.AreaOwners)
-            result.Add($"area-owner:{areaOwner}");
+            target.Add($"area-owner:{areaOwner}");
 
         foreach (var os in issue.OperatingSystems)
-            result.Add($"os:{os}");
+            target.Add($"os:{os}");
 
         foreach (var osLead in issue.OperatingSystemLeads)
-            result.Add($"os-lead:{osLead}");
+            target.Add($"os-lead:{osLead}");
 
         foreach (var osOwner in issue.OperatingSystemOwners)
-            result.Add($"os-owner:{osOwner}");
+            target.Add($"os-owner:{osOwner}");
 
         foreach (var arch in issue.Architectures)
-            result.Add($"arch:{arch}");
+            target.Add($"arch:{arch}");
 
         foreach (var archLead in issue.ArchitectureLeads)
-            result.Add($"arch-lead:{archLead}");
+            target.Add($"arch-lead:{archLead}");
 
         foreach (var archOwner in issue.ArchitectureOwners)
-            result.Add($"arch-owner:{archOwner}");
+            target.Add($"arch-owner:{archOwner}");
 
         foreach (var lead in issue.Leads)
-            result.Add($"lead:{lead}");
+            target.Add($"lead:{lead}");
 
         foreach (var owner in issue.Owners)
-            result.Add($"owner:{owner}");
+            target.Add($"owner:{owner}");
 
         if (issue.Milestone is not null)
-            result.Add($"milestone:{issue.Milestone.Title}");
+            target.Add($"milestone:{issue.Milestone.Title}");
 
+        AddInvolves(target);
+    }
+
+    public static IEnumerable<string> GetTrieTerms(this CrawledIssueComment comment)
+    {
+        var result = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        GetTrieTerms(comment, result);
         return result;
+    }
+
+    public static void GetTrieTerms(this CrawledIssueComment comment, ISet<string> target, bool withBody = false)
+    {
+        if (TryGetPlainText(comment.Body, out var plainText))
+        {
+            AddMentions(target, plainText);
+
+            if (withBody)
+                AddTermsFromPlainText(target, plainText);
+        }
+
+        target.Add($"commenter:{comment.CreatedBy}");
+
+        AddInvolves(target);
     }
 
     private static void AddTermsFromMarkdown(ISet<string> target, string markdown)
     {
+        if (TryGetPlainText(markdown, out var plainText))
+            AddTermsFromPlainText(target, plainText);
+    }
+
+    private static bool TryGetPlainText(string markdown, [MaybeNullWhen(false)] out string plainText)
+    {
         if (string.IsNullOrEmpty(markdown))
-            return;
+        {
+            plainText = string.Empty;
+            return true;
+        }
 
         try
         {
-            var plainText = Markdown.ToPlainText(markdown);
-            AddTermsFromPlainText(target, plainText);
+            plainText = Markdown.ToPlainText(markdown);
+            return true;
         }
         catch (Exception)
         {
             // If we can't convert the Markdown (e.g. very large table or something)
             // we just give up.
-            return;
-        }
+            plainText = default;
+            return false;
+        }        
     }
 
     private static void AddTermsFromPlainText(ISet<string> target, string text)
@@ -124,6 +171,48 @@ public static class CrawledTrieIssueExtensions
             return;
 
         var tokens = TextTokenizer.Tokenize(text);
-        target.UnionWith(tokens);
+
+        foreach (var token in tokens)
+        {
+            var stemmed = _stemmer.Stem(token);
+            target.Add(stemmed);
+        }
     }
+
+    private static void AddMentions(ISet<string> target, string text)
+    {
+        foreach (Match match in Regex.Matches(text, @"@(?<UserOrTeam>[a-zA-Z0-9-]+(/[a-zA-Z0-9-]+)?)"))
+        {
+            var userOrTeam = match.Groups["UserOrTeam"].Value;
+            var isTeam = userOrTeam.Contains('/');
+
+            if (isTeam)
+                target.Add($"team:{userOrTeam}");
+            else
+                target.Add($"mentions:{userOrTeam}");
+        }
+    }
+
+    private static void AddInvolves(ISet<string> target)
+    {
+        foreach (var entry in target.ToArray())
+        {
+            var colon = entry.IndexOf(':');
+            if (colon < 0)
+                continue;
+
+            var key = entry.Substring(0, colon);
+
+            if (key is "author"
+                    or "assignee"
+                    or "mentions"
+                    or "commenter")
+            {
+                var value = entry.Substring(colon + 1);
+                target.Add($"involves:{value}");
+            }
+        }
+    }
+
+    private static readonly EnglishStemmer _stemmer = new EnglishStemmer();
 }
